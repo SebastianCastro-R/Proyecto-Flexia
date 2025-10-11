@@ -79,8 +79,8 @@ public class UsuariosDAO {
     }
 
     public boolean verificarUsuario(String correo, String contrasena) {
-        String sql = "SELECT contrasena FROM usuarios WHERE correo = ?";
-        
+        String sql = "SELECT contrasena FROM usuarios WHERE correo_electronico = ?";
+
         try (Connection conn = Conexion.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -89,7 +89,6 @@ public class UsuariosDAO {
 
             if (rs.next()) {
                 String contrasenaHash = rs.getString("contrasena");
-                // Verificar el hash con BCrypt
                 return BCrypt.checkpw(contrasena, contrasenaHash);
             }
 
@@ -103,25 +102,33 @@ public class UsuariosDAO {
     /**
      * Actualiza la contraseña de un usuario por su correo electrónico
      */
-    public boolean actualizarContrasena(String correo, String nuevaContrasenaPlano) {
-        String sql = "UPDATE usuarios SET contrasena = ? WHERE correo_electronico = ?";
-        
-        // Generar hash de la nueva contraseña
-        String hashed = BCrypt.hashpw(nuevaContrasenaPlano, BCrypt.gensalt(12));
+public boolean actualizarContrasena(String correo, String nuevaContrasenaPlano) {
+    String sql = "UPDATE usuarios SET contrasena = ? WHERE correo_electronico = ?";
 
-        try (Connection conn = Conexion.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+    // Generar nuevo hash con un salt distinto cada vez
+    String hashed = BCrypt.hashpw(nuevaContrasenaPlano, BCrypt.gensalt(12));
 
-            ps.setString(1, hashed);
-            ps.setString(2, correo);
+    try (Connection conn = Conexion.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            int filas = ps.executeUpdate();
-            return filas > 0;
+        ps.setString(1, hashed);
+        ps.setString(2, correo);
 
-        } catch (SQLException e) {
-            System.err.println("❌ Error al actualizar contraseña: " + e.getMessage());
+        int filas = ps.executeUpdate();
+
+        if (filas > 0) {
+            System.out.println("🔐 Contraseña actualizada correctamente para: " + correo);
+            return true;
+        } else {
+            System.out.println("⚠️ No se encontró usuario con el correo: " + correo);
             return false;
         }
+
+    } catch (SQLException e) {
+        System.err.println("❌ Error al actualizar contraseña: " + e.getMessage());
+        e.printStackTrace();
+        return false;
     }
+}
 
 }
