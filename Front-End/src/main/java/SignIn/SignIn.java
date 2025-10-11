@@ -669,6 +669,26 @@ private void ButtonSignInActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
         JOptionPane.showMessageDialog(this, "✅ Registro exitoso. ¡Bienvenido/a a FLEX-IA!");
         new login().setVisible(true);
         this.dispose();
+        // Enviar correo de confirmación
+        try {
+            String asunto = "Bienvenido a FLEX-IA";
+            String cuerpo = "Hola " + nombres + " " + apellidos + ",\n\n"
+                    + "Tu cuenta ha sido creada exitosamente.\n"
+                    + "Gracias por registrarte en FLEX-IA.\n\n"
+                    + "Atentamente,\nEl equipo de FLEX-IA.";
+
+            // Llamada al servicio de correo
+            CorreoService.enviarCorreo(correo, asunto, cuerpo);
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                    "⚠️ El registro fue exitoso, pero no se pudo enviar el correo de confirmación.\n"
+                    + "Error: " + e.getMessage(),
+                    "Advertencia", JOptionPane.WARNING_MESSAGE);
+        }
+
+        new login().setVisible(true);
+        this.dispose();
     } else {
         JOptionPane.showMessageDialog(this, "❌ Error al registrar el usuario. Intente nuevamente.", "Error", JOptionPane.ERROR_MESSAGE);
     }
