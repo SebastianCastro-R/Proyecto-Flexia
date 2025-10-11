@@ -484,6 +484,7 @@ public class SignIn extends javax.swing.JFrame {
         CorreoText.setForeground(new java.awt.Color(142, 142, 147));
         CorreoText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/correo.png"))); // NOI18N
         CorreoText.setText("Escribe tu Correo");
+        CorreoText.setToolTipText("");
         CorreoText.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 CorreoTextMouseClicked(evt);

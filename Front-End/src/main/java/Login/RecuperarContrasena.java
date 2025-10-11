@@ -9,6 +9,8 @@ import java.awt.*;
 public class RecuperarContrasena extends javax.swing.JFrame {
     
     private String correoUsuario;
+    private String codigoGenerado = "";
+
     /**
      * Creates new form RecuperarContrasena
      */
@@ -67,6 +69,9 @@ public class RecuperarContrasena extends javax.swing.JFrame {
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 ValidarButtonMouseExited(evt);
             }
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                validarCodigoAction(evt); // ¡ESTA LÍNEA FALTABA!
+            }
         });
         ValidarButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -98,6 +103,9 @@ public class RecuperarContrasena extends javax.swing.JFrame {
             }
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 EnviarButtonMouseExited(evt);
+            }
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                enviarCodigoAction(evt);
             }
         });
         jPanel1.add(EnviarButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 130, 110, 35));
@@ -132,6 +140,152 @@ public class RecuperarContrasena extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>                        
+
+    private void enviarCodigoAction(java.awt.event.MouseEvent evt) {
+        // Deshabilitar el botón para evitar múltiples clics
+        EnviarButton.setEnabled(false);
+        EnviarButton.setText("Enviando...");
+        
+        new Thread(() -> {
+            try {
+                // Generar código aleatorio
+                codigoGenerado = String.valueOf((int)(Math.random() * 900000) + 100000);
+
+                // Configura tu correo
+                String remitente = "alexandriabiblioteca611@gmail.com";
+                String password = "pnxqpirozaqbaidm";
+                String destinatario = correoUsuario;
+
+                // Validar que el correo no esté vacío
+                if (destinatario == null || destinatario.trim().isEmpty()) {
+                    javax.swing.SwingUtilities.invokeLater(() -> {
+                        javax.swing.JOptionPane.showMessageDialog(this,
+                            "No se encontró el correo electrónico.",
+                            "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+                        EnviarButton.setEnabled(true);
+                        EnviarButton.setText("Enviar código");
+                    });
+                    return;
+                }
+
+                String asunto = "Código de recuperación - Biblioteca Alexandria";
+                String mensaje = "Hola,\n\nTu código de recuperación es: " + codigoGenerado +
+                                "\n\nIngresa este código en la aplicación para continuar con el proceso de recuperación de contraseña." +
+                                "\n\nEste código es válido por 10 minutos." +
+                                "\n\nSi no solicitaste este código, por favor ignora este mensaje." +
+                                "\n\nAtentamente,\nEquipo de Biblioteca Alexandria";
+
+                java.util.Properties props = new java.util.Properties();
+                props.put("mail.smtp.auth", "true");
+                props.put("mail.smtp.starttls.enable", "true");
+                props.put("mail.smtp.host", "smtp.gmail.com");
+                props.put("mail.smtp.port", "587");
+                props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
+                props.put("mail.smtp.connectiontimeout", "10000");
+                props.put("mail.smtp.timeout", "10000");
+
+                javax.mail.Session session = javax.mail.Session.getInstance(props,
+                    new javax.mail.Authenticator() {
+                        protected javax.mail.PasswordAuthentication getPasswordAuthentication() {
+                            return new javax.mail.PasswordAuthentication(remitente, password);
+                        }
+                    });
+
+                javax.mail.Message message = new javax.mail.internet.MimeMessage(session);
+                message.setFrom(new javax.mail.internet.InternetAddress(remitente));
+                message.setRecipients(javax.mail.Message.RecipientType.TO,
+                        javax.mail.internet.InternetAddress.parse(destinatario));
+                message.setSubject(asunto);
+                message.setText(mensaje);
+
+                javax.mail.Transport.send(message);
+
+                javax.swing.SwingUtilities.invokeLater(() -> {
+                    javax.swing.JOptionPane.showMessageDialog(this,
+                        "✅ Código enviado a: " + destinatario +
+                        "\n\nRevisa tu bandeja de entrada o spam.",
+                        "Correo Enviado", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+
+                    // Preparar la interfaz para la validación
+                    CodeText.setText("");
+                    CodeText.setForeground(Color.BLACK);
+                    CodeText.setEnabled(true);
+                    ValidarButton.setEnabled(true);
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                // Mostrar error en el hilo de EDT
+                javax.swing.SwingUtilities.invokeLater(() -> {
+                    String errorMsg = "Error al enviar el correo.\n";
+                    
+                    if (e.getMessage().contains("Authentication failed")) {
+                        errorMsg += "Error de autenticación. Verifica la contraseña de aplicación.";
+                    } else if (e.getMessage().contains("Could not connect to SMTP host")) {
+                        errorMsg += "No se pudo conectar al servidor. Verifica tu conexión a internet.";
+                    } else {
+                        errorMsg += "Detalles: " + e.getMessage();
+                    }
+                    
+                    javax.swing.JOptionPane.showMessageDialog(this,
+                        errorMsg,
+                        "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+                });
+            } finally {
+                // Rehabilitar el botón en el hilo de EDT
+                javax.swing.SwingUtilities.invokeLater(() -> {
+                    EnviarButton.setEnabled(true);
+                    EnviarButton.setText("Enviar código");
+                });
+            }
+        }).start();
+    }
+
+    private void validarCodigoAction(java.awt.event.MouseEvent evt) {
+        String codigoIngresado = CodeText.getText().trim();
+        
+        // Validar que se haya ingresado un código
+        if (codigoIngresado.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                "Por favor ingresa el código que recibiste por correo.",
+                "Código vacío", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Validar que se haya generado un código primero
+        if (codigoGenerado == null || codigoGenerado.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                "Primero debes solicitar un código de verificación.",
+                "Código no generado", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (codigoIngresado.equals(codigoGenerado)) {
+            Chek.setVisible(true);
+            javax.swing.JOptionPane.showMessageDialog(this,
+                "✅ Código validado correctamente.\n\nAhora puedes establecer tu nueva contraseña.",
+                "Éxito", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            
+            // Abrir ventana para nueva contraseña
+            abrirVentanaNuevaContrasena();
+            
+        } else {
+            Chek.setVisible(false);
+            javax.swing.JOptionPane.showMessageDialog(this,
+                "❌ Código incorrecto. Por favor verifica el código e intenta nuevamente.",
+                "Error de validación", javax.swing.JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    private void abrirVentanaNuevaContrasena() {
+        // Cerrar esta ventana actual
+        this.dispose();
+        
+        // Crear y mostrar la ventana de nueva contraseña
+        java.awt.EventQueue.invokeLater(() -> {
+            new NuevaContrasena(correoUsuario).setVisible(true);
+        });
+    }
 
     private void MailTextActionPerformed(java.awt.event.ActionEvent evt) {                                         
         // TODO add your handling code here:

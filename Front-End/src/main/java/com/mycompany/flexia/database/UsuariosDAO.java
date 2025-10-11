@@ -100,4 +100,28 @@ public class UsuariosDAO {
         return false;
     }
 
+    /**
+     * Actualiza la contraseña de un usuario por su correo electrónico
+     */
+    public boolean actualizarContrasena(String correo, String nuevaContrasenaPlano) {
+        String sql = "UPDATE usuarios SET contrasena = ? WHERE correo_electronico = ?";
+        
+        // Generar hash de la nueva contraseña
+        String hashed = BCrypt.hashpw(nuevaContrasenaPlano, BCrypt.gensalt(12));
+
+        try (Connection conn = Conexion.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, hashed);
+            ps.setString(2, correo);
+
+            int filas = ps.executeUpdate();
+            return filas > 0;
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error al actualizar contraseña: " + e.getMessage());
+            return false;
+        }
+    }
+
 }
