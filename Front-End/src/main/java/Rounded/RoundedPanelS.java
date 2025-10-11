@@ -1,4 +1,4 @@
-package com.mycompany.flexia;
+package Rounded;
 import javax.swing.*;
 import java.awt.*;
 

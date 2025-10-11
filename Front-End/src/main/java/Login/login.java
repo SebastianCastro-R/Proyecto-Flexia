@@ -6,10 +6,13 @@ package Login;
 
 import SignIn.SignIn;
 import com.formdev.flatlaf.FlatLightLaf;
-import com.mycompany.flexia.RoundedPanelS;
+import Rounded.RoundedPanelS;
 import java.awt.*;
+import java.net.URL;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import Login.RecuperarContrasena;
 
 /**
  *
@@ -32,7 +35,7 @@ public class login extends javax.swing.JFrame {
         setLocationRelativeTo(null); // Centra la ventana
 
         // Cargar y escalar la imagen al tamaño del JFrame
-        ImageIcon originalIcon = new ImageIcon(getClass().getResource("/images/Background.jpg"));
+        ImageIcon originalIcon = new ImageIcon(getClass().getResource("/Images/Background.jpg"));
 
         Image scaledImage = originalIcon.getImage().getScaledInstance(1440, 1024, Image.SCALE_SMOOTH);
         ImageIcon scaledIcon = new ImageIcon(scaledImage);
@@ -117,7 +120,7 @@ public class login extends javax.swing.JFrame {
         panelIzquierdo.add(lblSubtexto);
 
         // ===== Imagen de la burbuja de texto =====
-        ImageIcon iconoBurbuja = new ImageIcon("src/main/resources/images/cuadroTexto.png");
+        ImageIcon iconoBurbuja = new javax.swing.ImageIcon(getClass().getResource("/Images/cuadroTexto.png"));
         Image imagenBurbujaEscalada = iconoBurbuja.getImage().getScaledInstance(205, 205, Image.SCALE_SMOOTH);
         ImageIcon iconoBurbujaEscalada = new ImageIcon(imagenBurbujaEscalada);
 
@@ -144,7 +147,7 @@ public class login extends javax.swing.JFrame {
         panelIzquierdo.add(lblBurbuja);
 
         // ===== Imagen de la mano (debajo de la burbuja) =====
-        ImageIcon iconoManoOriginal = new ImageIcon("src/main/resources/images/carpianin.png");
+        ImageIcon iconoManoOriginal = new ImageIcon(getClass().getResource("/Images/carpianin.png"));
         Image imagenManoEscalada = iconoManoOriginal.getImage().getScaledInstance(227, 221, Image.SCALE_SMOOTH);
         ImageIcon iconoManoEscalada = new ImageIcon(imagenManoEscalada);
 
@@ -201,7 +204,7 @@ public class login extends javax.swing.JFrame {
         add(panelDerecho);
 
         // ===== Logo superior =====
-        ImageIcon iconoLogo = new ImageIcon("src/main/resources/images/logo-flexia.png");
+        ImageIcon iconoLogo = new ImageIcon(getClass().getResource("/Images/logo-flexia.png"));
         Image logoEscalado = iconoLogo.getImage().getScaledInstance(209, 231, Image.SCALE_SMOOTH);
         ImageIcon iconoLogoEscalado = new ImageIcon(logoEscalado);
 
@@ -222,13 +225,13 @@ public class login extends javax.swing.JFrame {
         int espacio = 50; // separación horizontal entre ellos
         int inicioX = (panelDerecho.getWidth() - (3 * 51 + 2 * 40)) / 2; // centrado dinámico
 
-        JButton btnGoogle = crearBotonSocial("src/main/resources/images/google.png", inicioX, baseY, fondoCirculo);
+        JButton btnGoogle = crearBotonSocial("/Images/google.png", inicioX, baseY, fondoCirculo);
         btnGoogle.setOpaque(false);
         btnGoogle.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        JButton btnFacebook = crearBotonSocial("src/main/resources/images/facebook.png", inicioX + espacio + 40, baseY, fondoCirculo);
+        JButton btnFacebook = crearBotonSocial("/Images/facebook.png", inicioX + espacio + 40, baseY, fondoCirculo);
         btnFacebook.setOpaque(false);
         btnFacebook.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        JButton btnOutlook = crearBotonSocial("src/main/resources/images/outlook.png", inicioX + (espacio + 40) * 2, baseY, fondoCirculo);
+        JButton btnOutlook = crearBotonSocial("/Images/outlook.png", inicioX + (espacio + 40) * 2, baseY, fondoCirculo);
         btnOutlook.setOpaque(false);
         btnOutlook.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
@@ -252,7 +255,7 @@ public class login extends javax.swing.JFrame {
         // Crear un panel para el icono
         JPanel iconPanel = new JPanel(new BorderLayout());
         iconPanel.setOpaque(false); // transparente
-        JLabel lblIcono = new JLabel(new ImageIcon("src/main/resources/images/correo.png"));
+        JLabel lblIcono = new JLabel(new javax.swing.ImageIcon(getClass().getResource("/Images/correo.png")));
         lblIcono.setBorder(BorderFactory.createEmptyBorder(-2, 20, 0, 10)); // margen icono al borde y al texto
         iconPanel.add(lblIcono, BorderLayout.CENTER);
 
@@ -285,7 +288,7 @@ public class login extends javax.swing.JFrame {
         txtPass.putClientProperty("JComponent.arc", 30);
 
         // --- Icono a la izquierda ---
-        JLabel lblIconoLeft = new JLabel(new ImageIcon("src/main/resources/images/password.png"));
+        JLabel lblIconoLeft = new JLabel(new javax.swing.ImageIcon(getClass().getResource("/Images/Password.png")));
         lblIconoLeft.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 10));
         JPanel leftPanel = new JPanel(new BorderLayout());
         leftPanel.setOpaque(false);
@@ -293,7 +296,7 @@ public class login extends javax.swing.JFrame {
         txtPass.putClientProperty("JTextField.leadingComponent", leftPanel);
 
         // --- Icono a la derecha (mostrar/ocultar contraseña) ---
-        JLabel lblIconoRight = new JLabel(new ImageIcon("src/main/resources/images/eye_off.png")); // icono cerrado
+        JLabel lblIconoRight = new JLabel(new javax.swing.ImageIcon(getClass().getResource("/Images/eye_off.png"))); // icono cerrado
         lblIconoRight.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 15));
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.setOpaque(false);
@@ -310,10 +313,10 @@ public class login extends javax.swing.JFrame {
                 showing = !showing;
                 if (showing) {
                     txtPass.setEchoChar((char) 0); // mostrar texto
-                    lblIconoRight.setIcon(new ImageIcon("src/main/resources/images/eye_on.png"));
+                    lblIconoRight.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/eye_on.png")));
                 } else {
                     txtPass.setEchoChar('●'); // ocultar texto
-                    lblIconoRight.setIcon(new ImageIcon("src/main/resources/images/eye_off.png"));
+                    lblIconoRight.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/eye_off.png")));
                 }
             }
         });
@@ -335,14 +338,30 @@ public class login extends javax.swing.JFrame {
         lblOlvidar.setCursor(new Cursor(Cursor.HAND_CURSOR));
         // Opcional: efecto hover (cambiar color al pasar)
         lblOlvidar.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 lblOlvidar.setForeground(new Color(0x020300)); // un azul más oscuro
             }
 
+            @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 lblOlvidar.setForeground(new Color(0x1E3888));
             }
+
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                String correoUsuario = txtCorreo.getText(); // el texto del campo de correo
+                if (correoUsuario.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Por favor, ingresa tu correo primero.");
+                    return;
+                }
+
+                RecuperarContrasena ventanaRecuperar = new RecuperarContrasena(correoUsuario);
+                ventanaRecuperar.setVisible(true);
+                ventanaRecuperar.setLocationRelativeTo(null); // centrar
+            }
         });
+
         panelDerecho.add(lblOlvidar);
 
         // ===== Botón "Iniciar Sesión" =====
@@ -373,7 +392,13 @@ public class login extends javax.swing.JFrame {
     }
 
     private JButton crearBotonSocial(String rutaIcono, int x, int y, Color fondo) {
-        JButton btn = new JButton(new ImageIcon(rutaIcono));
+        URL url = getClass().getResource(rutaIcono);
+        if (url == null) {
+            System.err.println("❌ No se encontró la imagen: " + rutaIcono);
+            return new JButton(); // botón vacío si la imagen no existe
+        }
+
+        JButton btn = new JButton(new ImageIcon(url));
         btn.setBounds(x, y, 51, 50);
         btn.setBackground(fondo);
         btn.setFocusPainted(false);
@@ -383,6 +408,7 @@ public class login extends javax.swing.JFrame {
         btn.putClientProperty("JButton.arc", 50);
         return btn;
     }
+
 
     /**
      * This method is called from within the constructor to initialize the form.
