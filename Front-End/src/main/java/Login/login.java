@@ -6,6 +6,8 @@ package Login;
 
 import SignIn.SignIn;
 import com.formdev.flatlaf.FlatLightLaf;
+import com.mycompany.flexia.database.UsuariosDAO;
+
 import Rounded.RoundedPanelS;
 import java.awt.*;
 import java.net.URL;
@@ -21,11 +23,14 @@ import Login.RecuperarContrasena;
 public class login extends javax.swing.JFrame {
 
     int xmouse, ymouse;
+    private JTextField txtCorreo = new JTextField();
+    private JPasswordField txtPass = new JPasswordField();
 
     /**
      * Creates new form login
      */
     public login() {
+        
         initComponents();
         initStyles();
         initPanels();
@@ -246,7 +251,7 @@ public class login extends javax.swing.JFrame {
         panelDerecho.add(lblCorreo);
 
         // ===== Campo correo =====
-        JTextField txtCorreo = new JTextField();
+        
         txtCorreo.setBounds(80, 440, 286, 40);
         txtCorreo.setFont(new Font("Lato", Font.PLAIN, 16));
         txtCorreo.setForeground(new Color(142,142,147));
@@ -279,7 +284,7 @@ public class login extends javax.swing.JFrame {
         panelDerecho.add(lblPass);
 
         // ===== Campo contraseña =====
-        JPasswordField txtPass = new JPasswordField();
+        
         txtPass.setBounds(80, 520, 286, 40);
         txtPass.setFont(new Font("Lato", Font.PLAIN, 16));
         txtPass.setForeground(new Color(142, 142, 147));
@@ -385,6 +390,49 @@ public class login extends javax.swing.JFrame {
                 btnIniciar.setBackground(new Color(0x98CEFF));
                 btnIniciar.setForeground(Color.BLACK);
             }
+
+            
+        });
+
+        // ====== Acción al hacer clic (ActionListener) ======
+        btnIniciar.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                String correo = txtCorreo.getText();
+                String contrasena = new String(txtPass.getPassword());
+
+                if (correo.isEmpty() || contrasena.isEmpty()) {
+                    JOptionPane.showMessageDialog(
+                        null,
+                        "⚠️ Por favor, complete todos los campos.",
+                        "Campos vacíos",
+                        JOptionPane.WARNING_MESSAGE
+                    );
+                    return;
+                }
+
+                UsuariosDAO dao = new UsuariosDAO();
+
+                if (dao.autenticarUsuarioPorCorreo(correo, contrasena)) {
+                    JOptionPane.showMessageDialog(
+                        null,
+                        "✅ Inicio de sesión exitoso.",
+                        "Bienvenido",
+                        JOptionPane.INFORMATION_MESSAGE
+                    );
+
+                    // Ejemplo: abrir la siguiente ventana
+                    // new MenuPrincipal().setVisible(true);
+                    // dispose();
+                } else {
+                    JOptionPane.showMessageDialog(
+                        null,
+                        "❌ Correo o contraseña incorrectos.",
+                        "Error de inicio de sesión",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
         });
 
         panelDerecho.add(btnIniciar);
@@ -408,6 +456,9 @@ public class login extends javax.swing.JFrame {
         btn.putClientProperty("JButton.arc", 50);
         return btn;
     }
+
+    
+
 
 
     /**

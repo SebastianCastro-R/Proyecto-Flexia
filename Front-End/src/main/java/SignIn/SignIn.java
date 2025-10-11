@@ -7,6 +7,8 @@ package SignIn;
 import Login.FuenteUtil;
 import Login.login;
 import com.formdev.flatlaf.FlatLightLaf;
+import com.mycompany.flexia.database.UsuariosDAO;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -16,6 +18,7 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 
@@ -112,7 +115,7 @@ public class SignIn extends javax.swing.JFrame {
         PasswordText.putClientProperty("JComponent.arc", 30);
 
         // --- Icono a la izquierda ---
-        JLabel lblIconoLeft = new JLabel(new ImageIcon("src/main/resources/images/password.png"));
+        JLabel lblIconoLeft = new JLabel(new ImageIcon(getClass().getResource("/Images/password.png")));
         lblIconoLeft.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 10));
         JPanel leftPanel = new JPanel(new BorderLayout());
         leftPanel.setOpaque(false);
@@ -120,7 +123,7 @@ public class SignIn extends javax.swing.JFrame {
         PasswordText.putClientProperty("JTextField.leadingComponent", leftPanel);
 
         // --- Icono a la derecha (mostrar/ocultar contraseña) ---
-        JLabel lblIconoRight = new JLabel(new ImageIcon("src/main/resources/images/eye_off.png"));
+        JLabel lblIconoRight = new JLabel(new ImageIcon(getClass().getResource("/Images/eye_off.png")));
         lblIconoRight.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 15));
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.setOpaque(false);
@@ -137,10 +140,10 @@ public class SignIn extends javax.swing.JFrame {
                 showing = !showing;
                 if (showing) {
                     PasswordText.setEchoChar((char) 0);
-                    lblIconoRight.setIcon(new ImageIcon("src/main/resources/images/eye_on.png"));
+                    lblIconoRight.setIcon(new ImageIcon(getClass().getResource("/Images/eye_on.png")));
                 } else {
                     PasswordText.setEchoChar('●');
-                    lblIconoRight.setIcon(new ImageIcon("src/main/resources/images/eye_off.png"));
+                    lblIconoRight.setIcon(new ImageIcon(getClass().getResource("/Images/eye_off.png")));
                 }
             }
         });
@@ -545,7 +548,7 @@ public class SignIn extends javax.swing.JFrame {
         DateText.setForeground(new java.awt.Color(142, 142, 147));
         DateText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/date.png"))); // NOI18N
         DateText.setIconGap(2);
-        DateText.setText("dd/mm/aa");
+        DateText.setPlaceholder("YYYY-MM-DD");
         DateText.setToolTipText("");
         DateText.setFont(new java.awt.Font("Lato", 0, 15)); // NOI18N
         DateText.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -581,8 +584,78 @@ public class SignIn extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void ButtonSignInActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonSignInActionPerformed
-        // TODO add your handling code here:
+        // 1️⃣ Capturar los datos del formulario
+        String tipoId = IDType.getSelectedItem().toString();
+        String numeroId = numIDText.getText().trim();
+        String nombres = nameText.getText().trim();
+        String apellidos = ApellidosText.getText().trim();
+        String correo = CorreoText.getText().trim();
+        String contrasena = new String(PasswordText.getPassword()).trim();
+        String fechaNacimiento = DateText.getText().trim(); // formato: YYYY-MM-DD
+        String telefono = celText.getText().trim();
+        String genero = Genre.getSelectedItem().toString();
+
+        // 2️⃣ Validaciones de campos vacíos
+        if (tipoId.isEmpty() || numeroId.isEmpty() || nombres.isEmpty() || apellidos.isEmpty() ||
+            correo.isEmpty() || contrasena.isEmpty() || fechaNacimiento.isEmpty() || telefono.isEmpty() || genero.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "⚠️ Todos los campos son obligatorios.", "Campos vacíos", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // 3️⃣ Validar campos numéricos (número de ID y teléfono)
+        if (!numeroId.matches("\\d+")) {
+            JOptionPane.showMessageDialog(this, "⚠️ El número de identificación debe contener solo números.", "Error de formato", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (!telefono.matches("\\d+")) {
+            JOptionPane.showMessageDialog(this, "⚠️ El número de teléfono debe contener solo números.", "Error de formato", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 4️⃣ Validar formato de correo
+        if (!correo.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            JOptionPane.showMessageDialog(this, "⚠️ Ingresa un correo electrónico válido.", "Error de formato", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 5️⃣ Validar longitud de la contraseña
+        if (contrasena.length() < 6) {
+            JOptionPane.showMessageDialog(this, "⚠️ La contraseña debe tener al menos 6 caracteres.", "Contraseña débil", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // 6️⃣ Validar formato de fecha (YYYY-MM-DD)
+        java.sql.Date fechaSQL;
+        try {
+            fechaSQL = java.sql.Date.valueOf(fechaNacimiento);
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(this, "⚠️ La fecha debe tener el formato YYYY-MM-DD.", "Error de formato", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 7️⃣ Crear el DAO y registrar el usuario
+        UsuariosDAO dao = new UsuariosDAO();
+        boolean exito = dao.registrarUsuario(
+            tipoId,
+            numeroId,
+            nombres,
+            apellidos,
+            correo,
+            contrasena,      // CONTRASEÑA EN CLARO: DAO la hashea internamente
+            fechaSQL,
+            telefono,
+            genero,
+            false            // esPremium por defecto
+        );
+
+        if (exito) {
+            JOptionPane.showMessageDialog(this, "✅ Registro exitoso");
+        } else {
+            JOptionPane.showMessageDialog(this, "❌ Error al registrar usuario");
+        }
     }//GEN-LAST:event_ButtonSignInActionPerformed
+
 
     private void ButtonLogIn1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonLogIn1ActionPerformed
         // TODO add your handling code here:
