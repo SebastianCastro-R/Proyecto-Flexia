@@ -6,20 +6,28 @@ package SignIn;
 
 import Login.FuenteUtil;
 import Login.login;
+
 import com.formdev.flatlaf.FlatLightLaf;
 import com.mycompany.flexia.database.UsuariosDAO;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.net.URL;
+
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.UIManager;
 
 /**
@@ -583,79 +591,88 @@ public class SignIn extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void ButtonSignInActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonSignInActionPerformed
-        // 1️⃣ Capturar los datos del formulario
-        String tipoId = IDType.getSelectedItem().toString();
-        String numeroId = numIDText.getText().trim();
-        String nombres = nameText.getText().trim();
-        String apellidos = ApellidosText.getText().trim();
-        String correo = CorreoText.getText().trim();
-        String contrasena = new String(PasswordText.getPassword()).trim();
-        String fechaNacimiento = DateText.getText().trim(); // formato: YYYY-MM-DD
-        String telefono = celText.getText().trim();
-        String genero = Genre.getSelectedItem().toString();
+private void ButtonSignInActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonSignInActionPerformed
+    // 1️⃣ Capturar los datos del formulario
+    String tipoId = IDType.getSelectedItem().toString();
+    String numeroId = numIDText.getText().trim();
+    String nombres = nameText.getText().trim();
+    String apellidos = ApellidosText.getText().trim();
+    String correo = CorreoText.getText().trim();
+    String contrasena = new String(PasswordText.getPassword()).trim();
+    String fechaNacimiento = DateText.getText().trim(); // formato: YYYY-MM-DD
+    String telefono = celText.getText().trim();
+    String genero = Genre.getSelectedItem().toString();
 
-        // 2️⃣ Validaciones de campos vacíos
-        if (tipoId.isEmpty() || numeroId.isEmpty() || nombres.isEmpty() || apellidos.isEmpty() ||
-            correo.isEmpty() || contrasena.isEmpty() || fechaNacimiento.isEmpty() || telefono.isEmpty() || genero.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "⚠️ Todos los campos son obligatorios.", "Campos vacíos", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    // 2️⃣ Validaciones de campos vacíos
+    if (tipoId.isEmpty() || numeroId.isEmpty() || nombres.isEmpty() || apellidos.isEmpty() ||
+        correo.isEmpty() || contrasena.isEmpty() || fechaNacimiento.isEmpty() || telefono.isEmpty() || genero.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "⚠️ Todos los campos son obligatorios.", "Campos vacíos", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        // 3️⃣ Validar campos numéricos (número de ID y teléfono)
-        if (!numeroId.matches("\\d+")) {
-            JOptionPane.showMessageDialog(this, "⚠️ El número de identificación debe contener solo números.", "Error de formato", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+    // 3️⃣ Validar campos numéricos
+    if (!numeroId.matches("\\d+")) {
+        JOptionPane.showMessageDialog(this, "⚠️ El número de identificación debe contener solo números.", "Error de formato", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
 
-        if (!telefono.matches("\\d+")) {
-            JOptionPane.showMessageDialog(this, "⚠️ El número de teléfono debe contener solo números.", "Error de formato", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+    if (!telefono.matches("\\d+")) {
+        JOptionPane.showMessageDialog(this, "⚠️ El número de teléfono debe contener solo números.", "Error de formato", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
 
-        // 4️⃣ Validar formato de correo
-        if (!correo.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
-            JOptionPane.showMessageDialog(this, "⚠️ Ingresa un correo electrónico válido.", "Error de formato", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+    // 4️⃣ Validar formato de correo
+    if (!correo.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+        JOptionPane.showMessageDialog(this, "⚠️ Ingresa un correo electrónico válido.", "Error de formato", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
 
-        // 5️⃣ Validar longitud de la contraseña
-        if (contrasena.length() < 6) {
-            JOptionPane.showMessageDialog(this, "⚠️ La contraseña debe tener al menos 6 caracteres.", "Contraseña débil", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    // 5️⃣ Validar longitud de contraseña
+    if (contrasena.length() < 6) {
+        JOptionPane.showMessageDialog(this, "⚠️ La contraseña debe tener al menos 6 caracteres.", "Contraseña débil", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        // 6️⃣ Validar formato de fecha (YYYY-MM-DD)
-        java.sql.Date fechaSQL;
-        try {
-            fechaSQL = java.sql.Date.valueOf(fechaNacimiento);
-        } catch (IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(this, "⚠️ La fecha debe tener el formato YYYY-MM-DD.", "Error de formato", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+    // 6️⃣ Validar formato de fecha
+    java.sql.Date fechaSQL;
+    try {
+        fechaSQL = java.sql.Date.valueOf(fechaNacimiento);
+    } catch (IllegalArgumentException e) {
+        JOptionPane.showMessageDialog(this, "⚠️ La fecha debe tener el formato YYYY-MM-DD.", "Error de formato", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
 
-        // 7️⃣ Crear el DAO y registrar el usuario
-        UsuariosDAO dao = new UsuariosDAO();
-        boolean exito = dao.registrarUsuario(
-            tipoId,
-            numeroId,
-            nombres,
-            apellidos,
-            correo,
-            contrasena,      // CONTRASEÑA EN CLARO: DAO la hashea internamente
-            fechaSQL,
-            telefono,
-            genero,
-            false            // esPremium por defecto
-        );
+    // 7️⃣ Mostrar ventana emergente de Términos y Condiciones
+    boolean aceptado = mostrarTerminosYCondiciones();
+    if (!aceptado) {
+        JOptionPane.showMessageDialog(this, "Debe aceptar los Términos y Condiciones para continuar.", "Registro cancelado", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        if (exito) {
-            JOptionPane.showMessageDialog(this, "✅ Registro exitoso");
-        } else {
-            JOptionPane.showMessageDialog(this, "❌ Error al registrar usuario");
-        }
-    }//GEN-LAST:event_ButtonSignInActionPerformed
+    // 8️⃣ Registrar usuario solo si aceptó los términos
+    UsuariosDAO dao = new UsuariosDAO();
+    boolean exito = dao.registrarUsuario(
+        tipoId,
+        numeroId,
+        nombres,
+        apellidos,
+        correo,
+        contrasena, // el DAO la hashea internamente
+        fechaSQL,
+        telefono,
+        genero,
+        false // esPremium por defecto
+    );
 
+    if (exito) {
+        JOptionPane.showMessageDialog(this, "✅ Registro exitoso. ¡Bienvenido/a a FLEX-IA!");
+        new login().setVisible(true);
+        this.dispose();
+    } else {
+        JOptionPane.showMessageDialog(this, "❌ Error al registrar el usuario. Intente nuevamente.", "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+}//GEN-LAST:event_ButtonSignInActionPerformed
 
     private void ButtonLogIn1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonLogIn1ActionPerformed
         // TODO add your handling code here:
@@ -780,6 +797,128 @@ public class SignIn extends javax.swing.JFrame {
     private void PasswordTextMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_PasswordTextMousePressed
         PasswordText.setText("");
     }//GEN-LAST:event_PasswordTextMousePressed
+
+private boolean mostrarTerminosYCondiciones() {
+    // 🧾 Texto HTML con estilo visual y márgenes
+    String terminosHTML = """
+        <html>
+        <head>
+            <style>
+                body {
+                    font-family: 'Segoe UI', sans-serif;
+                    font-size: 13px;
+                    color: #333333;
+                    text-align: justify;
+                    margin: 12px;
+                    line-height: 1.5;
+                }
+                h2 {
+                    text-align: center;
+                    color: #1e88e5;
+                    margin-top: 0;
+                }
+                p {
+                    margin: 10px 0;
+                }
+                b {
+                    color: #1e88e5;
+                }
+            </style>
+        </head>
+        <body>
+            <h2>Términos y Condiciones de Uso</h2>
+            <p>Bienvenido/a a <b>FLEX-IA</b>, una aplicación diseñada para la prevención y tratamiento del síndrome del túnel carpiano.</p>
+
+            <p>Al registrarse, usted acepta que sus datos personales (como nombre, documento, edad, género, correo, número de teléfono, entre otros)
+            sean recolectados, almacenados y tratados por FLEX-IA con el propósito de ofrecerle un servicio personalizado en su proceso
+            de diagnóstico y recuperación.</p>
+
+            <p>Los datos ingresados durante el registro y en la <b>encuesta del dolor</b> serán utilizados únicamente con fines clínicos, estadísticos y de mejora del servicio.
+            FLEX-IA garantiza la confidencialidad y protección de su información conforme a las leyes de protección de datos vigentes.</p>
+
+            <p>En ningún caso compartiremos su información con terceros sin su consentimiento previo. Usted podrá solicitar la eliminación de sus datos en cualquier momento.</p>
+
+            <p>Al marcar la casilla “He leído y acepto los Términos y Condiciones” y presionar Aceptar, usted confirma haber leído y comprendido los presentes términos.</p>
+
+            <p style='margin-top:15px; font-size:12px; color:#666;'>Última actualización: Octubre 2025</p>
+        </body>
+        </html>
+        """;
+
+    // 🧠 Usamos JEditorPane en lugar de JLabel (mejor renderizado HTML)
+    JEditorPane editor = new JEditorPane("text/html", terminosHTML);
+    editor.setEditable(false);
+    editor.setOpaque(true);
+    editor.setBackground(Color.WHITE);
+
+    // 🔽 Scroll solo vertical
+    JScrollPane scroll = new JScrollPane(editor);
+    scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+    scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    scroll.setPreferredSize(new java.awt.Dimension(580, 340));
+    scroll.setBorder(BorderFactory.createEmptyBorder());
+
+    // ✅ Checkbox de aceptación
+    JCheckBox checkBox = new JCheckBox("He leído y acepto los Términos y Condiciones");
+    checkBox.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+
+    // 🎛 Botones
+    JButton btnAceptar = new JButton("Aceptar");
+    JButton btnCancelar = new JButton("Cancelar");
+
+    btnAceptar.setEnabled(false);
+    btnAceptar.setFocusPainted(false);
+    btnCancelar.setFocusPainted(false);
+
+    // 🎨 Estilo moderno (opcional)
+    btnAceptar.setBackground(new Color(30, 136, 229));
+    btnAceptar.setForeground(Color.WHITE);
+    btnCancelar.setBackground(new Color(240, 240, 240));
+    btnCancelar.setForeground(Color.BLACK);
+    btnAceptar.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
+    btnCancelar.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
+
+    // 🔄 Habilitar botón solo si se marca la casilla
+    checkBox.addActionListener(e -> btnAceptar.setEnabled(checkBox.isSelected()));
+
+    // 🧱 Panel inferior (checkbox + botones)
+    JPanel panelInferior = new JPanel(new BorderLayout(10, 10));
+    panelInferior.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    panelInferior.add(checkBox, BorderLayout.WEST);
+
+    JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+    panelBotones.add(btnCancelar);
+    panelBotones.add(btnAceptar);
+    panelInferior.add(panelBotones, BorderLayout.EAST);
+
+    // 🪟 Panel principal
+    JPanel panelPrincipal = new JPanel(new BorderLayout());
+    panelPrincipal.add(scroll, BorderLayout.CENTER);
+    panelPrincipal.add(panelInferior, BorderLayout.SOUTH);
+
+    // 🧩 Crear y configurar el diálogo
+    JDialog dialogo = new JDialog(this, "Términos y Condiciones", true);
+    dialogo.getContentPane().add(panelPrincipal);
+    dialogo.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+    dialogo.setResizable(false);
+    dialogo.pack();
+    dialogo.setLocationRelativeTo(this);
+
+    // 🧭 Controlar respuesta
+    final boolean[] aceptado = {false};
+    btnAceptar.addActionListener(e -> {
+        aceptado[0] = true;
+        dialogo.dispose();
+    });
+    btnCancelar.addActionListener(e -> {
+        aceptado[0] = false;
+        dialogo.dispose();
+    });
+
+    dialogo.setVisible(true);
+    return aceptado[0];
+}
+
 
     /**
      * @param args the command line arguments
