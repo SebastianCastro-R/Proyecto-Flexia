@@ -667,18 +667,18 @@ private void ButtonSignInActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
 
     if (exito) {
         JOptionPane.showMessageDialog(this, "✅ Registro exitoso. ¡Bienvenido/a a FLEX-IA!");
-        new login().setVisible(true);
-        this.dispose();
+        
         // Enviar correo de confirmación
         try {
-            String asunto = "Bienvenido a FLEX-IA";
-            String cuerpo = "Hola " + nombres + " " + apellidos + ",\n\n"
-                    + "Tu cuenta ha sido creada exitosamente.\n"
-                    + "Gracias por registrarte en FLEX-IA.\n\n"
-                    + "Atentamente,\nEl equipo de FLEX-IA.";
+            String asunto = "🎉 ¡Bienvenido a FLEX-IA!";
+            String rutaPlantilla = "src/main/resources/templates/plantilla_bienvenida.html";
+            String cuerpoHTML = CorreoService.cargarPlantilla(rutaPlantilla, nombres, apellidos);
 
+//abyss3817@gmail.com
             // Llamada al servicio de correo
-            CorreoService.enviarCorreo(correo, asunto, cuerpo);
+            new Thread(() -> {
+                CorreoService.enviarCorreo(correo, asunto, cuerpoHTML);
+            }).start();
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this,
