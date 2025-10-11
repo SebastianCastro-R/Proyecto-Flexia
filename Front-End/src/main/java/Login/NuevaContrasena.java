@@ -132,7 +132,7 @@ public class NuevaContrasena extends javax.swing.JFrame {
         }
 
         // Actualizar contraseña en la base de datos
-        if (actualizarContrasenaEnBD(correoUsuario, nuevaContrasena)) {
+        if (actualizarContrasena(correoUsuario, nuevaContrasena)) {
             JOptionPane.showMessageDialog(this, 
                 "✅ Contraseña actualizada correctamente.\n\nAhora puedes iniciar sesión con tu nueva contraseña.", 
                 "Éxito", JOptionPane.INFORMATION_MESSAGE);
@@ -146,7 +146,7 @@ public class NuevaContrasena extends javax.swing.JFrame {
         }
     }
 
-    private boolean actualizarContrasenaEnBD(String correo, String nuevaContrasena) {
+    private boolean actualizarContrasena(String correo, String nuevaContrasena) {
         // Usar el método del DAO si existe, sino hacer la actualización directa
         try {
             // Intentar usar el DAO primero
