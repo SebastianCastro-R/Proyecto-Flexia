@@ -674,7 +674,6 @@ private void ButtonSignInActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
             String rutaPlantilla = "src/main/resources/templates/plantilla_bienvenida.html";
             String cuerpoHTML = CorreoService.cargarPlantilla(rutaPlantilla, nombres, apellidos);
 
-//abyss3817@gmail.com
             // Llamada al servicio de correo
             new Thread(() -> {
                 CorreoService.enviarCorreo(correo, asunto, cuerpoHTML);

@@ -3,6 +3,9 @@ package SignIn;
 import java.util.Properties;
 import javax.mail.*;
 import javax.mail.internet.*;
+import javax.mail.util.ByteArrayDataSource;
+import javax.activation.DataHandler;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.io.FileNotFoundException;
@@ -11,8 +14,8 @@ import java.nio.charset.StandardCharsets;
 
 public class CorreoService {
 
-    private static final String REMITENTE = "alexandriabiblioteca611@gmail.com"; // tu correo
-    private static final String PASSWORD = "pnxqpirozaqbaidm"; // tu app password
+    private static final String REMITENTE = "alexandriabiblioteca611@gmail.com"; 
+    private static final String PASSWORD = "pnxqpirozaqbaidm"; 
 
     public static String cargarPlantilla(String ruta, String nombres, String apellidos) {
     try {
@@ -40,7 +43,7 @@ public class CorreoService {
     }
 
 
-    // 💌 Envía correos con HTML y UTF-8 (mantiene estilos e imágenes)
+    // Envía correos con HTML y UTF-8 (mantiene estilos e imágenes)
     public static boolean enviarCorreo(String destinatario, String asunto, String mensajeHtml) {
         try {
             Properties props = new Properties();
@@ -60,7 +63,34 @@ public class CorreoService {
             message.setFrom(new InternetAddress(REMITENTE, "FLEX-IA"));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(destinatario));
             message.setSubject(asunto, "UTF-8");
-            message.setContent(mensajeHtml, "text/html; charset=utf-8"); // 👈 HTML ACTIVO
+
+            MimeBodyPart htmlPart = new MimeBodyPart();
+            htmlPart.setContent(mensajeHtml, "text/html; charset=utf-8"); // HTML ACTIVO
+
+           // Imagen 1: logo FLEX-IA
+            MimeBodyPart logoPart = new MimeBodyPart();
+            try (InputStream logoStream = CorreoService.class.getResourceAsStream("/images/logo-flexia.png")) {
+                if (logoStream == null) throw new FileNotFoundException("No se encontró logo-flexia.png en resources");
+                logoPart.setDataHandler(new DataHandler(new ByteArrayDataSource(logoStream, "image/png")));
+                logoPart.setHeader("Content-ID", "<logoFlexia>");
+                logoPart.setDisposition(MimeBodyPart.INLINE);
+            }
+
+            // Imagen 2: mascota FLEX-IA
+            MimeBodyPart mascotaPart = new MimeBodyPart();
+            try (InputStream mascotaStream = CorreoService.class.getResourceAsStream("/images/Mascota.png")) {
+                if (mascotaStream == null) throw new FileNotFoundException("No se encontró Mascota.png en resources");
+                mascotaPart.setDataHandler(new DataHandler(new ByteArrayDataSource(mascotaStream, "image/png")));
+                mascotaPart.setHeader("Content-ID", "<mascotaFlexia>");
+                mascotaPart.setDisposition(MimeBodyPart.INLINE);
+            }
+
+            MimeMultipart multipart = new MimeMultipart("related");
+            multipart.addBodyPart(htmlPart);
+            multipart.addBodyPart(logoPart);
+            multipart.addBodyPart(mascotaPart);
+
+            message.setContent(multipart);
 
             Transport.send(message);
             System.out.println("✅ Correo enviado correctamente a " + destinatario);
