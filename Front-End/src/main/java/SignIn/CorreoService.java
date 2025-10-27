@@ -69,7 +69,7 @@ public class CorreoService {
 
            // Imagen 1: logo FLEX-IA
             MimeBodyPart logoPart = new MimeBodyPart();
-            try (InputStream logoStream = CorreoService.class.getResourceAsStream("/images/logo-flexia.png")) {
+            try (InputStream logoStream = CorreoService.class.getResourceAsStream("/images/logo-flexia2.png")) {
                 if (logoStream == null) throw new FileNotFoundException("No se encontró logo-flexia.png en resources");
                 logoPart.setDataHandler(new DataHandler(new ByteArrayDataSource(logoStream, "image/png")));
                 logoPart.setHeader("Content-ID", "<logoFlexia>");
