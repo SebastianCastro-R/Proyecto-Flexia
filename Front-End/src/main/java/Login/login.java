@@ -9,6 +9,7 @@ import com.formdev.flatlaf.FlatLightLaf;
 import com.mycompany.flexia.database.UsuariosDAO;
 
 import Rounded.RoundedPanelS;
+import Interfaz.Home;
 import java.awt.*;
 import java.net.URL;
 
@@ -421,9 +422,10 @@ public class login extends javax.swing.JFrame {
                         JOptionPane.INFORMATION_MESSAGE
                     );
 
-                    // Ejemplo: abrir la siguiente ventana
-                    // new MenuPrincipal().setVisible(true);
-                    // dispose();
+                    Home Home = new Home();
+                    Home.setVisible(true);
+                    Home.setLocationRelativeTo(null);
+
                 } else {
                     JOptionPane.showMessageDialog(
                         null,
