@@ -5,18 +5,40 @@
 package Interfaz;
 
 import java.awt.Color;
+import Login.login;
 
 /**
  *
  * @author Karol
  */
-public class Menu extends javax.swing.JFrame {
+public class Menu extends javax.swing.JPanel {
 
     /**
      * Creates new form Menu
      */
-    public Menu() {
+    public Menu(String pantallaActiva) {
         initComponents();
+        setBackground(new Color(250, 250, 250)); // fondo visible del panel contenedor
+        setOpaque(true);
+
+        // Asegurar que roundedPanel1 ocupe todo el espacio
+        roundedPanel1.setBounds(0, 0, getWidth(), getHeight());
+        roundedPanel1.setOpaque(true);
+        roundedPanel1.setRightRounded(true);
+        roundedPanel1.setLeftRounded(false);
+
+        this.pantallaActiva = pantallaActiva;
+        marcarBotonActual();
+    }
+
+    private void marcarBotonActual() {
+        switch (pantallaActiva) {
+            case "Home" -> setActiveButton(Inicio);
+            case "Videos" -> setActiveButton(Videos);
+            case "Estadisticas" -> setActiveButton(Estadisticas);
+            case "Perfil" -> setActiveButton(Perfil);
+            case "Contactanos" -> setActiveButton(Contactanos);
+        }
     }
 
     /**
@@ -43,9 +65,6 @@ public class Menu extends javax.swing.JFrame {
         jSeparator4 = new javax.swing.JSeparator();
         Contactanos = new javax.swing.JButton();
         jSeparator5 = new javax.swing.JSeparator();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setUndecorated(true);
 
         roundedPanel1.setBackground(new java.awt.Color(250, 250, 250));
         roundedPanel1.setLeftRounded(false);
@@ -302,8 +321,8 @@ public class Menu extends javax.swing.JFrame {
                 .addContainerGap(202, Short.MAX_VALUE))
         );
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(roundedPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -312,9 +331,26 @@ public class Menu extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(roundedPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
-
-        pack();
+        
     }// </editor-fold>//GEN-END:initComponents
+
+    // Método para marcar el botón activo (azul)
+    public void setActiveButton(javax.swing.JButton activeButton) {
+        java.awt.Color azul = new java.awt.Color(0, 102, 204);
+        java.awt.Color gris = new java.awt.Color(240, 240, 240);
+
+        javax.swing.JButton[] botones = {Inicio, Videos, Perfil, Contactanos, Estadisticas};
+
+        for (javax.swing.JButton b : botones) {
+            if (b == activeButton) {
+                b.setBackground(azul);
+                b.setForeground(Color.WHITE);
+            } else {
+                b.setBackground(gris);
+                b.setForeground(Color.BLACK);
+            }
+        }
+    }
 
     private void ButtonCerrarSesionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonCerrarSesionActionPerformed
         // TODO add your handling code here:
@@ -331,17 +367,17 @@ public class Menu extends javax.swing.JFrame {
     }//GEN-LAST:event_ButtonCerrarSesionMouseEntered
 
     private void ButtonCerrarSesionMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ButtonCerrarSesionMouseClicked
+
         // Abrir la ventana de LogIn
-        Ejercicio Ejercicio = new Ejercicio();
-        Ejercicio.setVisible(true);
-        Ejercicio.setLocationRelativeTo(null); // Centrar en pantalla
+        login login = new login();
+        login.setVisible(true);
+        login.setLocationRelativeTo(null); // Centrar en pantalla
     }//GEN-LAST:event_ButtonCerrarSesionMouseClicked
 
     private void InicioMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_InicioMouseClicked
         // Abrir la ventana de LogIn
-        Home Home = new Home();
-        Home.setVisible(true);
-        Home.setLocationRelativeTo(null); // Centrar en pantalla
+        new Home().setVisible(true);
+        javax.swing.SwingUtilities.getWindowAncestor(this).dispose();
     }//GEN-LAST:event_InicioMouseClicked
 
     private void InicioMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_InicioMouseEntered
@@ -360,9 +396,8 @@ public class Menu extends javax.swing.JFrame {
 
     private void VideosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_VideosMouseClicked
         // Abrir la ventana de LogIn
-        Ejercicios Ejercicios = new Ejercicios();
-        Ejercicios.setVisible(true);
-        Ejercicios.setLocationRelativeTo(null); // Centrar en pantalla
+        new Ejercicios().setVisible(true);
+        javax.swing.SwingUtilities.getWindowAncestor(this).dispose();
     }//GEN-LAST:event_VideosMouseClicked
 
     private void VideosMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_VideosMouseEntered
@@ -380,7 +415,7 @@ public class Menu extends javax.swing.JFrame {
     }//GEN-LAST:event_VideosActionPerformed
 
     private void CloseMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_CloseMouseClicked
-        this.dispose();
+        
     }//GEN-LAST:event_CloseMouseClicked
 
     private void EstadisticasMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_EstadisticasMouseClicked
@@ -441,41 +476,6 @@ public class Menu extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_ContactanosActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Menu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Menu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Menu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Menu.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Menu().setVisible(true);
-            }
-        });
-    }
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel Bienvenido;
     private javax.swing.JButton ButtonCerrarSesion;
@@ -492,5 +492,6 @@ public class Menu extends javax.swing.JFrame {
     private javax.swing.JSeparator jSeparator4;
     private javax.swing.JSeparator jSeparator5;
     private Rounded.RoundedPanel roundedPanel1;
+    private String pantallaActiva;
     // End of variables declaration//GEN-END:variables
 }

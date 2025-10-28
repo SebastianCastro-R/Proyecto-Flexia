@@ -9,8 +9,25 @@ import java.util.List;
 
 public class Ejercicios extends javax.swing.JFrame {
 
+    private Menu menuPanel;
+    private boolean menuVisible = false;
+    private int menuWidth = 370; // ancho del panel del menú
+    private int menuX = -menuWidth; // posición inicial fuera de pantalla
+
     public Ejercicios() {
         initComponents();
+
+        menuPanel = new Menu("Videos");
+        menuPanel.setBounds(menuX, 0, menuWidth, getHeight());
+        menuPanel.setVisible(true);
+        menuPanel.setOpaque(true);
+        menuPanel.setBackground(new Color(250, 250, 250)); // fondo blanco visible
+
+        getContentPane().add(menuPanel);
+        getContentPane().setComponentZOrder(menuPanel, 0); // asegúrate que esté arriba
+        revalidate();
+        repaint();
+
         setLocationRelativeTo(null);
     }
 
@@ -165,11 +182,36 @@ public class Ejercicios extends javax.swing.JFrame {
         tituloLbl.setFont(new Font("Epunda Slab ExtraBold", Font.PLAIN, 18));
         tituloLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        // Contenedor para la imagen + botón de play
+        JPanel contenedorImagen = new JPanel(null);
+        contenedorImagen.setPreferredSize(new Dimension(250, 140));
+        contenedorImagen.setMaximumSize(new Dimension(250, 140));
+        contenedorImagen.setBackground(new Color(245, 245, 250));
+
         ImageIcon original = new ImageIcon(getClass().getResource(rutaImagen));
         Image imgEscalada = original.getImage().getScaledInstance(250, 140, Image.SCALE_SMOOTH);
         JLabel preview = new JLabel(new ImageIcon(imgEscalada));
-        preview.setAlignmentX(Component.CENTER_ALIGNMENT);
-        preview.setBorder(new EmptyBorder(10, 0, 10, 0));
+        preview.setBounds(0, 0, 250, 140);
+        contenedorImagen.add(preview);
+
+        // Botón de play centrado sobre la imagen
+        JLabel playBtn = new JLabel(new ImageIcon(getClass().getResource("/icons/play.png")));
+        playBtn.setBounds(100, 45, 50, 50);
+        playBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // Acción al hacer clic (abrir interfaz de reproducción)
+        playBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // Aquí abrirías la interfaz del video desde BD
+                Ejercicios.this.dispose();
+                Instrucciones instrucciones = new Instrucciones();
+                instrucciones.setVisible(true);
+                instrucciones.setLocationRelativeTo(null);
+            }
+        });
+
+        contenedorImagen.add(playBtn);
 
         JTextArea desc = new JTextArea(descripcion);
         desc.setLineWrap(true);
@@ -179,18 +221,11 @@ public class Ejercicios extends javax.swing.JFrame {
         desc.setFont(new Font("SansSerif", Font.PLAIN, 13));
         desc.setBorder(null);
 
-        JButton verMas = new JButton("Ver más →");
-        verMas.setBackground(new Color(30, 56, 136));
-        verMas.setForeground(Color.WHITE);
-        verMas.setFocusPainted(false);
-        verMas.setAlignmentX(Component.CENTER_ALIGNMENT);
-        verMas.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
         panel.add(tituloLbl);
-        panel.add(preview);
-        panel.add(desc);
         panel.add(Box.createVerticalStrut(10));
-        panel.add(verMas);
+        panel.add(contenedorImagen);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(desc);
 
         return panel;
     }
@@ -199,4 +234,3 @@ public class Ejercicios extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(() -> new Ejercicios().setVisible(true));
     }
 }
-
