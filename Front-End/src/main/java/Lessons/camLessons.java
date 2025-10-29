@@ -7,8 +7,10 @@ package Lessons;
 import Login.FuenteUtil;
 import com.formdev.flatlaf.FlatLightLaf;
 import java.awt.*;
-import java.io.DataInputStream;
 import java.net.Socket;
+import javax.swing.*;
+import java.io.*;
+import java.awt.*;
 
 import javax.swing.*;
 
@@ -17,22 +19,27 @@ import javax.swing.*;
  * @author kfkdm
  */
 public class camLessons extends javax.swing.JFrame {
-    
+
     int xmouse, ymouse;
 
     /**
      * Creates new form camLessons
      */
     public camLessons() {
-        initComponents();
+        checkLabel = new JLabel();  // ✅ crear el JLabel ANTES
+        initComponents();           // ahora ya existe y no será null
         initStyles();
         startCameraStream();
 
         setSize(905, 680);
         setResizable(false);
         setLocationRelativeTo(null);
+
+        checkLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        checkLabel.setPreferredSize(new Dimension(100, 100));
     }
-    
+
+
     private void initStyles() {
         Closetxt.setFont(FuenteUtil.cargarFuente("EpundaSlab-ExtraBold.ttf", 30f));
         Closetxt.setForeground(new Color(250, 250, 250));
@@ -46,68 +53,114 @@ public class camLessons extends javax.swing.JFrame {
     private void startCameraStream() {
         new Thread(() -> {
             try {
-                // 1️⃣ Iniciar el script Python
+                // 1️⃣ Iniciar el servidor Python automáticamente
+                System.out.println("Iniciando script de Python...");
                 ProcessBuilder pb = new ProcessBuilder("python", "Back-End/leccionCamara.py");
                 pb.redirectErrorStream(true);
                 pythonProcess = pb.start();
-                System.out.println("🟢 Script de Python iniciado.");
 
-                // 2️⃣ Esperar a que el servidor Python esté listo
-                boolean conectado = false;
+                // Mostrar salida de Python en consola Java
+                new Thread(() -> {
+                    try (BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(pythonProcess.getInputStream()))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            System.out.println("[PYTHON] " + line);
+                        }
+                    } catch (IOException e) {
+                        System.out.println("Error leyendo salida de Python: " + e.getMessage());
+                    }
+                }).start();
+
+                // 2️⃣ Intentar conexión con reintentos
                 Socket socket = null;
-                for (int i = 0; i < 10; i++) { // intentar 10 veces
+                int intentos = 0;
+                while (socket == null && intentos < 10) {
                     try {
                         Thread.sleep(1000);
                         socket = new Socket("localhost", 9999);
-                        conectado = true;
-                        break;
-                    } catch (Exception e) {
-                        System.out.println("Intentando conectar con Python... (" + (i+1) + ")");
+                        System.out.println("Conectado al servidor Python.");
+                    } catch (IOException e) {
+                        intentos++;
+                        System.out.println("Intentando conectar con Python... (" + intentos + ")");
                     }
                 }
 
-                if (!conectado) {
-                    cameraLabel.setText("❌ No se pudo conectar con el servidor Python");
-                    pythonProcess.destroy();
+                if (socket == null) {
+                    System.out.println("No se pudo conectar con Python después de varios intentos.");
+                    pythonProcess.destroyForcibly();
+                    SwingUtilities
+                            .invokeLater(() -> cameraLabel.setText("No se pudo conectar con el servidor Python"));
                     return;
                 }
 
-                System.out.println("✅ Conectado al servidor Python.");
                 DataInputStream input = new DataInputStream(socket.getInputStream());
 
+                // 3️⃣ Ciclo principal: recibir frames o mensajes
                 while (true) {
-                    int size = input.readInt();
-                    if (size <= 0) break;
+                    int size;
+                    try {
+                        size = input.readInt(); // lee el tamaño del paquete
+                    } catch (EOFException e) {
+                        System.out.println("Conexión cerrada por Python.");
+                        break;
+                    }
+
+                    if (size <= 0)
+                        continue;
 
                     byte[] data = new byte[size];
                     input.readFully(data);
 
-                    ImageIcon image = new ImageIcon(javax.imageio.ImageIO.read(
-                        new java.io.ByteArrayInputStream(data)));
+                    // 🧩 Si el mensaje es STATUS:OK → mostrar check
+                    String mensaje = new String(data);
+                    if (mensaje.startsWith("STATUS:OK")) {
+                        System.out.println("Ejercicio completado (STATUS:OK)");
+                        SwingUtilities.invokeLater(() -> {
+                            try {
+                                ImageIcon checkIcon = new ImageIcon(getClass().getResource("/Images/check.png"));
+                                Image img = checkIcon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+                                checkLabel.setIcon(new ImageIcon(img));
+                            } catch (Exception ex) {
+                                System.out.println("No se pudo cargar el ícono del check: " + ex.getMessage());
+                            }
+                        });
+                        continue;
+                    }
 
-                    cameraLabel.setIcon(image);
-                    cameraLabel.setText("");
+                    // 🧩 Si no es texto, asumimos que es un frame JPEG
+                    try {
+                        Image image = javax.imageio.ImageIO.read(new ByteArrayInputStream(data));
+                        if (image != null) {
+                            SwingUtilities.invokeLater(() -> {
+                                cameraLabel.setIcon(new ImageIcon(image));
+                                cameraLabel.setText("");
+                            });
+                        }
+                    } catch (Exception ex) {
+                        System.out.println("No se pudo decodificar frame: " + ex.getMessage());
+                    }
                 }
 
+                // 4️⃣ Cerrar todo correctamente
                 input.close();
                 socket.close();
-                pythonProcess.destroy();
-                System.out.println("🔴 Conexión cerrada y proceso Python finalizado.");
+
+                if (pythonProcess.isAlive()) {
+                    pythonProcess.destroy();
+                    Thread.sleep(500);
+                    if (pythonProcess.isAlive()) {
+                        pythonProcess.destroyForcibly();
+                    }
+                }
+
+                System.out.println("🔚 Conexión y proceso Python cerrados correctamente.");
 
             } catch (Exception e) {
                 e.printStackTrace();
-                cameraLabel.setText("Error al conectar con la cámara");
+                SwingUtilities.invokeLater(() -> cameraLabel.setText("❌ Error al conectar con la cámara"));
             }
         }).start();
-    }
-
-    private Process pythonProcess;
-
-    public void cerrarProcesoPython() {
-        if (pythonProcess != null && pythonProcess.isAlive()) {
-            pythonProcess.destroy();
-            System.out.println("🔴 Proceso Python finalizado correctamente.");
-        }
     }
 
     /**
@@ -116,7 +169,8 @@ public class camLessons extends javax.swing.JFrame {
      * regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc="Generated
+    // Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         bg = new javax.swing.JPanel();
@@ -141,6 +195,7 @@ public class camLessons extends javax.swing.JFrame {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 headerMouseClicked(evt);
             }
+
             public void mousePressed(java.awt.event.MouseEvent evt) {
                 headerMousePressed(evt);
             }
@@ -158,9 +213,11 @@ public class camLessons extends javax.swing.JFrame {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 ClosetxtMouseClicked(evt);
             }
+
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 ClosetxtMouseEntered(evt);
             }
+
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 ClosetxtMouseExited(evt);
             }
@@ -169,15 +226,14 @@ public class camLessons extends javax.swing.JFrame {
         javax.swing.GroupLayout ClosebtnLayout = new javax.swing.GroupLayout(Closebtn);
         Closebtn.setLayout(ClosebtnLayout);
         ClosebtnLayout.setHorizontalGroup(
-            ClosebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(Closetxt, javax.swing.GroupLayout.DEFAULT_SIZE, 60, Short.MAX_VALUE)
-        );
+                ClosebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(Closetxt, javax.swing.GroupLayout.DEFAULT_SIZE, 60, Short.MAX_VALUE));
         ClosebtnLayout.setVerticalGroup(
-            ClosebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(ClosebtnLayout.createSequentialGroup()
-                .addComponent(Closetxt, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
+                ClosebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(ClosebtnLayout.createSequentialGroup()
+                                .addComponent(Closetxt, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addContainerGap()));
 
         minimizebtn.setBackground(new java.awt.Color(30, 56, 136));
 
@@ -187,9 +243,11 @@ public class camLessons extends javax.swing.JFrame {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 minimizetxtMouseClicked(evt);
             }
+
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 minimizetxtMouseEntered(evt);
             }
+
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 minimizetxtMouseExited(evt);
             }
@@ -198,35 +256,42 @@ public class camLessons extends javax.swing.JFrame {
         javax.swing.GroupLayout minimizebtnLayout = new javax.swing.GroupLayout(minimizebtn);
         minimizebtn.setLayout(minimizebtnLayout);
         minimizebtnLayout.setHorizontalGroup(
-            minimizebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, minimizebtnLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(minimizetxt, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
+                minimizebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, minimizebtnLayout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(minimizetxt, javax.swing.GroupLayout.PREFERRED_SIZE, 60,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE)));
         minimizebtnLayout.setVerticalGroup(
-            minimizebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(minimizetxt, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
-        );
+                minimizebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(minimizetxt, javax.swing.GroupLayout.PREFERRED_SIZE, 46,
+                                javax.swing.GroupLayout.PREFERRED_SIZE));
 
         javax.swing.GroupLayout headerLayout = new javax.swing.GroupLayout(header);
         header.setLayout(headerLayout);
         headerLayout.setHorizontalGroup(
-            headerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(headerLayout.createSequentialGroup()
-                .addGap(23, 23, 23)
-                .addComponent(titlelbl, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 590, Short.MAX_VALUE)
-                .addComponent(minimizebtn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(Closebtn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
+                headerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(headerLayout.createSequentialGroup()
+                                .addGap(23, 23, 23)
+                                .addComponent(titlelbl, javax.swing.GroupLayout.PREFERRED_SIZE, 166,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 590,
+                                        Short.MAX_VALUE)
+                                .addComponent(minimizebtn, javax.swing.GroupLayout.PREFERRED_SIZE,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(Closebtn, javax.swing.GroupLayout.PREFERRED_SIZE,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)));
         headerLayout.setVerticalGroup(
-            headerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(titlelbl, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(headerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                .addComponent(minimizebtn, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(Closebtn, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
+                headerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(titlelbl, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(headerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(minimizebtn, javax.swing.GroupLayout.Alignment.LEADING,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE)
+                                .addComponent(Closebtn, javax.swing.GroupLayout.Alignment.LEADING,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE)));
 
         cameraLabel = new javax.swing.JLabel();
         cameraLabel.setBackground(Color.BLACK);
@@ -238,18 +303,28 @@ public class camLessons extends javax.swing.JFrame {
         bg.setLayout(bgLayout);
         bgLayout.setHorizontalGroup(
             bgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addComponent(header, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(header, javax.swing.GroupLayout.DEFAULT_SIZE,
+                        javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(bgLayout.createSequentialGroup()
-                    .addGap(30) // espacio desde el borde izquierdo
-                    .addComponent(cameraLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 533, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(342, Short.MAX_VALUE)) // resto del espacio
+                    .addGap(30)
+                    .addComponent(cameraLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 533,
+                            javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(30)
+                    .addComponent(checkLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 100,
+                            javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addContainerGap(30, Short.MAX_VALUE))
         );
         bgLayout.setVerticalGroup(
             bgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(bgLayout.createSequentialGroup()
-                    .addComponent(header, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(header, javax.swing.GroupLayout.PREFERRED_SIZE, 40,
+                            javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGap(20)
-                    .addComponent(cameraLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 569, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(bgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(cameraLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 569,
+                                javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(checkLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 100,
+                                javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGap(0, 51, Short.MAX_VALUE))
         );
 
@@ -257,59 +332,59 @@ public class camLessons extends javax.swing.JFrame {
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(bg, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-        );
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(bg, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                javax.swing.GroupLayout.PREFERRED_SIZE));
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(bg, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(bg, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                Short.MAX_VALUE));
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void ClosetxtMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ClosetxtMouseClicked
+    private void ClosetxtMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ClosetxtMouseClicked
         System.exit(0);
-    }//GEN-LAST:event_ClosetxtMouseClicked
+    }// GEN-LAST:event_ClosetxtMouseClicked
 
-    private void ClosetxtMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ClosetxtMouseEntered
+    private void ClosetxtMouseEntered(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ClosetxtMouseEntered
         Closebtn.setBackground(Color.red);
         Closetxt.setForeground(new Color(250, 250, 250));
-    }//GEN-LAST:event_ClosetxtMouseEntered
+    }// GEN-LAST:event_ClosetxtMouseEntered
 
-    private void ClosetxtMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ClosetxtMouseExited
+    private void ClosetxtMouseExited(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ClosetxtMouseExited
         Closebtn.setBackground(new Color(30, 56, 136));
         Closetxt.setForeground(new Color(250, 250, 250));
-    }//GEN-LAST:event_ClosetxtMouseExited
+    }// GEN-LAST:event_ClosetxtMouseExited
 
-    private void minimizetxtMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_minimizetxtMouseClicked
+    private void minimizetxtMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_minimizetxtMouseClicked
         this.setState(JFrame.ICONIFIED);
-    }//GEN-LAST:event_minimizetxtMouseClicked
+    }// GEN-LAST:event_minimizetxtMouseClicked
 
-    private void minimizetxtMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_minimizetxtMouseEntered
+    private void minimizetxtMouseEntered(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_minimizetxtMouseEntered
         minimizebtn.setBackground(Color.decode("#2e4ca9"));
-    }//GEN-LAST:event_minimizetxtMouseEntered
+    }// GEN-LAST:event_minimizetxtMouseEntered
 
-    private void minimizetxtMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_minimizetxtMouseExited
+    private void minimizetxtMouseExited(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_minimizetxtMouseExited
         minimizebtn.setBackground(new Color(30, 56, 136));
         minimizetxt.setForeground(new Color(250, 250, 250));
-    }//GEN-LAST:event_minimizetxtMouseExited
+    }// GEN-LAST:event_minimizetxtMouseExited
 
-    private void headerMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_headerMouseDragged
+    private void headerMouseDragged(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_headerMouseDragged
         int x = evt.getXOnScreen();
         int y = evt.getYOnScreen();
         this.setLocation(x - xmouse, y - ymouse);
-    }//GEN-LAST:event_headerMouseDragged
+    }// GEN-LAST:event_headerMouseDragged
 
-    private void headerMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_headerMouseClicked
+    private void headerMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_headerMouseClicked
         // TODO add your handling code here:
-    }//GEN-LAST:event_headerMouseClicked
+    }// GEN-LAST:event_headerMouseClicked
 
-    private void headerMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_headerMousePressed
+    private void headerMousePressed(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_headerMousePressed
         xmouse = evt.getX();
         ymouse = evt.getY();
-    }//GEN-LAST:event_headerMousePressed
+    }// GEN-LAST:event_headerMousePressed
 
     /**
      * @param args the command line arguments
@@ -334,6 +409,53 @@ public class camLessons extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(() -> ventana.setVisible(true));
     }
 
+    // 🔹 Iniciar el servidor Python automáticamente
+    private void iniciarServidorPython() {
+        try {
+            System.out.println("? Iniciando script de Python...");
+            ProcessBuilder pb = new ProcessBuilder("python", "leccionCamara.py");
+            pb.redirectErrorStream(true); // combinar salida y errores
+            pythonProcess = pb.start();
+
+            // Hilo para leer salida del proceso y ver mensajes
+            new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(pythonProcess.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        System.out.println("[PYTHON] " + line);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+
+            // Esperar unos segundos para que el servidor Python arranque
+            Thread.sleep(2000);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("No se pudo iniciar el servidor Python.");
+        }
+    }
+
+    // 🔹 Método para cerrar el proceso de Python al cerrar la ventana
+    private void cerrarProcesoPython() {
+        if (pythonProcess != null && pythonProcess.isAlive()) {
+            try {
+                pythonProcess.destroy(); // intento normal
+                Thread.sleep(500); // espera medio segundo por si tarda un poco
+                if (pythonProcess.isAlive()) {
+                    pythonProcess.destroyForcibly(); // fuerza la terminación si no murió aún
+                    System.out.println("Proceso Python forzado a terminar.");
+                } else {
+                    System.out.println("Proceso de Python terminado correctamente.");
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel Closebtn;
@@ -344,6 +466,8 @@ public class camLessons extends javax.swing.JFrame {
     private javax.swing.JLabel minimizetxt;
     private javax.swing.JLabel titlelbl;
     private javax.swing.JLabel cameraLabel;
+    private JLabel checkLabel;
+    private Process pythonProcess;
 
     // End of variables declaration//GEN-END:variables
 }
