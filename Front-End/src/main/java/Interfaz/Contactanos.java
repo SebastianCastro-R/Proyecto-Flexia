@@ -5,6 +5,7 @@
 package Interfaz;
 
 import java.awt.Color;
+import javax.swing.Timer;
 
 /**
  *
@@ -12,11 +13,36 @@ import java.awt.Color;
  */
 public class Contactanos extends javax.swing.JFrame {
 
+    private Menu menuPanel;
+    private boolean menuVisible = false;
+    private int menuWidth = 370; // ancho del panel del menú
+    private int menuX = -menuWidth; // posición inicial fuera de pantalla
+
     /**
      * Creates new form Contactanos
      */
     public Contactanos() {
+        setUndecorated(true);
+        
         initComponents();
+
+        menuPanel = new Menu("Home");
+        menuPanel.setBounds(menuX, 0, menuWidth, getHeight());
+        menuPanel.setVisible(true);
+        menuPanel.setOpaque(true);
+        menuPanel.setBackground(new Color(250, 250, 250)); // fondo blanco visible
+
+        getContentPane().add(menuPanel);
+        getContentPane().setComponentZOrder(menuPanel, 0); // asegúrate que esté arriba
+        revalidate();
+        repaint();
+
+        setLayout(null);
+        // Configuración de la ventana
+        setSize(1440, 1024);
+        setLocationRelativeTo(null);
+        setResizable(false); 
+
     }
 
     /**
@@ -52,6 +78,12 @@ public class Contactanos extends javax.swing.JFrame {
         jPanel2.add(Titulo, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 0, -1, 40));
 
         Menu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/menu.png"))); // NOI18N
+        Menu.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        Menu.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                toggleMenu(evt);
+            }
+        });
         jPanel2.add(Menu, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 5, -1, 30));
 
         Exit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/exit.png"))); // NOI18N
@@ -129,6 +161,34 @@ public class Contactanos extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_MensajeTxtActionPerformed
 
+    private void toggleMenu(java.awt.event.MouseEvent evt) {
+        if (menuVisible) {
+            // Ocultar menú
+            Timer slideOut = new Timer(2, e -> {
+                if (menuX > -menuWidth) {
+                    menuX -= 10;
+                    menuPanel.setLocation(menuX, 0);
+                } else {
+                    ((Timer) e.getSource()).stop();
+                    menuVisible = false;
+                }
+            });
+            slideOut.start();
+        } else {
+            // Mostrar menú
+            Timer slideIn = new Timer(2, e -> {
+                if (menuX < 0) {
+                    menuX += 10;
+                    menuPanel.setLocation(menuX, 0);
+                } else {
+                    ((Timer) e.getSource()).stop();
+                    menuVisible = true;
+                }
+            });
+            slideIn.start();
+        }
+    }
+
     /**
      * @param args the command line arguments
      */
@@ -163,6 +223,7 @@ public class Contactanos extends javax.swing.JFrame {
             }
         });
     }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private componentes.IconTextField Asunto;

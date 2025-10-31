@@ -4,17 +4,52 @@
  */
 package Interfaz;
 
+import java.awt.Color;
+import javax.swing.Timer;
+import javax.swing.SwingUtilities;
+
 /**
  *
  * @author Karol
  */
 public class Perfil extends javax.swing.JFrame {
 
+    private Menu menuPanel;
+    private boolean menuVisible = false;
+    private int menuWidth = 370; // ancho del panel del menú
+    private int menuX = -menuWidth; // posición inicial fuera de pantalla
+
     /**
      * Creates new form Perfil
      */
     public Perfil() {
+        setUndecorated(true);
+
         initComponents();
+
+        
+        setSize(1440, 1024);
+        setLocationRelativeTo(null);
+        setResizable(false);
+
+        // Crear menú después de que la interfaz esté lista
+        SwingUtilities.invokeLater(() -> {
+            menuPanel = new Menu("Videos");
+            menuWidth = 370;
+            menuX = -menuWidth;
+
+            menuPanel.setBounds(menuX, 0, menuWidth, getHeight());
+            menuPanel.setBackground(new Color(250, 250, 250));
+            menuPanel.setVisible(true);
+            menuPanel.setOpaque(true);
+
+            // 👇 Aquí el cambio importante
+            jPanel1.add(menuPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(menuX, 0, menuWidth, getHeight()));
+            jPanel1.setComponentZOrder(menuPanel, 0);
+
+            jPanel1.revalidate();
+            jPanel1.repaint();
+        });
     }
 
     /**
@@ -47,6 +82,12 @@ public class Perfil extends javax.swing.JFrame {
         jPanel2.add(Titulo, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 0, -1, 40));
 
         Menu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/menu.png"))); // NOI18N
+        Menu.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        Menu.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                toggleMenu(evt);
+            }
+        });
         jPanel2.add(Menu, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 5, -1, 30));
 
         Exit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/exit.png"))); // NOI18N
@@ -81,6 +122,34 @@ public class Perfil extends javax.swing.JFrame {
     private void ExitMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ExitMouseClicked
         System.exit(0);
     }//GEN-LAST:event_ExitMouseClicked
+
+    private void toggleMenu(java.awt.event.MouseEvent evt) {
+        if (menuVisible) {
+            // Ocultar menú
+            Timer slideOut = new Timer(2, e -> {
+                if (menuX > -menuWidth) {
+                    menuX -= 10;
+                    menuPanel.setLocation(menuX, 0);
+                } else {
+                    ((Timer) e.getSource()).stop();
+                    menuVisible = false;
+                }
+            });
+            slideOut.start();
+        } else {
+            // Mostrar menú
+            Timer slideIn = new Timer(2, e -> {
+                if (menuX < 0) {
+                    menuX += 10;
+                    menuPanel.setLocation(menuX, 0);
+                } else {
+                    ((Timer) e.getSource()).stop();
+                    menuVisible = true;
+                }
+            });
+            slideIn.start();
+        }
+    }
 
     /**
      * @param args the command line arguments

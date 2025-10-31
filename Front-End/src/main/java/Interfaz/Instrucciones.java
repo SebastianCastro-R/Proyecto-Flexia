@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package Interfaz;
 
 import java.awt.Color;
@@ -31,7 +27,6 @@ public class Instrucciones extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         Titulo = new javax.swing.JLabel();
-        Menu = new javax.swing.JLabel();
         Exit = new javax.swing.JLabel();
         ButtonVolver = new javax.swing.JButton();
         ButtonEjercicio = new javax.swing.JButton();
@@ -49,9 +44,6 @@ public class Instrucciones extends javax.swing.JFrame {
         Titulo.setForeground(new java.awt.Color(255, 255, 255));
         Titulo.setText("FLEX-IA");
         jPanel2.add(Titulo, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 0, -1, 40));
-
-        Menu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/menu.png"))); // NOI18N
-        jPanel2.add(Menu, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 5, -1, 30));
 
         Exit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/exit.png"))); // NOI18N
         Exit.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
@@ -220,7 +212,6 @@ public class Instrucciones extends javax.swing.JFrame {
     private javax.swing.JButton ButtonEjercicio;
     private javax.swing.JButton ButtonVolver;
     private javax.swing.JLabel Exit;
-    private javax.swing.JLabel Menu;
     private javax.swing.JLabel Titulo;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;

@@ -17,25 +17,36 @@ public class Ejercicios extends javax.swing.JFrame {
     public Ejercicios() {
         initComponents();
 
-        menuPanel = new Menu("Videos");
-        menuPanel.setBounds(menuX, 0, menuWidth, getHeight());
-        menuPanel.setVisible(true);
-        menuPanel.setOpaque(true);
-        menuPanel.setBackground(new Color(250, 250, 250)); // fondo blanco visible
+        // Cambia el layout del contenedor principal
+        getContentPane().setLayout(null);
 
-        getContentPane().add(menuPanel);
-        getContentPane().setComponentZOrder(menuPanel, 0); // asegúrate que esté arriba
-        revalidate();
-        repaint();
-
+        setUndecorated(true);
+        setSize(1440, 1024);
         setLocationRelativeTo(null);
+        setResizable(false);
+
+        // Espera a que la ventana esté visible para crear el menú con la altura correcta
+        SwingUtilities.invokeLater(() -> {
+            menuPanel = new Menu("Videos");
+            menuWidth = 370;
+            menuX = -menuWidth;
+
+            menuPanel.setBounds(menuX, 0, menuWidth, getHeight());
+            menuPanel.setBackground(new Color(250, 250, 250));
+            menuPanel.setVisible(true);
+            menuPanel.setOpaque(true);
+
+            getContentPane().add(menuPanel);
+            getContentPane().setComponentZOrder(menuPanel, 0);
+            revalidate();
+            repaint();
+        });
     }
+
 
     private void initComponents() {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setUndecorated(true);
-        setSize(1440, 1024);
-
+        
         JPanel fondo = new JPanel();
         fondo.setBackground(new Color(250, 250, 250));
         fondo.setLayout(new BorderLayout());
@@ -45,6 +56,12 @@ public class Ejercicios extends javax.swing.JFrame {
         barra.setBackground(new Color(30, 56, 136));
 
         JLabel menu = new JLabel(new ImageIcon(getClass().getResource("/icons/menu.png")));
+        menu.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        menu.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                toggleMenu(evt);
+            }
+        });
         barra.add(menu, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 5, -1, 30));
 
         JLabel titulo = new JLabel("FLEX-IA");
@@ -84,6 +101,7 @@ public class Ejercicios extends javax.swing.JFrame {
         scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         fondo.add(scroll, BorderLayout.CENTER);
 
+        fondo.setBounds(0, 0, 1440, 1024);
         getContentPane().add(fondo);
     }
 
@@ -205,11 +223,9 @@ public class Ejercicios extends javax.swing.JFrame {
             public void mouseClicked(MouseEvent e) {
                 // Aquí abrirías la interfaz del video desde BD
                 Ejercicios.this.dispose();
-                Instrucciones instrucciones = new Instrucciones();
-                instrucciones.setVisible(true);
-                instrucciones.setLocationRelativeTo(null);
             }
         });
+
 
         contenedorImagen.add(playBtn);
 
@@ -228,6 +244,34 @@ public class Ejercicios extends javax.swing.JFrame {
         panel.add(desc);
 
         return panel;
+    }
+
+    private void toggleMenu(java.awt.event.MouseEvent evt) {
+        if (menuVisible) {
+            // Ocultar menú
+            Timer slideOut = new Timer(2, e -> {
+                if (menuX > -menuWidth) {
+                    menuX -= 10;
+                    menuPanel.setLocation(menuX, 0);
+                } else {
+                    ((Timer) e.getSource()).stop();
+                    menuVisible = false;
+                }
+            });
+            slideOut.start();
+        } else {
+            // Mostrar menú
+            Timer slideIn = new Timer(2, e -> {
+                if (menuX < 0) {
+                    menuX += 10;
+                    menuPanel.setLocation(menuX, 0);
+                } else {
+                    ((Timer) e.getSource()).stop();
+                    menuVisible = true;
+                }
+            });
+            slideIn.start();
+        }
     }
 
     public static void main(String args[]) {
