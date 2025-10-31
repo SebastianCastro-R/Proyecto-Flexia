@@ -102,4 +102,43 @@ public class CorreoService {
             return false;
         }
     }
+
+    public static boolean enviarCorreoConReplyTo(String destinatario, String asunto, String mensajeHtml, String replyTo) {
+        try {
+            Properties props = new Properties();
+            props.put("mail.smtp.host", "smtp.gmail.com");
+            props.put("mail.smtp.port", "465");
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.ssl.enable", "true");
+
+            Session session = Session.getInstance(props, new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(REMITENTE, PASSWORD);
+                }
+            });
+
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(REMITENTE, "FLEX-IA"));
+            message.setReplyTo(InternetAddress.parse(replyTo)); // << Aquí está la magia 😎
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(destinatario));
+            message.setSubject(asunto, "UTF-8");
+
+            MimeBodyPart htmlPart = new MimeBodyPart();
+            htmlPart.setContent(mensajeHtml, "text/html; charset=utf-8");
+
+            MimeMultipart multipart = new MimeMultipart("alternative");
+            multipart.addBodyPart(htmlPart);
+
+            message.setContent(multipart);
+
+            Transport.send(message);
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }

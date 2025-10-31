@@ -6,7 +6,6 @@ package Interfaz;
 
 import java.awt.Color;
 import Login.login;
-
 /**
  *
  * @author Karol
@@ -16,9 +15,11 @@ public class Menu extends javax.swing.JPanel {
     /**
      * Creates new form Menu
      */
+
+    // Constructor simplificado
     public Menu(String pantallaActiva) {
         initComponents();
-        setBackground(new Color(250, 250, 250)); // fondo visible del panel contenedor
+        setBackground(new Color(250, 250, 250));
         setOpaque(true);
 
         // Asegurar que roundedPanel1 ocupe todo el espacio
@@ -30,6 +31,7 @@ public class Menu extends javax.swing.JPanel {
         this.pantallaActiva = pantallaActiva;
         marcarBotonActual();
     }
+
 
     private void marcarBotonActual() {
         switch (pantallaActiva) {
@@ -367,14 +369,19 @@ public class Menu extends javax.swing.JPanel {
     }//GEN-LAST:event_ButtonCerrarSesionMouseEntered
 
     private void ButtonCerrarSesionMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ButtonCerrarSesionMouseClicked
-
+        java.awt.Window ventanaActual = javax.swing.SwingUtilities.getWindowAncestor(this);
         // Abrir la ventana de LogIn
         login login = new login();
         login.setVisible(true);
         login.setLocationRelativeTo(null); // Centrar en pantalla
+
+        if (ventanaActual != null) {
+        ventanaActual.dispose();
+    }
     }//GEN-LAST:event_ButtonCerrarSesionMouseClicked
 
     private void InicioMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_InicioMouseClicked
+
         // Abrir la ventana de LogIn
         new Home().setVisible(true);
         javax.swing.SwingUtilities.getWindowAncestor(this).dispose();
@@ -395,9 +402,13 @@ public class Menu extends javax.swing.JPanel {
     }//GEN-LAST:event_InicioActionPerformed
 
     private void VideosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_VideosMouseClicked
+        java.awt.Window ventanaActual = javax.swing.SwingUtilities.getWindowAncestor(this);
         // Abrir la ventana de LogIn
         new Ejercicios().setVisible(true);
-        javax.swing.SwingUtilities.getWindowAncestor(this).dispose();
+
+        if (ventanaActual != null) {
+            ventanaActual.dispose();
+        }
     }//GEN-LAST:event_VideosMouseClicked
 
     private void VideosMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_VideosMouseEntered
@@ -435,10 +446,14 @@ public class Menu extends javax.swing.JPanel {
     }//GEN-LAST:event_EstadisticasActionPerformed
 
     private void PerfilMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_PerfilMouseClicked
+        java.awt.Window ventanaActual = javax.swing.SwingUtilities.getWindowAncestor(this);
         // Abrir la ventana de LogIn
         Perfil Perfil = new Perfil();
         Perfil.setVisible(true);
         Perfil.setLocationRelativeTo(null); // Centrar en pantalla
+        if (ventanaActual != null) {
+            ventanaActual.dispose();
+        }
     }//GEN-LAST:event_PerfilMouseClicked
 
     private void PerfilMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_PerfilMouseEntered
@@ -456,10 +471,14 @@ public class Menu extends javax.swing.JPanel {
     }//GEN-LAST:event_PerfilActionPerformed
 
     private void ContactanosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ContactanosMouseClicked
+        java.awt.Window ventanaActual = javax.swing.SwingUtilities.getWindowAncestor(this);
         // Abrir la ventana de LogIn
-        Contactanos Contactanos = new Contactanos();
+        Contactanos Contactanos = new Contactanos(this.correoUsuario);
         Contactanos.setVisible(true);
         Contactanos.setLocationRelativeTo(null); // Centrar en pantalla
+        if (ventanaActual != null) {
+            ventanaActual.dispose();
+        }
     }//GEN-LAST:event_ContactanosMouseClicked
 
     private void ContactanosMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ContactanosMouseEntered
@@ -493,5 +512,6 @@ public class Menu extends javax.swing.JPanel {
     private javax.swing.JSeparator jSeparator5;
     private Rounded.RoundedPanel roundedPanel1;
     private String pantallaActiva;
+    private String correoUsuario = "";
     // End of variables declaration//GEN-END:variables
 }

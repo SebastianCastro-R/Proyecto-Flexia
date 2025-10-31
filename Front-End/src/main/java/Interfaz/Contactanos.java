@@ -6,6 +6,7 @@ package Interfaz;
 
 import java.awt.Color;
 import javax.swing.Timer;
+import static SignIn.CorreoService.enviarCorreoConReplyTo;
 
 /**
  *
@@ -17,13 +18,15 @@ public class Contactanos extends javax.swing.JFrame {
     private boolean menuVisible = false;
     private int menuWidth = 370; // ancho del panel del menú
     private int menuX = -menuWidth; // posición inicial fuera de pantalla
+    private String correoUsuario;
 
     /**
      * Creates new form Contactanos
      */
-    public Contactanos() {
+    public Contactanos(String correoUsuario) {
+        this.correoUsuario = correoUsuario;
         setUndecorated(true);
-        
+    
         initComponents();
 
         menuPanel = new Menu("Home");
@@ -94,6 +97,12 @@ public class Contactanos extends javax.swing.JFrame {
         Asunto.setArc(10);
         Asunto.setText("Escriba aqui el asunto");
         Asunto.setToolTipText("");
+        Asunto.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                AsuntoActionPerformed(evt);
+            }
+        });
+
         jPanel1.add(Asunto, new org.netbeans.lib.awtextra.AbsoluteConstraints(760, 500, 365, 41));
 
         MensajeTxt.setArc(10);
@@ -153,13 +162,72 @@ public class Contactanos extends javax.swing.JFrame {
         ButtonEnviar.setForeground(Color.BLACK);
     }//GEN-LAST:event_ButtonEnviarMouseExited
 
-    private void ButtonEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonEnviarActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_ButtonEnviarActionPerformed
+    private void ButtonEnviarActionPerformed(java.awt.event.ActionEvent evt) {                                           
+        String asunto = Asunto.getText().trim();
+        String mensaje = MensajeTxt.getText().trim();
+
+        // Validaciones
+        if (asunto.isEmpty() || mensaje.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this, 
+                "⚠️ Por favor complete tanto el asunto como el mensaje", 
+                "Campos incompletos", 
+                javax.swing.JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (asunto.equals("Escriba aqui el asunto") || mensaje.equals("Escriba aqui su mensaje")) {
+            javax.swing.JOptionPane.showMessageDialog(this, 
+                "⚠️ Por favor ingrese un asunto y mensaje válidos", 
+                "Datos no válidos", 
+                javax.swing.JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Correo de destino (tu empresa)
+        String correoEmpresa = "alexandriabiblioteca611@gmail.com";
+
+        // Mensaje HTML bien estructurado
+        String htmlMensaje = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>"
+                + "<h2 style='color: #1E3888;'>Nuevo mensaje de contacto - FLEX-IA</h2>"
+                + "<div style='background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 10px 0;'>"
+                + "<p><strong>📧 Correo del usuario:</strong> " + correoUsuario + "</p>"
+                + "<p><strong>📋 Asunto:</strong> " + asunto + "</p>"
+                + "</div>"
+                + "<div style='background: #f9f9f9; padding: 15px; border-left: 4px solid #98CEFF; margin: 10px 0;'>"
+                + "<p><strong>💬 Mensaje:</strong></p>"
+                + "<p style='white-space: pre-line;'>" + mensaje.replace("\n", "<br>") + "</p>"
+                + "</div>"
+                + "<hr style='border: 1px solid #ddd;'>"
+                + "<p style='color: #666; font-size: 12px;'>Este mensaje fue enviado desde el formulario de contacto de FLEX-IA</p>"
+                + "</div>";
+
+        // Enviar correo
+        boolean enviado = enviarCorreoConReplyTo(correoEmpresa, "Contacto FLEX-IA: " + asunto, htmlMensaje, correoUsuario);
+
+        if (enviado) {
+            javax.swing.JOptionPane.showMessageDialog(this, 
+                "✅ Mensaje enviado con éxito\nTe contactaremos pronto", 
+                "Éxito", 
+                javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            
+            // Limpiar campos
+            Asunto.setText("");
+            MensajeTxt.setText("");
+        } else {
+            javax.swing.JOptionPane.showMessageDialog(this, 
+                "❌ Error al enviar el mensaje\nPor favor intenta nuevamente", 
+                "Error", 
+                javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
     private void MensajeTxtActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MensajeTxtActionPerformed
-        // TODO add your handling code here:
+        MensajeTxt.setText("");
     }//GEN-LAST:event_MensajeTxtActionPerformed
+
+    private void AsuntoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AsuntoActionPerformed
+        Asunto.setText("");
+    }//GEN-LAST:event_AsuntoActionPerformed
 
     private void toggleMenu(java.awt.event.MouseEvent evt) {
         if (menuVisible) {
@@ -188,42 +256,6 @@ public class Contactanos extends javax.swing.JFrame {
             slideIn.start();
         }
     }
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Contactanos.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Contactanos.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Contactanos.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Contactanos.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Contactanos().setVisible(true);
-            }
-        });
-    }
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private componentes.IconTextField Asunto;

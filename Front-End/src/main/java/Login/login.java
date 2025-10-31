@@ -14,8 +14,7 @@ import java.awt.*;
 import java.net.URL;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import Login.RecuperarContrasena;
+
 
 /**
  *
