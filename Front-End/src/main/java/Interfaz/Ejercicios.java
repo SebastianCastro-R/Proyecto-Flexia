@@ -317,48 +317,160 @@ public class Ejercicios extends javax.swing.JFrame {
         tituloLbl.setFont(new Font("Epunda Slab ExtraBold", Font.PLAIN, 18));
         tituloLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Contenedor para la imagen + botón de play
-        JPanel contenedorImagen = new JPanel(null);
+        // Usar JLayeredPane - CONFIGURACIÓN IMPORTANTE
+        JLayeredPane contenedorImagen = new JLayeredPane() {
+            @Override
+            public boolean contains(int x, int y) {
+                // Delegar la detección de mouse a los componentes hijos
+                return getComponentCount() > 0;
+            }
+        };
         contenedorImagen.setPreferredSize(new Dimension(250, 140));
         contenedorImagen.setMaximumSize(new Dimension(250, 140));
         contenedorImagen.setBackground(new Color(245, 245, 250));
+        contenedorImagen.setOpaque(false); // IMPORTANTE
 
+        // Imagen de fondo
         ImageIcon original = new ImageIcon(getClass().getResource(rutaImagen));
         Image imgEscalada = original.getImage().getScaledInstance(250, 140, Image.SCALE_SMOOTH);
         JLabel preview = new JLabel(new ImageIcon(imgEscalada));
         preview.setBounds(0, 0, 250, 140);
-        contenedorImagen.add(preview);
+        preview.setOpaque(false);
+        contenedorImagen.add(preview, JLayeredPane.DEFAULT_LAYER);
 
-        // Botón de play centrado sobre la imagen
-        JLabel playBtn = new JLabel(new ImageIcon(getClass().getResource("/icons/play.png")));
+        // Variables para animación
+        Timer hoverTimer = new Timer(10, null);
+        final int[] alpha = { 0 }; // Opacidad actual - INICIA EN 0 (transparente)
+        final int[] targetAlpha = { 0 }; // Opacidad objetivo
+        final int[] playSize = { 50 }; // tamaño actual del icono
+        final int playMin = 50;
+        final int playMax = 55; // tamaño máximo al hacer hover
+
+        // Overlay azul SEMI-TRANSPARENTE para el efecto hover
+        JPanel overlayAzul = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (alpha[0] > 0) {
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setColor(new Color(30, 56, 136, alpha[0]));
+                    g2d.fillRect(0, 0, getWidth(), getHeight());
+                    g2d.dispose();
+                }
+            }
+
+            @Override
+            public boolean contains(int x, int y) {
+                return false; // ⚡ Esto hace que el mouse "pase a través" del overlay
+            }
+        };
+
+        overlayAzul.setBounds(0, 0, 250, 140);
+        overlayAzul.setOpaque(false); // IMPORTANTE: hacer el panel transparente
+        contenedorImagen.add(overlayAzul, JLayeredPane.MODAL_LAYER);
+
+        // Botón de play - CON MEJOR CONFIGURACIÓN
+        JLabel playBtn = new JLabel(new ImageIcon(getClass().getResource("/icons/play.png"))) {
+            @Override
+            public boolean contains(int x, int y) {
+                // Mejorar la detección de colisión del mouse
+                return x >= 0 && x < getWidth() && y >= 0 && y < getHeight();
+            }
+        };
         playBtn.setBounds(100, 45, 50, 50);
-        playBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        playBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        playBtn.setOpaque(false);
 
-        // Acción al hacer clic (abrir interfaz de instrucciones con datos del ejercicio)
-        playBtn.addMouseListener(new MouseAdapter() {
+        hoverTimer.addActionListener(e -> {
+            // Animación del alpha (overlay azul)
+            if (alpha[0] < targetAlpha[0]) {
+                alpha[0] = Math.min(alpha[0] + 15, targetAlpha[0]);
+            } else if (alpha[0] > targetAlpha[0]) {
+                alpha[0] = Math.max(alpha[0] - 15, targetAlpha[0]);
+            }
+
+            // Animación del tamaño del ícono de play
+            if (targetAlpha[0] > 0 && playSize[0] < playMax) {
+                playSize[0] = Math.min(playSize[0] + 2, playMax);
+            } else if (targetAlpha[0] == 0 && playSize[0] > playMin) {
+                playSize[0] = Math.max(playSize[0] - 2, playMin);
+            }
+
+            // Escalar dinámicamente el ícono
+            ImageIcon icon = new ImageIcon(
+                    new ImageIcon(getClass().getResource("/icons/play.png"))
+                            .getImage()
+                            .getScaledInstance(playSize[0], playSize[0], Image.SCALE_SMOOTH));
+            playBtn.setIcon(icon);
+
+            // Recentrar el botón
+            int x = (250 - playSize[0]) / 2;
+            int y = (140 - playSize[0]) / 2;
+            playBtn.setBounds(x, y, playSize[0], playSize[0]);
+
+            overlayAzul.repaint();
+            contenedorImagen.repaint();
+
+            // Detener el timer cuando se alcance el estado final
+            if (alpha[0] == targetAlpha[0] &&
+                    ((targetAlpha[0] > 0 && playSize[0] == playMax) ||
+                            (targetAlpha[0] == 0 && playSize[0] == playMin))) {
+                ((Timer) e.getSource()).stop();
+            }
+        });
+
+        // MouseAdapter para el botón de play
+        MouseAdapter playBtnListener = new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                targetAlpha[0] = 128; // Opacidad objetivo cuando el mouse entra
+                if (!hoverTimer.isRunning()) {
+                    hoverTimer.start();
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                targetAlpha[0] = 0; // Transparente cuando el mouse sale
+                if (!hoverTimer.isRunning()) {
+                    hoverTimer.start();
+                }
+            }
+
             @Override
             public void mouseClicked(MouseEvent e) {
                 // Obtener datos del ejercicio desde BD
                 VideosDAO videosDAO = new VideosDAO();
                 VideosDAO.Video video = videosDAO.obtenerVideoPorTitulo(titulo);
-                
+
                 String tituloEjercicio = titulo;
                 String descripcionEjercicio = descripcion;
                 String archivo = obtenerUrlVideoDeBD(titulo);
-                String instruccionesAdicionales = (video != null && video.getInstrucciones() != null) ?
-                                                    video.getInstrucciones() : obtenerInstruccionesPorDefecto();
+                String instruccionesAdicionales = (video != null && video.getInstrucciones() != null)
+                        ? video.getInstrucciones()
+                        : obtenerInstruccionesPorDefecto();
 
                 // Abrir ventana de instrucciones con los datos
-                Instrucciones instrucciones = new Instrucciones(tituloEjercicio, descripcionEjercicio, archivo, instruccionesAdicionales);
+                Instrucciones instrucciones = new Instrucciones(tituloEjercicio, descripcionEjercicio, archivo,
+                        instruccionesAdicionales);
                 instrucciones.setVisible(true);
                 instrucciones.setLocationRelativeTo(null);
-                
+
                 // Cerrar ventana actual
                 Ejercicios.this.dispose();
             }
-        });
 
-        contenedorImagen.add(playBtn);
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                playBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            }
+        };
+
+        // Agregar todos los listeners necesarios al botón
+        playBtn.addMouseListener(playBtnListener);
+        playBtn.addMouseMotionListener(playBtnListener);
+
+        contenedorImagen.add(playBtn, JLayeredPane.PALETTE_LAYER);
 
         JTextArea desc = new JTextArea(descripcion);
         desc.setLineWrap(true);
@@ -383,40 +495,42 @@ public class Ejercicios extends javax.swing.JFrame {
                 "• Si siente dolor, deténgase inmediatamente.\n" +
                 "• Repita el ejercicio según las indicaciones de su terapeuta.\n" +
                 "• Respire profundamente durante la ejecución del movimiento.";
-        }
-
-    // Método para obtener URL del video desde BD (debes implementarlo según tu estructura)
-private String obtenerUrlVideoDeBD(String tituloEjercicio) {
-    VideosDAO videosDAO = new VideosDAO();
-    VideosDAO.Video video = videosDAO.obtenerVideoPorTitulo(tituloEjercicio);
-    
-    if (video != null && video.getArchivo() != null) {
-        String url = video.getArchivo();
-        System.out.println("URL obtenida de BD: " + url); // Para debug
-        
-        // Formatear URL de Cloudinary si es necesario
-        return formatearUrlCloudinary(url);
-    } else {
-        // URL por defecto si no se encuentra en BD
-        return "https://res.cloudinary.com/tu-cloud/video/upload/v1234567/default-video.mp4";
     }
-}
+
+    // Método para obtener URL del video desde BD (debes implementarlo según tu
+    // estructura)
+    private String obtenerUrlVideoDeBD(String tituloEjercicio) {
+        VideosDAO videosDAO = new VideosDAO();
+        VideosDAO.Video video = videosDAO.obtenerVideoPorTitulo(tituloEjercicio);
+
+        if (video != null && video.getArchivo() != null) {
+            String url = video.getArchivo();
+            System.out.println("URL obtenida de BD: " + url); // Para debug
+
+            // Formatear URL de Cloudinary si es necesario
+            return formatearUrlCloudinary(url);
+        } else {
+            // URL por defecto si no se encuentra en BD
+            return "https://res.cloudinary.com/tu-cloud/video/upload/v1234567/default-video.mp4";
+        }
+    }
 
     private String formatearUrlCloudinary(String url) {
-        if (url == null) return "";
-        
+        if (url == null)
+            return "";
+
         // Si ya es una URL directa de Cloudinary con formato de video
         if (url.contains("res.cloudinary.com") && url.contains("/video/upload/")) {
             return url;
         }
-        
+
         // Si es un public_id o necesita transformación
         if (url.contains("cloudinary.com") && !url.contains("/video/upload/")) {
             // Convertir a URL directa de video
             url = url.replace("http://", "https://")
                     .replace("/upload/", "/video/upload/f_mp4/");
         }
-        
+
         return url;
     }
 
