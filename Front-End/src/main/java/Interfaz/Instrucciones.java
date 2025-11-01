@@ -1,19 +1,153 @@
 package Interfaz;
-
-import java.awt.Color;
-
 /**
  *
  * @author Karol
  */
-public class Instrucciones extends javax.swing.JFrame {
 
     /**
      * Creates new form Instrucciones
      */
-    public Instrucciones() {
+
+import java.awt.*;
+import javax.swing.*;
+import javax.swing.border.*;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.Scene;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
+
+
+public class Instrucciones extends javax.swing.JFrame {
+
+    private String tituloEjercicio;
+    private String descripcionEjercicio;
+    private String archivo;
+    private String instruccionesAdicionales;
+
+    // Constructor modificado
+    public Instrucciones(String tituloEjercicio, String descripcionEjercicio, String archivo, String instruccionesAdicionales) {
+        this.tituloEjercicio = tituloEjercicio;
+        this.descripcionEjercicio = descripcionEjercicio;
+        this.archivo = archivo;
+        this.instruccionesAdicionales = instruccionesAdicionales;
         initComponents();
+        personalizarInterfaz();
     }
+
+    private void personalizarInterfaz() {
+        // Actualizar título de la ventana
+        Titulo.setText("FLEX-IA - " + tituloEjercicio);
+        
+        // Configurar panel de video
+        configurarPanelVideo();
+        
+        // Configurar información del ejercicio
+        configurarInformacionEjercicio();
+    }
+    
+
+    private void configurarPanelVideo() {
+        JPanel panelContenido = new JPanel(new BorderLayout());
+        panelContenido.setBackground(new Color(250, 250, 250));
+        panelContenido.setBorder(new EmptyBorder(20, 50, 20, 50));
+
+        JLabel lblTitulo = new JLabel(tituloEjercicio, SwingConstants.CENTER);
+        lblTitulo.setFont(new Font("Epunda Slab ExtraBold", Font.PLAIN, 28));
+        lblTitulo.setForeground(new Color(30, 56, 136));
+        lblTitulo.setBorder(new EmptyBorder(0, 0, 20, 0));
+        panelContenido.add(lblTitulo, BorderLayout.NORTH);
+
+        // ✅ Panel JavaFX dentro de Swing
+        JFXPanel jfxPanel = new JFXPanel();
+        jfxPanel.setPreferredSize(new Dimension(800, 450));
+
+        Platform.runLater(() -> {
+            WebView webView = new WebView();
+            WebEngine engine = webView.getEngine();
+            
+            String html = String.format("""
+            <html>
+            <body style='margin:0;background:black;display:flex;align-items:center;justify-content:center'>
+                <video width='800' height='450' controls autoplay>
+                    <source src='%s' type='video/mp4'>
+                    Tu navegador no soporta video HTML5.
+                </video>
+            </body>
+            </html>
+            """, archivo);
+
+            engine.loadContent(html);
+            jfxPanel.setScene(new Scene(webView));
+        });
+
+        panelContenido.add(jfxPanel, BorderLayout.CENTER);
+
+        jPanel1.add(panelContenido, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 1440, 600));
+    }
+
+    private void configurarInformacionEjercicio() {
+        // Panel de información del ejercicio
+        JPanel infoPanel = new JPanel(new BorderLayout());
+        infoPanel.setBackground(new Color(250, 250, 250));
+        infoPanel.setBorder(new CompoundBorder(
+            new LineBorder(new Color(200, 220, 250), 2),
+            new EmptyBorder(20, 50, 20, 50)
+        ));
+
+        // Descripción
+        JLabel lblDescTitle = new JLabel("Descripción del Ejercicio:");
+        lblDescTitle.setFont(new Font("Epunda Slab ExtraBold", Font.PLAIN, 20));
+        lblDescTitle.setForeground(new Color(30, 56, 136));
+
+        JTextArea txtDescripcion = new JTextArea(descripcionEjercicio);
+        txtDescripcion.setLineWrap(true);
+        txtDescripcion.setWrapStyleWord(true);
+        txtDescripcion.setEditable(false);
+        txtDescripcion.setBackground(new Color(250, 250, 250));
+        txtDescripcion.setFont(new Font("SansSerif", Font.PLAIN, 16));
+        txtDescripcion.setBorder(new EmptyBorder(10, 0, 10, 0));
+
+        // Instrucciones adicionales
+        JLabel lblInstruccionesTitle = new JLabel("Instrucciones Adicionales:");
+        lblInstruccionesTitle.setFont(new Font("Epunda Slab ExtraBold", Font.PLAIN, 20));
+        lblInstruccionesTitle.setForeground(new Color(30, 56, 136));
+        lblInstruccionesTitle.setBorder(new EmptyBorder(20, 0, 10, 0));
+
+        JTextArea txtInstrucciones = new JTextArea(instruccionesAdicionales != null ? 
+                                                  instruccionesAdicionales : obtenerInstruccionesPorDefecto());
+        txtInstrucciones.setLineWrap(true);
+        txtInstrucciones.setWrapStyleWord(true);
+        txtInstrucciones.setEditable(false);
+        txtInstrucciones.setBackground(new Color(250, 250, 250));
+        txtInstrucciones.setFont(new Font("SansSerif", Font.PLAIN, 16));
+        txtInstrucciones.setBorder(new EmptyBorder(10, 0, 10, 0));
+
+        // Agregar componentes al panel de información
+        JPanel contenidoInfo = new JPanel();
+        contenidoInfo.setLayout(new BoxLayout(contenidoInfo, BoxLayout.Y_AXIS));
+        contenidoInfo.setBackground(new Color(250, 250, 250));
+        
+        contenidoInfo.add(lblDescTitle);
+        contenidoInfo.add(txtDescripcion);
+        contenidoInfo.add(lblInstruccionesTitle);
+        contenidoInfo.add(txtInstrucciones);
+
+        infoPanel.add(contenidoInfo, BorderLayout.CENTER);
+
+        // Agregar al panel principal
+        jPanel1.add(infoPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 650, 1440, 180));
+    }
+
+    public String obtenerInstruccionesPorDefecto() {
+        return "• Realice el ejercicio en un espacio amplio y seguro.\n" +
+               "• Mantenga una postura correcta durante todo el ejercicio.\n" +
+               "• Si siente dolor, deténgase inmediatamente.\n" +
+               "• Repita el ejercicio según las indicaciones de su terapeuta.\n" +
+               "• Respire profundamente durante la ejecución del movimiento.";
+    }
+
+    // ... (el resto de tu código existente se mantiene igual)
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -172,41 +306,6 @@ public class Instrucciones extends javax.swing.JFrame {
     private void ExitMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ExitMouseClicked
         System.exit(0);
     }//GEN-LAST:event_ExitMouseClicked
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Instrucciones.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Instrucciones.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Instrucciones.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Instrucciones.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Instrucciones().setVisible(true);
-            }
-        });
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton ButtonEjercicio;

@@ -10,6 +10,8 @@ import Login.FuenteUtil;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mycompany.flexia.database.VideosDAO;
+
 public class Ejercicios extends javax.swing.JFrame {
 
     private Menu menuPanel;
@@ -332,11 +334,26 @@ public class Ejercicios extends javax.swing.JFrame {
         playBtn.setBounds(100, 45, 50, 50);
         playBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // Acción al hacer clic (abrir interfaz de reproducción)
+        // Acción al hacer clic (abrir interfaz de instrucciones con datos del ejercicio)
         playBtn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                // Aquí abrirías la interfaz del video desde BD
+                // Obtener datos del ejercicio desde BD
+                VideosDAO videosDAO = new VideosDAO();
+                VideosDAO.Video video = videosDAO.obtenerVideoPorTitulo(titulo);
+                
+                String tituloEjercicio = titulo;
+                String descripcionEjercicio = descripcion;
+                String archivo = obtenerUrlVideoDeBD(titulo);
+                String instruccionesAdicionales = (video != null && video.getInstrucciones() != null) ?
+                                                    video.getInstrucciones() : obtenerInstruccionesPorDefecto();
+
+                // Abrir ventana de instrucciones con los datos
+                Instrucciones instrucciones = new Instrucciones(tituloEjercicio, descripcionEjercicio, archivo, instruccionesAdicionales);
+                instrucciones.setVisible(true);
+                instrucciones.setLocationRelativeTo(null);
+                
+                // Cerrar ventana actual
                 Ejercicios.this.dispose();
             }
         });
@@ -358,6 +375,49 @@ public class Ejercicios extends javax.swing.JFrame {
         panel.add(desc);
 
         return panel;
+    }
+
+    private String obtenerInstruccionesPorDefecto() {
+        return "• Realice el ejercicio en un espacio amplio y seguro.\n" +
+                "• Mantenga una postura correcta durante todo el ejercicio.\n" +
+                "• Si siente dolor, deténgase inmediatamente.\n" +
+                "• Repita el ejercicio según las indicaciones de su terapeuta.\n" +
+                "• Respire profundamente durante la ejecución del movimiento.";
+        }
+
+    // Método para obtener URL del video desde BD (debes implementarlo según tu estructura)
+private String obtenerUrlVideoDeBD(String tituloEjercicio) {
+    VideosDAO videosDAO = new VideosDAO();
+    VideosDAO.Video video = videosDAO.obtenerVideoPorTitulo(tituloEjercicio);
+    
+    if (video != null && video.getArchivo() != null) {
+        String url = video.getArchivo();
+        System.out.println("URL obtenida de BD: " + url); // Para debug
+        
+        // Formatear URL de Cloudinary si es necesario
+        return formatearUrlCloudinary(url);
+    } else {
+        // URL por defecto si no se encuentra en BD
+        return "https://res.cloudinary.com/tu-cloud/video/upload/v1234567/default-video.mp4";
+    }
+}
+
+    private String formatearUrlCloudinary(String url) {
+        if (url == null) return "";
+        
+        // Si ya es una URL directa de Cloudinary con formato de video
+        if (url.contains("res.cloudinary.com") && url.contains("/video/upload/")) {
+            return url;
+        }
+        
+        // Si es un public_id o necesita transformación
+        if (url.contains("cloudinary.com") && !url.contains("/video/upload/")) {
+            // Convertir a URL directa de video
+            url = url.replace("http://", "https://")
+                    .replace("/upload/", "/video/upload/f_mp4/");
+        }
+        
+        return url;
     }
 
     private void barraMousePressed(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_barraMousePressed
