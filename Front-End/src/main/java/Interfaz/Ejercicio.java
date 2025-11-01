@@ -8,6 +8,9 @@ import Login.FuenteUtil;
 import java.awt.*;
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
+import java.util.concurrent.TimeUnit;
+
 import javax.swing.*;
 
 /**
@@ -19,35 +22,46 @@ public class Ejercicio extends javax.swing.JFrame {
     private JLabel cameraLabel;
     private JLabel checkLabel;
     private int xmouse, ymouse;
+    private String tituloEjercicio; // Nuevo campo
+    private Socket socket; // Agregar esta variable
 
+    // Constructor por defecto (mantener para compatibilidad)
     public Ejercicio() {
+        this("Ejercicio Predeterminado"); // Llamar al nuevo constructor
+    }
+
+    // Nuevo constructor con parámetros
+    public Ejercicio(String tituloEjercicio) {
+        this.tituloEjercicio = tituloEjercicio;
         initComponents();
-        initStyles();
-        startCameraStream();
+
+        // Agregar WindowListener para cerrar recursos al cerrar la ventana
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                cerrarRecursos();
+            }
+        });
+
+        startCameraStream(tituloEjercicio);
+
+        // Actualizar título de la ventana con el nombre del ejercicio
+        if (tituloEjercicio != null && !tituloEjercicio.equals("Ejercicio Predeterminado")) {
+            titlelbl.setText("FLEX-IA - " + tituloEjercicio);
+        }
 
         setSize(905, 680);
         setResizable(false);
         setLocationRelativeTo(null);
     }
 
-    private void initStyles() {
-        Closetxt.setFont(FuenteUtil.cargarFuente("EpundaSlab-ExtraBold.ttf", 30f));
-        Closetxt.setForeground(new Color(250, 250, 250));
-        minimizetxt.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 30f));
-        minimizetxt.setForeground(new Color(250, 250, 250));
-        titlelbl.setFont(FuenteUtil.cargarFuente("EpundaSlab-ExtraBold.ttf", 28f));
-        titlelbl.setForeground(new Color(250, 250, 250));
-    }
-
-    // Agrega esta variable como campo de la clase
-    private boolean ejercicioCompletado = false;
-
-    // Modifica el método startCameraStream()
-    private void startCameraStream() {
+    private void startCameraStream(String tipoEjercicio) {
         new Thread(() -> {
             try {
                 System.out.println("Iniciando script de Python...");
-                ProcessBuilder pb = new ProcessBuilder("python", "Back-End/leccionCamara.py");
+                String scriptPython = determinarScriptPython(tipoEjercicio);
+
+                ProcessBuilder pb = new ProcessBuilder("python", scriptPython);
                 pb.redirectErrorStream(true);
                 pythonProcess = pb.start();
 
@@ -63,12 +77,12 @@ public class Ejercicio extends javax.swing.JFrame {
                     }
                 }).start();
 
-                Socket socket = null;
+                socket = null; // Usar la variable de instancia
                 int intentos = 0;
                 while (socket == null && intentos < 10) {
                     try {
                         Thread.sleep(1000);
-                        socket = new Socket("localhost", 9999);
+                        socket = new Socket("localhost", 9999); // Asignar a la variable de instancia
                         System.out.println("Conectado al servidor Python.");
                     } catch (IOException e) {
                         intentos++;
@@ -92,6 +106,9 @@ public class Ejercicio extends javax.swing.JFrame {
                     } catch (EOFException e) {
                         System.out.println("Conexión cerrada por Python.");
                         break;
+                    } catch (SocketException e) {
+                        System.out.println("Socket cerrado: " + e.getMessage());
+                        break;
                     }
 
                     if (size <= 0)
@@ -103,14 +120,12 @@ public class Ejercicio extends javax.swing.JFrame {
                     String mensaje = new String(data);
                     if (mensaje.startsWith("STATUS:")) {
                         if (mensaje.equals("STATUS:OK")) {
-                            // Ejercicio completado - mostrar check
                             SwingUtilities.invokeLater(() -> {
                                 ejercicioCompletado = true;
                                 mostrarCheck();
                             });
                             System.out.println("Ejercicio completado (STATUS:OK)");
                         } else if (mensaje.equals("STATUS:RESET")) {
-                            // Ejercicio no completado - ocultar check
                             SwingUtilities.invokeLater(() -> {
                                 ejercicioCompletado = false;
                                 ocultarCheck();
@@ -136,12 +151,7 @@ public class Ejercicio extends javax.swing.JFrame {
                 input.close();
                 socket.close();
 
-                if (pythonProcess.isAlive()) {
-                    pythonProcess.destroy();
-                    Thread.sleep(500);
-                    if (pythonProcess.isAlive())
-                        pythonProcess.destroyForcibly();
-                }
+                cerrarProcesoPython();
 
                 System.out.println("Conexión y proceso Python cerrados correctamente.");
 
@@ -150,6 +160,64 @@ public class Ejercicio extends javax.swing.JFrame {
                 SwingUtilities.invokeLater(() -> cameraLabel.setText("❌ Error al conectar con la cámara"));
             }
         }).start();
+    }
+
+    // Método para cerrar todos los recursos
+    private void cerrarRecursos() {
+        System.out.println("🔴 Cerrando recursos...");
+
+        // Cerrar socket
+        if (socket != null && !socket.isClosed()) {
+            try {
+                socket.close();
+                System.out.println("✅ Socket cerrado");
+            } catch (IOException e) {
+                System.out.println("❌ Error cerrando socket: " + e.getMessage());
+            }
+        }
+
+        // Cerrar proceso Python
+        cerrarProcesoPython();
+    }
+
+    private void cerrarProcesoPython() {
+        if (pythonProcess != null && pythonProcess.isAlive()) {
+            System.out.println("🔴 Cerrando proceso Python...");
+            pythonProcess.destroy();
+            try {
+                // Esperar a que el proceso termine
+                if (pythonProcess.waitFor(3, TimeUnit.SECONDS)) {
+                    System.out.println("✅ Proceso Python cerrado correctamente");
+                } else {
+                    pythonProcess.destroyForcibly();
+                    System.out.println("⚠️ Proceso Python forzado a cerrar");
+                }
+            } catch (InterruptedException e) {
+                pythonProcess.destroyForcibly();
+                System.out.println("⚠️ Proceso Python forzado a cerrar (interrumpido)");
+            }
+        }
+    }
+
+    // Agrega esta variable como campo de la clase
+    private boolean ejercicioCompletado = false;
+
+    private void startCameraStream() {
+        startCameraStream("Ejercicio Predeterminado"); // Llamar al método con parámetro
+    }
+
+    // Modifica el método startCameraStream()
+    private String determinarScriptPython(String tipoEjercicio) {
+        // Mapear títulos de ejercicio a scripts Python específicos
+        switch (tipoEjercicio) {
+            case "Ejercicio #1":
+                return "Back-End/ejercicio1.py";
+            case "Ejercicio #2":
+                return "Back-End/ejercicio2.py";
+            // Agregar más casos según necesites
+            default:
+                return "Back-End/leccionCamara.py"; // Script por defecto
+        }
     }
 
     // Agrega estos métodos para mostrar/ocultar el check
@@ -176,13 +244,6 @@ public class Ejercicio extends javax.swing.JFrame {
         // Forzar repintado del panel
         checkLabel.revalidate();
         checkLabel.repaint();
-    }
-
-    private void cerrarProcesoPython() {
-        if (pythonProcess != null && pythonProcess.isAlive()) {
-            pythonProcess.destroyForcibly();
-            System.out.println("Proceso Python cerrado.");
-        }
     }
 
     @SuppressWarnings("unchecked")
@@ -370,9 +431,10 @@ public class Ejercicio extends javax.swing.JFrame {
         pack();
     }
 
-    private void ClosetxtMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ClosetxtMouseClicked
-        System.exit(0);
-    }// GEN-LAST:event_ClosetxtMouseClicked
+    private void ClosetxtMouseClicked(java.awt.event.MouseEvent evt) {
+        cerrarRecursos();
+        this.dispose();
+    }
 
     private void ClosetxtMouseEntered(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ClosetxtMouseEntered
         Closebtn.setBackground(Color.red);

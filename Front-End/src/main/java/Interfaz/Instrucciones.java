@@ -1,12 +1,13 @@
 package Interfaz;
+
 /**
  *
  * @author Karol
  */
 
-    /**
-     * Creates new form Instrucciones
-     */
+/**
+ * Creates new form Instrucciones
+ */
 
 import java.awt.*;
 import javax.swing.*;
@@ -17,7 +18,6 @@ import javafx.scene.Scene;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
-
 public class Instrucciones extends javax.swing.JFrame {
 
     private String tituloEjercicio;
@@ -26,7 +26,8 @@ public class Instrucciones extends javax.swing.JFrame {
     private String instruccionesAdicionales;
 
     // Constructor modificado
-    public Instrucciones(String tituloEjercicio, String descripcionEjercicio, String archivo, String instruccionesAdicionales) {
+    public Instrucciones(String tituloEjercicio, String descripcionEjercicio, String archivo,
+            String instruccionesAdicionales) {
         this.tituloEjercicio = tituloEjercicio;
         this.descripcionEjercicio = descripcionEjercicio;
         this.archivo = archivo;
@@ -38,10 +39,10 @@ public class Instrucciones extends javax.swing.JFrame {
     private void personalizarInterfaz() {
         // Actualizar título de la ventana
         Titulo.setText("FLEX-IA - " + tituloEjercicio);
-        
+
         // Configurar panel de video
         configurarPanelVideo();
-        
+
         // Configurar información del ejercicio
         configurarInformacionEjercicio();
     }
@@ -65,49 +66,49 @@ public class Instrucciones extends javax.swing.JFrame {
             try {
                 WebView webView = new WebView();
                 WebEngine engine = webView.getEngine();
-                
+
                 // Depurar la URL del video
                 System.out.println("URL del video: " + archivo);
-                
+
                 // Crear contenido HTML mejorado
                 String html = String.format("""
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <style>
-                        body {
-                            margin: 0;
-                            padding: 0;
-                            background: black;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            height: 100%%;
-                        }
-                        video {
-                            max-width: 100%%;
-                            max-height: 100%%;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <video controls autoplay muted playsinline>
-                        <source src="%s" type="video/mp4">
-                        <source src="%s" type="video/webm">
-                        Tu navegador no soporta el elemento video.
-                    </video>
-                </body>
-                </html>
-                """, archivo, archivo);
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <style>
+                                body {
+                                    margin: 0;
+                                    padding: 0;
+                                    background: black;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    height: 100%%;
+                                }
+                                video {
+                                    max-width: 100%%;
+                                    max-height: 100%%;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <video controls autoplay muted playsinline>
+                                <source src="%s" type="video/mp4">
+                                <source src="%s" type="video/webm">
+                                Tu navegador no soporta el elemento video.
+                            </video>
+                        </body>
+                        </html>
+                        """, archivo, archivo);
 
                 engine.loadContent(html);
-                
+
                 // Agregar listener para errores
                 engine.setOnError(e -> {
                     System.err.println("Error cargando video: " + e.getMessage());
                     System.err.println("URL problemática: " + archivo);
                 });
-                
+
                 // Agregar listener para estado de carga
                 engine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
                     switch (newState) {
@@ -119,13 +120,13 @@ public class Instrucciones extends javax.swing.JFrame {
                             break;
                     }
                 });
-                
+
                 jfxPanel.setScene(new Scene(webView));
-                
+
             } catch (Exception e) {
                 System.err.println("Error en JavaFX: " + e.getMessage());
                 e.printStackTrace();
-                
+
                 // Mostrar mensaje de error en caso de fallo
                 JLabel errorLabel = new JLabel("Error al cargar el video: " + e.getMessage());
                 errorLabel.setForeground(Color.RED);
@@ -143,9 +144,8 @@ public class Instrucciones extends javax.swing.JFrame {
         JPanel infoPanel = new JPanel(new BorderLayout());
         infoPanel.setBackground(new Color(250, 250, 250));
         infoPanel.setBorder(new CompoundBorder(
-            new LineBorder(new Color(180, 200, 240), 2, true), // Borde más suave y redondeado
-            new EmptyBorder(25, 40, 25, 40)
-        ));
+                new LineBorder(new Color(180, 200, 240), 2, true), // Borde más suave y redondeado
+                new EmptyBorder(25, 40, 25, 40)));
 
         // Panel contenedor principal usando GridLayout para dos columnas
         JPanel contenedorPrincipal = new JPanel(new GridLayout(1, 2, 40, 0)); // 2 columnas, 40px de separación
@@ -156,9 +156,8 @@ public class Instrucciones extends javax.swing.JFrame {
         JPanel panelDescripcion = new JPanel(new BorderLayout());
         panelDescripcion.setBackground(new Color(250, 250, 250));
         panelDescripcion.setBorder(new CompoundBorder(
-            new MatteBorder(0, 0, 0, 2, new Color(230, 230, 250)), // Línea divisoria suave
-            new EmptyBorder(0, 0, 0, 20)
-        ));
+                new MatteBorder(0, 0, 0, 2, new Color(230, 230, 250)), // Línea divisoria suave
+                new EmptyBorder(0, 0, 0, 20)));
 
         // Título Descripción
         JLabel lblDescTitle = new JLabel("Descripción del Ejercicio");
@@ -175,9 +174,8 @@ public class Instrucciones extends javax.swing.JFrame {
         txtDescripcion.setBackground(new Color(245, 247, 255)); // Fondo ligeramente azul
         txtDescripcion.setFont(new Font("Lato", Font.PLAIN, 16));
         txtDescripcion.setBorder(new CompoundBorder(
-            new LineBorder(new Color(220, 230, 255), 1, true),
-            new EmptyBorder(15, 15, 15, 15)
-        ));
+                new LineBorder(new Color(220, 230, 255), 1, true),
+                new EmptyBorder(15, 15, 15, 15)));
         txtDescripcion.setPreferredSize(new Dimension(300, 120));
 
         JScrollPane scrollDescripcion = new JScrollPane(txtDescripcion);
@@ -197,8 +195,8 @@ public class Instrucciones extends javax.swing.JFrame {
         panelInstrucciones.add(lblInstruccionesTitle, BorderLayout.NORTH);
 
         // Área de texto de instrucciones
-        String textoInstrucciones = instruccionesAdicionales != null ? 
-                                instruccionesAdicionales : obtenerInstruccionesPorDefecto();
+        String textoInstrucciones = instruccionesAdicionales != null ? instruccionesAdicionales
+                : obtenerInstruccionesPorDefecto();
         JTextArea txtInstrucciones = new JTextArea(textoInstrucciones);
         txtInstrucciones.setLineWrap(true);
         txtInstrucciones.setWrapStyleWord(true);
@@ -206,9 +204,8 @@ public class Instrucciones extends javax.swing.JFrame {
         txtInstrucciones.setBackground(new Color(255, 245, 245)); // Fondo ligeramente rojizo
         txtInstrucciones.setFont(new Font("Lato", Font.PLAIN, 16));
         txtInstrucciones.setBorder(new CompoundBorder(
-            new LineBorder(new Color(255, 220, 220), 1, true),
-            new EmptyBorder(15, 15, 15, 15)
-        ));
+                new LineBorder(new Color(255, 220, 220), 1, true),
+                new EmptyBorder(15, 15, 15, 15)));
         txtInstrucciones.setPreferredSize(new Dimension(300, 120));
 
         JScrollPane scrollInstrucciones = new JScrollPane(txtInstrucciones);
@@ -229,10 +226,10 @@ public class Instrucciones extends javax.swing.JFrame {
 
     public String obtenerInstruccionesPorDefecto() {
         return "• Realice el ejercicio en un espacio amplio y seguro.\n" +
-               "• Mantenga una postura correcta durante todo el ejercicio.\n" +
-               "• Si siente dolor, deténgase inmediatamente.\n" +
-               "• Repita el ejercicio según las indicaciones de su terapeuta.\n" +
-               "• Respire profundamente durante la ejecución del movimiento.";
+                "• Mantenga una postura correcta durante todo el ejercicio.\n" +
+                "• Si siente dolor, deténgase inmediatamente.\n" +
+                "• Repita el ejercicio según las indicaciones de su terapeuta.\n" +
+                "• Respire profundamente durante la ejecución del movimiento.";
     }
 
     // ... (el resto de tu código existente se mantiene igual)
@@ -243,7 +240,8 @@ public class Instrucciones extends javax.swing.JFrame {
      * regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc="Generated
+    // Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
@@ -289,9 +287,11 @@ public class Instrucciones extends javax.swing.JFrame {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 ButtonVolverMouseClicked(evt);
             }
+
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 ButtonVolverMouseEntered(evt);
             }
+
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 ButtonVolverMouseExited(evt);
             }
@@ -314,9 +314,11 @@ public class Instrucciones extends javax.swing.JFrame {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 ButtonEjercicioMouseClicked(evt);
             }
+
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 ButtonEjercicioMouseEntered(evt);
             }
+
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 ButtonEjercicioMouseExited(evt);
             }
@@ -331,69 +333,72 @@ public class Instrucciones extends javax.swing.JFrame {
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 1440, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
-        );
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 1440,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE)));
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 1024, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
-        );
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 1024,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE)));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void ButtonVolverMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ButtonVolverMouseEntered
+    private void ButtonVolverMouseEntered(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ButtonVolverMouseEntered
         ButtonVolver.setBackground(new Color(0x1E3888));
         ButtonVolver.setForeground(Color.WHITE);
-    }//GEN-LAST:event_ButtonVolverMouseEntered
+    }// GEN-LAST:event_ButtonVolverMouseEntered
 
-    private void ButtonVolverMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ButtonVolverMouseExited
+    private void ButtonVolverMouseExited(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ButtonVolverMouseExited
         ButtonVolver.setBackground(new Color(0xD9D9D9));
         ButtonVolver.setForeground(new Color(0x1E3888));
-    }//GEN-LAST:event_ButtonVolverMouseExited
+    }// GEN-LAST:event_ButtonVolverMouseExited
 
-    private void ButtonVolverActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonVolverActionPerformed
+    private void ButtonVolverActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_ButtonVolverActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_ButtonVolverActionPerformed
+    }// GEN-LAST:event_ButtonVolverActionPerformed
 
-    private void ButtonEjercicioMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ButtonEjercicioMouseEntered
+    private void ButtonEjercicioMouseEntered(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ButtonEjercicioMouseEntered
         ButtonEjercicio.setBackground(new Color(0xD9D9D9));
         ButtonEjercicio.setForeground(new Color(0x1E3888));
-    }//GEN-LAST:event_ButtonEjercicioMouseEntered
+    }// GEN-LAST:event_ButtonEjercicioMouseEntered
 
-    private void ButtonEjercicioMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ButtonEjercicioMouseExited
+    private void ButtonEjercicioMouseExited(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ButtonEjercicioMouseExited
         ButtonEjercicio.setBackground(new Color(0x1E3888));
         ButtonEjercicio.setForeground(Color.WHITE);
-    }//GEN-LAST:event_ButtonEjercicioMouseExited
+    }// GEN-LAST:event_ButtonEjercicioMouseExited
 
-    private void ButtonEjercicioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonEjercicioActionPerformed
+    private void ButtonEjercicioActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_ButtonEjercicioActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_ButtonEjercicioActionPerformed
+    }// GEN-LAST:event_ButtonEjercicioActionPerformed
 
-    private void ButtonVolverMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ButtonVolverMouseClicked
+    private void ButtonVolverMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ButtonVolverMouseClicked
         // Cerrar la ventana actual
-        this.dispose();
+        this.setVisible(false);
 
         // Abrir la ventana de LogIn
         Ejercicios Ejercicios = new Ejercicios();
         Ejercicios.setVisible(true);
         Ejercicios.setLocationRelativeTo(null); // Centrar en pantalla
-    }//GEN-LAST:event_ButtonVolverMouseClicked
+    }// GEN-LAST:event_ButtonVolverMouseClicked
 
-    private void ButtonEjercicioMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ButtonEjercicioMouseClicked
-        // Abrir la ventana de LogIn
-        Ejercicio Ejercicio = new Ejercicio();
-        Ejercicio.setVisible(true);
-        Ejercicio.setLocationRelativeTo(null); // Centrar en pantalla
-    }//GEN-LAST:event_ButtonEjercicioMouseClicked
+    private void ButtonEjercicioMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ButtonEjercicioMouseClicked
+        // Pasar el título del ejercicio actual a la ventana de Ejercicio
+        Ejercicio ejercicio = new Ejercicio(this.tituloEjercicio);
+        ejercicio.setVisible(true);
+        ejercicio.setLocationRelativeTo(null); // Centrar en pantalla
 
-    private void ExitMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ExitMouseClicked
+        // Opcional: cerrar ventana actual
+        // this.dispose();
+    }// GEN-LAST:event_ButtonEjercicioMouseClicked
+
+    private void ExitMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ExitMouseClicked
         System.exit(0);
-    }//GEN-LAST:event_ExitMouseClicked
+    }// GEN-LAST:event_ExitMouseClicked
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton ButtonEjercicio;
