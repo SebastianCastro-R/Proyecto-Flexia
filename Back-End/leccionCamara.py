@@ -6,7 +6,6 @@ import time
 import sys, io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-
 def mano_abierta(hand_landmarks):
     dedos = [8, 12, 16, 20]
     nudillos = [6, 10, 14, 18]
@@ -34,12 +33,16 @@ print("Conectado a:", addr)
 cap = cv2.VideoCapture(0)
 ultimo_estado = False
 ultimo_envio = 0
+contador_estado_actual = 0  # Para evitar cambios bruscos
 
 try:
     while True:
         ret, frame = cap.read()
         if not ret:
-            continue  # no rompas el bucle
+            continue
+
+        # VOLTEAR LA CÁMARA HORIZONTALMENTE (efecto espejo)
+        frame = cv2.flip(frame, 1)
 
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = hands.process(frame_rgb)
@@ -51,17 +54,36 @@ try:
                 if mano_abierta(hand_landmarks):
                     estado_actual = True
 
-        # Enviar estado de éxito solo cuando cambia
-        if estado_actual and not ultimo_estado:
+        # Suavizar la detección para evitar parpadeo
+        if estado_actual:
+            contador_estado_actual = min(contador_estado_actual + 1, 5)  # Máximo 5 frames
+        else:
+            contador_estado_actual = max(contador_estado_actual - 1, 0)  # Mínimo 0 frames
+
+        # Estado suavizado - requiere al menos 3 frames consecutivos para cambiar
+        estado_suavizado = contador_estado_actual >= 3
+
+        # Enviar estado solo cuando cambia
+        if estado_suavizado and not ultimo_estado:
             try:
                 mensaje = b"STATUS:OK"
                 conn.sendall(struct.pack(">L", len(mensaje)) + mensaje)
-                print("Ejercicio completado (mano abierta)")
+                print("✅ Ejercicio completado (mano abierta)")
+            except (BrokenPipeError, ConnectionResetError):
+                print("Conexión con Java perdida (status).")
+                break
+        elif not estado_suavizado and ultimo_estado:
+            try:
+                mensaje = b"STATUS:RESET"
+                conn.sendall(struct.pack(">L", len(mensaje)) + mensaje)
+                print("🔄 Ejercicio no completado (mano cerrada)")
             except (BrokenPipeError, ConnectionResetError):
                 print("Conexión con Java perdida (status).")
                 break
 
-        ultimo_estado = estado_actual
+        ultimo_estado = estado_suavizado
+
+        
 
         # Enviar frame comprimido (limitado a 10 FPS)
         if time.time() - ultimo_envio > 0.1:
