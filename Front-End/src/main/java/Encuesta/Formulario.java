@@ -446,6 +446,60 @@ public class Formulario extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void guardarDatosEnBD() {
+        String nombre = NombreField.getText();
+        String edad = EdadField.getText();
+        String genero = (String) GeneroComboBox.getSelectedItem();
+        String mano = (String) ManoComboBox.getSelectedItem();
+        String ocupacion = OcupacionField.getText();
+        String horas = (String) HorasComboBox.getSelectedItem();
+
+        // Ejemplo de obtención de las respuestas
+        String sintoma1 = (String) jComboBox01.getSelectedItem();
+        String sintoma2 = (String) jComboBox2.getSelectedItem();
+        String sintoma3 = (String) jComboBox03.getSelectedItem();
+        String sintoma4 = (String) jComboBox4.getSelectedItem();
+        String sintoma5 = (String) jComboBox5.getSelectedItem();
+        String sintoma6 = (String) jComboBox6.getSelectedItem();
+        String habito1 = (String) jComboBox7.getSelectedItem();
+        String habito2 = (String) jComboBox8.getSelectedItem();
+        String prevencion1 = (String) jComboBox09.getSelectedItem();
+        String prevencion2 = (String) jComboBox010.getSelectedItem();
+        int nivelDolor = jSlider10.getValue();
+
+        String sql = "INSERT INTO encuesta (nombre, edad, genero, mano_dominante, ocupacion, horas_computador, " +
+                    "sintoma1, sintoma2, sintoma3, sintoma4, sintoma5, sintoma6, habito1, habito2, prevencion1, prevencion2, nivel_dolor) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (java.sql.Connection conn = com.mycompany.flexia.database.Conexion.getConnection();
+            java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, nombre);
+            ps.setInt(2, Integer.parseInt(edad));
+            ps.setString(3, genero);
+            ps.setString(4, mano);
+            ps.setString(5, ocupacion);
+            ps.setString(6, horas);
+            ps.setString(7, sintoma1);
+            ps.setString(8, sintoma2);
+            ps.setString(9, sintoma3);
+            ps.setString(10, sintoma4);
+            ps.setString(11, sintoma5);
+            ps.setString(12, sintoma6);
+            ps.setString(13, habito1);
+            ps.setString(14, habito2);
+            ps.setString(15, prevencion1);
+            ps.setString(16, prevencion2);
+            ps.setInt(17, nivelDolor);
+
+            ps.executeUpdate();
+            javax.swing.JOptionPane.showMessageDialog(this, "✅ Datos guardados correctamente en la base de datos.");
+        } catch (Exception e) {
+            javax.swing.JOptionPane.showMessageDialog(this, "❌ Error al guardar los datos: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
     private void Exit2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Exit2MouseClicked
         System.exit(0);
     }//GEN-LAST:event_Exit2MouseClicked
@@ -467,7 +521,7 @@ public class Formulario extends javax.swing.JFrame {
     }//GEN-LAST:event_ButtonEnviarMouseExited
 
     private void ButtonEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonEnviarActionPerformed
-        // TODO add your handling code here:
+         guardarDatosEnBD();
     }//GEN-LAST:event_ButtonEnviarActionPerformed
 
     private void NombreFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_NombreFieldActionPerformed
