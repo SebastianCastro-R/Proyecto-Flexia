@@ -6,12 +6,14 @@ package Login;
 
 import SignIn.SesionUsuario;
 import SignIn.SignIn;
+
 import com.formdev.flatlaf.FlatLightLaf;
 import com.mycompany.flexia.database.Conexion;
 import com.mycompany.flexia.database.UsuariosDAO;
 
 import Rounded.RoundedPanelS;
 import Interfaz.Home;
+
 import java.awt.*;
 import java.net.URL;
 import java.sql.Connection;
@@ -20,6 +22,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import javax.swing.*;
+
+import Encuesta.Formulario;
 
 
 /**
@@ -433,12 +437,22 @@ public class login extends javax.swing.JFrame {
                             "Bienvenido",
                             JOptionPane.INFORMATION_MESSAGE
                         );
+                        // ✅ Verificar si el usuario ya respondió encuesta
+                        if (usuarioTieneEncuesta(correo)) {
+                            // ✅ Ya respondió → ir al Home
+                            Home home = new Home();
+                            home.setVisible(true);
+                            home.setLocationRelativeTo(null);
+                        } else {
+                            // ❌ No respondió → ir al Formulario
+                            Formulario form = new Formulario();
+                            form.setVisible(true);
+                            form.setLocationRelativeTo(null);
+                        }
 
-                        // Abrir Home y cerrar login
-                        Home home = new Home();
-                        home.setVisible(true);
-                        home.setLocationRelativeTo(null);
-                        dispose(); // Cerrar ventana de login
+                        dispose(); // Cierra login
+
+                        dispose(); // Cierra la ventana de Login
                     } else {
                         JOptionPane.showMessageDialog(
                             null,
@@ -505,8 +519,25 @@ public class login extends javax.swing.JFrame {
         return btn;
     }
 
-    
+    private boolean usuarioTieneEncuesta(String correo) {
+    String sql = "SELECT id FROM encuesta WHERE correo_usuario = ? LIMIT 1";
 
+    try (Connection conn = Conexion.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+
+        ps.setString(1, correo);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            return true; // ✅ Ya tiene encuesta
+        }
+
+    } catch (SQLException e) {
+        System.err.println("❌ Error al consultar encuesta: " + e.getMessage());
+    }
+
+    return false; // ❌ No encontró encuesta
+}
 
 
     /**

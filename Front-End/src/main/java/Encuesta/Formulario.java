@@ -4,6 +4,10 @@
  */
 package Encuesta;
 
+import javax.swing.JOptionPane;
+
+import Interfaz.Home;
+
 /**
  *
  * @author usuario
@@ -447,39 +451,78 @@ public class Formulario extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void guardarDatosEnBD() {
-        String nombre = NombreField.getText();
-        String edad = EdadField.getText();
-        String genero = (String) GeneroComboBox.getSelectedItem();
-        String mano = (String) ManoComboBox.getSelectedItem();
-        String ocupacion = OcupacionField.getText();
-        String horas = (String) HorasComboBox.getSelectedItem();
 
-        // Ejemplo de obtención de las respuestas
-        String sintoma1 = (String) jComboBox01.getSelectedItem();
-        String sintoma2 = (String) jComboBox2.getSelectedItem();
-        String sintoma3 = (String) jComboBox03.getSelectedItem();
-        String sintoma4 = (String) jComboBox4.getSelectedItem();
-        String sintoma5 = (String) jComboBox5.getSelectedItem();
-        String sintoma6 = (String) jComboBox6.getSelectedItem();
-        String habito1 = (String) jComboBox7.getSelectedItem();
-        String habito2 = (String) jComboBox8.getSelectedItem();
-        String prevencion1 = (String) jComboBox09.getSelectedItem();
-        String prevencion2 = (String) jComboBox010.getSelectedItem();
+        // ✅ Validaciones básicas
+        if (NombreField.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "⚠️ Ingrese su nombre.");
+            return;
+        }
+        if (OcupacionField.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "⚠️ Ingrese su ocupación.");
+            return;
+        }
+
+        String edadTexto = EdadField.getText().trim();
+        int edad;
+        try {
+            edad = Integer.parseInt(edadTexto);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "⚠️ Ingrese una edad válida.");
+            return;
+        }
+
+        String genero = (String) GeneroComboBox.getSelectedItem();
+        if (genero.equals("Seleccione una")) {
+            JOptionPane.showMessageDialog(this, "⚠️ Seleccione un género.");
+            return;
+        }
+
+        String mano = (String) ManoComboBox.getSelectedItem();
+        if (mano.equals("Seleccione una")) {
+            JOptionPane.showMessageDialog(this, "⚠️ Seleccione la mano dominante.");
+            return;
+        }
+
+        String ocupacion = OcupacionField.getText();
+
+        String horasTexto = (String) HorasComboBox.getSelectedItem();
+        int horasComputador;
+        switch (horasTexto) {
+            case "Menos de 2 horas": horasComputador = 1; break;
+            case "2 - 4 horas": horasComputador = 3; break;
+            case "5 - 7 horas": horasComputador = 6; break;
+            case "Más de 8 horas": horasComputador = 10; break;
+            default:
+                JOptionPane.showMessageDialog(this, "⚠️ Seleccione una opción válida en horas frente al computador.");
+                return;
+        }
+
+        // ✅ Obtener opciones seleccionadas
+        String sintoma1 = jComboBox01.getSelectedItem().toString();
+        String sintoma2 = jComboBox2.getSelectedItem().toString();
+        String sintoma3 = jComboBox03.getSelectedItem().toString();
+        String sintoma4 = jComboBox4.getSelectedItem().toString();
+        String sintoma5 = jComboBox5.getSelectedItem().toString();
+        String sintoma6 = jComboBox6.getSelectedItem().toString();
+        String habito1 = jComboBox7.getSelectedItem().toString();
+        String habito2 = jComboBox8.getSelectedItem().toString();
+        String prevencion1 = jComboBox09.getSelectedItem().toString();
+        String prevencion2 = jComboBox010.getSelectedItem().toString();
         int nivelDolor = jSlider10.getValue();
 
-        String sql = "INSERT INTO encuesta (nombre, edad, genero, mano_dominante, ocupacion, horas_computador, " +
-                    "sintoma1, sintoma2, sintoma3, sintoma4, sintoma5, sintoma6, habito1, habito2, prevencion1, prevencion2, nivel_dolor) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO encuesta (nombre, edad, genero, mano_dominante, ocupacion, horas_computador, "
+                + "sintoma1, sintoma2, sintoma3, sintoma4, sintoma5, sintoma6, habito1, habito2, "
+                + "prevencion1, prevencion2, nivel_dolor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (java.sql.Connection conn = com.mycompany.flexia.database.Conexion.getConnection();
             java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, nombre);
-            ps.setInt(2, Integer.parseInt(edad));
+            ps.setString(1, NombreField.getText());
+            ps.setInt(2, edad);
             ps.setString(3, genero);
             ps.setString(4, mano);
             ps.setString(5, ocupacion);
-            ps.setString(6, horas);
+            ps.setInt(6, horasComputador);
             ps.setString(7, sintoma1);
             ps.setString(8, sintoma2);
             ps.setString(9, sintoma3);
@@ -493,12 +536,13 @@ public class Formulario extends javax.swing.JFrame {
             ps.setInt(17, nivelDolor);
 
             ps.executeUpdate();
-            javax.swing.JOptionPane.showMessageDialog(this, "✅ Datos guardados correctamente en la base de datos.");
+            JOptionPane.showMessageDialog(this, "✅ Encuesta almacenada correctamente 🎉");
+
         } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, "❌ Error al guardar los datos: " + e.getMessage());
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "❌ Error al guardar datos:\n" + e.getMessage());
         }
     }
+
 
     private void Exit2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Exit2MouseClicked
         System.exit(0);
@@ -520,9 +564,13 @@ public class Formulario extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_ButtonEnviarMouseExited
 
-    private void ButtonEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonEnviarActionPerformed
-         guardarDatosEnBD();
-    }//GEN-LAST:event_ButtonEnviarActionPerformed
+    private void ButtonEnviarActionPerformed(java.awt.event.ActionEvent evt) {
+        guardarDatosEnBD(); // ✅ Primero guarda los datos
+        Home home = new Home();
+        home.setVisible(true);
+        home.setLocationRelativeTo(null);
+        dispose();
+    }
 
     private void NombreFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_NombreFieldActionPerformed
         // TODO add your handling code here:
