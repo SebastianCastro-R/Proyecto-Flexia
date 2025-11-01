@@ -4,6 +4,9 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
+
+import Login.FuenteUtil;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,42 +14,67 @@ public class Ejercicios extends javax.swing.JFrame {
 
     private Menu menuPanel;
     private boolean menuVisible = false;
-    private int menuWidth = 370; // ancho del panel del menú
-    private int menuX = -menuWidth; // posición inicial fuera de pantalla
+    private int menuWidth = 370;
+    private int menuX = -menuWidth;
+    int xmouse, ymouse;
+    private javax.swing.JPanel Closebtn;
+    private javax.swing.JLabel Closetxt;
+    private javax.swing.JPanel minimizebtn;
+    private javax.swing.JLabel minimizetxt;
+
+    // Nuevas variables para controlar la capa de bloqueo
+    private JLayeredPane layeredPane;
+    private JPanel glassPane;
 
     public Ejercicios() {
         initComponents();
 
-        // Cambia el layout del contenedor principal
-        getContentPane().setLayout(null);
+        // Configurar layered pane
+        layeredPane = getLayeredPane();
+
+        // Crear glass pane para bloquear interacciones
+        glassPane = new JPanel();
+        glassPane.setOpaque(false);
+        glassPane.setVisible(false);
+        glassPane.addMouseListener(new MouseAdapter() {
+        });
+        glassPane.addMouseMotionListener(new MouseMotionAdapter() {
+        });
+        glassPane.setCursor(Cursor.getDefaultCursor());
+
+        // Añadir glass pane a una capa superior
+        layeredPane.add(glassPane, JLayeredPane.MODAL_LAYER);
+        glassPane.setBounds(0, 0, getWidth(), getHeight());
 
         setUndecorated(true);
         setSize(1440, 1024);
         setLocationRelativeTo(null);
         setResizable(false);
 
-        // Espera a que la ventana esté visible para crear el menú con la altura correcta
-        SwingUtilities.invokeLater(() -> {
-            menuPanel = new Menu("Videos");
-            menuWidth = 370;
-            menuX = -menuWidth;
-
-            menuPanel.setBounds(menuX, 0, menuWidth, getHeight());
-            menuPanel.setBackground(new Color(250, 250, 250));
-            menuPanel.setVisible(true);
-            menuPanel.setOpaque(true);
-
-            getContentPane().add(menuPanel);
-            getContentPane().setComponentZOrder(menuPanel, 0);
-            revalidate();
-            repaint();
+        menuPanel = new Menu("Videos");
+        menuPanel.setBounds(menuX, 0, menuWidth, getHeight());
+        menuPanel.setVisible(true);
+        menuPanel.setOpaque(true);
+        menuPanel.setBackground(new Color(250, 250, 250));
+        menuPanel.setOnCloseCallback(() -> {
+            toggleMenu(null);
         });
+
+        // Añadir el menú a una capa superior
+        layeredPane.add(menuPanel, JLayeredPane.POPUP_LAYER);
+
+        revalidate();
+        repaint();
     }
 
-
     private void initComponents() {
+
+        Closebtn = new javax.swing.JPanel();
+        Closetxt = new javax.swing.JLabel();
+        minimizebtn = new javax.swing.JPanel();
+        minimizetxt = new javax.swing.JLabel();
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        
+
         JPanel fondo = new JPanel();
         fondo.setBackground(new Color(250, 250, 250));
         fondo.setLayout(new BorderLayout());
@@ -54,6 +82,16 @@ public class Ejercicios extends javax.swing.JFrame {
         // ----- BARRA SUPERIOR -----
         JPanel barra = new JPanel(new org.netbeans.lib.awtextra.AbsoluteLayout());
         barra.setBackground(new Color(30, 56, 136));
+        barra.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                barraMousePressed(evt);
+            }
+        });
+        barra.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(java.awt.event.MouseEvent evt) {
+                barraMouseDragged(evt);
+            }
+        });
 
         JLabel menu = new JLabel(new ImageIcon(getClass().getResource("/icons/menu.png")));
         menu.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -69,14 +107,81 @@ public class Ejercicios extends javax.swing.JFrame {
         titulo.setForeground(Color.WHITE);
         barra.add(titulo, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 0, -1, 40));
 
-        JLabel exit = new JLabel(new ImageIcon(getClass().getResource("/Images/exit.png")));
-        exit.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        exit.addMouseListener(new java.awt.event.MouseAdapter() {
+        Closebtn.setBackground(new java.awt.Color(30, 56, 136));
+
+        Closetxt.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        Closetxt.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/cerrar.png"))); // NOI18N
+        Closetxt.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                dispose();
+                ClosetxtMouseClicked(evt);
+            }
+
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                ClosetxtMouseEntered(evt);
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                ClosetxtMouseExited(evt);
             }
         });
-        barra.add(exit, new org.netbeans.lib.awtextra.AbsoluteConstraints(1410, 0, 30, 40));
+
+        javax.swing.GroupLayout ClosebtnLayout = new javax.swing.GroupLayout(Closebtn);
+        Closebtn.setLayout(ClosebtnLayout);
+        ClosebtnLayout.setHorizontalGroup(
+                ClosebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, ClosebtnLayout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(Closetxt, javax.swing.GroupLayout.PREFERRED_SIZE, 60,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE)));
+        ClosebtnLayout.setVerticalGroup(
+                ClosebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(Closetxt, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE));
+
+        barra.add(Closebtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(1380, 0, -1, 40));
+
+        minimizebtn.setBackground(new java.awt.Color(30, 56, 136));
+
+        minimizetxt.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        minimizetxt.setText("-");
+        minimizetxt.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 30f));
+        minimizetxt.setForeground(new Color(250, 250, 250));
+        minimizetxt.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                minimizetxtMouseClicked(evt);
+            }
+
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                minimizetxtMouseEntered(evt);
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                minimizetxtMouseExited(evt);
+            }
+        });
+
+        javax.swing.GroupLayout minimizebtnLayout = new javax.swing.GroupLayout(minimizebtn);
+        minimizebtn.setLayout(minimizebtnLayout);
+        minimizebtnLayout.setHorizontalGroup(
+                minimizebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 60, Short.MAX_VALUE)
+                        .addGroup(minimizebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(minimizebtnLayout.createSequentialGroup()
+                                        .addGap(0, 0, Short.MAX_VALUE)
+                                        .addComponent(minimizetxt, javax.swing.GroupLayout.PREFERRED_SIZE, 60,
+                                                javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(0, 0, Short.MAX_VALUE))));
+        minimizebtnLayout.setVerticalGroup(
+                minimizebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 40, Short.MAX_VALUE)
+                        .addGroup(minimizebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(minimizebtnLayout.createSequentialGroup()
+                                        .addGap(0, 0, Short.MAX_VALUE)
+                                        .addComponent(minimizetxt, javax.swing.GroupLayout.PREFERRED_SIZE, 40,
+                                                javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(0, 0, Short.MAX_VALUE))));
+
+        barra.add(minimizebtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(1312, 0, 60, 40));
+
         fondo.add(barra, BorderLayout.NORTH);
 
         // ----- PANEL PRINCIPAL -----
@@ -121,8 +226,7 @@ public class Ejercicios extends javax.swing.JFrame {
         contenedor.setBackground(new Color(250, 250, 250));
         contenedor.setBorder(new CompoundBorder(
                 new LineBorder(new Color(200, 220, 250), 2, true),
-                new EmptyBorder(15, 20, 15, 20)
-        ));
+                new EmptyBorder(15, 20, 15, 20)));
 
         // Lista con todos los ejercicios
         List<JPanel> ejercicios = new ArrayList<>();
@@ -137,12 +241,24 @@ public class Ejercicios extends javax.swing.JFrame {
         panelVisible.setBackground(new Color(250, 250, 250));
 
         // Índice para desplazarse
-        final int[] indice = {0};
+        final int[] indice = { 0 };
         mostrarEjercicios(panelVisible, ejercicios, indice[0]);
 
         // Botones izquierda y derecha
-        JButton btnIzquierda = new JButton("◀");
-        JButton btnDerecha = new JButton("▶");
+        JButton btnIzquierda = new JButton();
+        JButton btnDerecha = new JButton();
+
+        // Cargar imágenes desde la carpeta /icons/
+        ImageIcon iconIzq = new ImageIcon(getClass().getResource("/icons/izquierda.png"));
+        ImageIcon iconDer = new ImageIcon(getClass().getResource("/icons/derecha.png"));
+
+        // Escalar las imágenes para que se vean proporcionadas
+        Image imgIzq = iconIzq.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+        Image imgDer = iconDer.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+
+        // Asignar íconos a los botones
+        btnIzquierda.setIcon(new ImageIcon(imgIzq));
+        btnDerecha.setIcon(new ImageIcon(imgDer));
         estiloBotonNavegacion(btnIzquierda);
         estiloBotonNavegacion(btnDerecha);
 
@@ -193,8 +309,7 @@ public class Ejercicios extends javax.swing.JFrame {
         panel.setBackground(new Color(245, 245, 250));
         panel.setBorder(new CompoundBorder(
                 new LineBorder(new Color(230, 230, 250), 1, true),
-                new EmptyBorder(15, 15, 15, 15)
-        ));
+                new EmptyBorder(15, 15, 15, 15)));
 
         JLabel tituloLbl = new JLabel(titulo);
         tituloLbl.setFont(new Font("Epunda Slab ExtraBold", Font.PLAIN, 18));
@@ -226,7 +341,6 @@ public class Ejercicios extends javax.swing.JFrame {
             }
         });
 
-
         contenedorImagen.add(playBtn);
 
         JTextArea desc = new JTextArea(descripcion);
@@ -246,6 +360,48 @@ public class Ejercicios extends javax.swing.JFrame {
         return panel;
     }
 
+    private void barraMousePressed(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_barraMousePressed
+        xmouse = evt.getX();
+        ymouse = evt.getY();
+    }// GEN-LAST:event_barraMousePressed
+
+    private void barraMouseDragged(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_barraMouseDragged
+        int x = evt.getXOnScreen();
+        int y = evt.getYOnScreen();
+        this.setLocation(x - xmouse, y - ymouse);
+    }// GEN-LAST:event_barraMouseDragged
+
+    private void ExitMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ExitMouseClicked
+        System.exit(0);
+    }// GEN-LAST:event_ExitMouseClicked
+
+    private void ClosetxtMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ClosetxtMouseClicked
+        System.exit(0);
+    }// GEN-LAST:event_ClosetxtMouseClicked
+
+    private void ClosetxtMouseEntered(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ClosetxtMouseEntered
+        Closebtn.setBackground(Color.red);
+        Closetxt.setForeground(new Color(250, 250, 250));
+    }// GEN-LAST:event_ClosetxtMouseEntered
+
+    private void ClosetxtMouseExited(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ClosetxtMouseExited
+        Closebtn.setBackground(new Color(30, 56, 136));
+        Closetxt.setForeground(new Color(250, 250, 250));
+    }// GEN-LAST:event_ClosetxtMouseExited
+
+    private void minimizetxtMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_minimizetxtMouseClicked
+        this.setState(JFrame.ICONIFIED);
+    }// GEN-LAST:event_minimizetxtMouseClicked
+
+    private void minimizetxtMouseEntered(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_minimizetxtMouseEntered
+        minimizebtn.setBackground(Color.decode("#2e4ca9"));
+    }// GEN-LAST:event_minimizetxtMouseEntered
+
+    private void minimizetxtMouseExited(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_minimizetxtMouseExited
+        minimizebtn.setBackground(new Color(30, 56, 136));
+        minimizetxt.setForeground(new Color(250, 250, 250));
+    }// GEN-LAST:event_minimizetxtMouseExited
+
     private void toggleMenu(java.awt.event.MouseEvent evt) {
         if (menuVisible) {
             // Ocultar menú
@@ -256,11 +412,13 @@ public class Ejercicios extends javax.swing.JFrame {
                 } else {
                     ((Timer) e.getSource()).stop();
                     menuVisible = false;
+                    glassPane.setVisible(false); // Deshabilitar bloqueo
                 }
             });
             slideOut.start();
         } else {
             // Mostrar menú
+            glassPane.setVisible(true); // Habilitar bloqueo
             Timer slideIn = new Timer(2, e -> {
                 if (menuX < 0) {
                     menuX += 10;

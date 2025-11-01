@@ -4,14 +4,20 @@
  */
 package Login;
 
+import SignIn.SesionUsuario;
 import SignIn.SignIn;
 import com.formdev.flatlaf.FlatLightLaf;
+import com.mycompany.flexia.database.Conexion;
 import com.mycompany.flexia.database.UsuariosDAO;
 
 import Rounded.RoundedPanelS;
 import Interfaz.Home;
 import java.awt.*;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import javax.swing.*;
 
@@ -414,16 +420,33 @@ public class login extends javax.swing.JFrame {
                 UsuariosDAO dao = new UsuariosDAO();
 
                 if (dao.autenticarUsuarioPorCorreo(correo, contrasena)) {
-                    JOptionPane.showMessageDialog(
-                        null,
-                        "✅ Inicio de sesión exitoso.",
-                        "Bienvenido",
-                        JOptionPane.INFORMATION_MESSAGE
-                    );
+                    // ✅ LOGIN EXITOSO - OBTENER DATOS DEL USUARIO Y GUARDAR SESIÓN
+                    String nombreUsuario = obtenerNombreUsuarioDesdeBD(correo);
+                    
+                    if (nombreUsuario != null) {
+                        // Guardar en sesión
+                        SesionUsuario.getInstancia().iniciarSesion(correo, nombreUsuario);
+                        
+                        JOptionPane.showMessageDialog(
+                            null,
+                            "✅ Inicio de sesión exitoso.\nBienvenido " + nombreUsuario,
+                            "Bienvenido",
+                            JOptionPane.INFORMATION_MESSAGE
+                        );
 
-                    Home Home = new Home();
-                    Home.setVisible(true);
-                    Home.setLocationRelativeTo(null);
+                        // Abrir Home y cerrar login
+                        Home home = new Home();
+                        home.setVisible(true);
+                        home.setLocationRelativeTo(null);
+                        dispose(); // Cerrar ventana de login
+                    } else {
+                        JOptionPane.showMessageDialog(
+                            null,
+                            "❌ Error al obtener datos del usuario.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE
+                        );
+                    }
 
                 } else {
                     JOptionPane.showMessageDialog(
@@ -436,9 +459,33 @@ public class login extends javax.swing.JFrame {
             }
         });
 
+        
+
         panelDerecho.add(btnIniciar);
 
     }
+
+    // Método auxiliar para obtener el nombre del usuario desde la BD
+        private String obtenerNombreUsuarioDesdeBD(String correo) {
+            String sql = "SELECT nombres, apellidos FROM usuarios WHERE correo_electronico = ?";
+            
+            try (Connection conn = Conexion.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+                
+                ps.setString(1, correo);
+                ResultSet rs = ps.executeQuery();
+                
+                if (rs.next()) {
+                    String nombres = rs.getString("nombres");
+                    String apellidos = rs.getString("apellidos");
+                    return nombres + " " + apellidos;
+                }
+                
+            } catch (SQLException e) {
+                System.err.println("❌ Error al obtener datos del usuario: " + e.getMessage());
+            }
+            return null;
+        }
 
     private JButton crearBotonSocial(String rutaIcono, int x, int y, Color fondo) {
         URL url = getClass().getResource(rutaIcono);
@@ -491,9 +538,6 @@ public class login extends javax.swing.JFrame {
             }
         });
         header.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                headerMouseClicked(evt);
-            }
             public void mousePressed(java.awt.event.MouseEvent evt) {
                 headerMousePressed(evt);
             }
@@ -610,10 +654,6 @@ public class login extends javax.swing.JFrame {
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
-
-    private void headerMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_headerMouseClicked
-        // TODO add your handling code here:
-    }//GEN-LAST:event_headerMouseClicked
 
     private void headerMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_headerMousePressed
         xmouse = evt.getX();

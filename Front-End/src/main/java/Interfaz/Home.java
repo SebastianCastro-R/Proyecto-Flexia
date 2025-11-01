@@ -5,7 +5,12 @@
 package Interfaz;
 
 import java.awt.Color;
+import javax.swing.JFrame;
 import javax.swing.Timer;
+
+import com.formdev.flatlaf.FlatLightLaf;
+
+import Login.FuenteUtil;
 
 /**
  *
@@ -17,6 +22,7 @@ public class Home extends javax.swing.JFrame {
     private boolean menuVisible = false;
     private int menuWidth = 370; // ancho del panel del menú
     private int menuX = -menuWidth; // posición inicial fuera de pantalla
+    int xmouse, ymouse;
     /**
      * Creates new form Home
      */
@@ -29,7 +35,9 @@ public class Home extends javax.swing.JFrame {
         menuPanel.setVisible(true);
         menuPanel.setOpaque(true);
         menuPanel.setBackground(new Color(250, 250, 250)); // fondo blanco visible
-
+        menuPanel.setOnCloseCallback(() -> {
+            toggleMenu(null); // Reutiliza tu animación de cerrar menú
+        });
         getContentPane().add(menuPanel);
         getContentPane().setComponentZOrder(menuPanel, 0); // asegúrate que esté arriba
         revalidate();
@@ -52,10 +60,13 @@ public class Home extends javax.swing.JFrame {
     private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
-        jPanel2 = new javax.swing.JPanel();
+        header = new javax.swing.JPanel();
         Titulo = new javax.swing.JLabel();
         Menu = new javax.swing.JLabel();
-        Exit = new javax.swing.JLabel();
+        Closebtn = new javax.swing.JPanel();
+        Closetxt = new javax.swing.JLabel();
+        minimizebtn = new javax.swing.JPanel();
+        minimizetxt = new javax.swing.JLabel();
         roundedPanel1 = new Rounded.RoundedPanel();
         roundedPanel5 = new Rounded.RoundedPanel();
         jLabel3 = new javax.swing.JLabel();
@@ -75,13 +86,24 @@ public class Home extends javax.swing.JFrame {
         jPanel1.setPreferredSize(new java.awt.Dimension(1440, 1024));
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jPanel2.setBackground(new java.awt.Color(30, 56, 136));
-        jPanel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+        header.setBackground(new java.awt.Color(30, 56, 136));
+        header.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                headerMousePressed(evt);
+            }
+        });
+        header.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(java.awt.event.MouseEvent evt) {
+                headerMouseDragged(evt);
+            }
+        });
+
+        header.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         Titulo.setFont(new java.awt.Font("Epunda Slab ExtraBold", 0, 24)); // NOI18N
         Titulo.setForeground(new java.awt.Color(255, 255, 255));
         Titulo.setText("FLEX-IA");
-        jPanel2.add(Titulo, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 0, -1, 40));
+        header.add(Titulo, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 0, -1, 40));
 
         Menu.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/menu.png"))); // NOI18N
         Menu.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
@@ -90,18 +112,81 @@ public class Home extends javax.swing.JFrame {
                 toggleMenu(evt);
             }
         });
-        jPanel2.add(Menu, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 5, -1, 30));
+        header.add(Menu, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 5, -1, 30));
 
-        Exit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/exit.png"))); // NOI18N
-        Exit.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        Exit.addMouseListener(new java.awt.event.MouseAdapter() {
+        Closebtn.setBackground(new java.awt.Color(30, 56, 136));
+
+        Closetxt.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        Closetxt.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/cerrar.png"))); // NOI18N
+        Closetxt.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                ExitMouseClicked(evt);
+                ClosetxtMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                ClosetxtMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                ClosetxtMouseExited(evt);
             }
         });
-        jPanel2.add(Exit, new org.netbeans.lib.awtextra.AbsoluteConstraints(1410, 0, 30, 40));
 
-        jPanel1.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1440, 40));
+        javax.swing.GroupLayout ClosebtnLayout = new javax.swing.GroupLayout(Closebtn);
+        Closebtn.setLayout(ClosebtnLayout);
+        ClosebtnLayout.setHorizontalGroup(
+            ClosebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, ClosebtnLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(Closetxt, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+        ClosebtnLayout.setVerticalGroup(
+            ClosebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(Closetxt, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
+        );
+
+        header.add(Closebtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(1380, 0, -1, 40));
+
+        minimizebtn.setBackground(new java.awt.Color(30, 56, 136));
+
+        minimizetxt.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        minimizetxt.setText("-");
+        minimizetxt.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 30f));
+        minimizetxt.setForeground(new Color(250, 250, 250));
+        minimizetxt.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                minimizetxtMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                minimizetxtMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                minimizetxtMouseExited(evt);
+            }
+        });
+
+        javax.swing.GroupLayout minimizebtnLayout = new javax.swing.GroupLayout(minimizebtn);
+        minimizebtn.setLayout(minimizebtnLayout);
+        minimizebtnLayout.setHorizontalGroup(
+            minimizebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 60, Short.MAX_VALUE)
+            .addGroup(minimizebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(minimizebtnLayout.createSequentialGroup()
+                    .addGap(0, 0, Short.MAX_VALUE)
+                    .addComponent(minimizetxt, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(0, 0, Short.MAX_VALUE)))
+        );
+        minimizebtnLayout.setVerticalGroup(
+            minimizebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 40, Short.MAX_VALUE)
+            .addGroup(minimizebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(minimizebtnLayout.createSequentialGroup()
+                    .addGap(0, 0, Short.MAX_VALUE)
+                    .addComponent(minimizetxt, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(0, 0, Short.MAX_VALUE)))
+        );
+
+        header.add(minimizebtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(1312, 0, 60, 40));
+
+        jPanel1.add(header, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1440, 40));
 
         roundedPanel1.setBackground(new java.awt.Color(229, 229, 234));
         roundedPanel1.setPreferredSize(new java.awt.Dimension(444, 885));
@@ -236,9 +321,47 @@ public class Home extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void headerMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_headerMousePressed
+        xmouse = evt.getX();
+        ymouse = evt.getY();
+    }//GEN-LAST:event_headerMousePressed
+
+    private void headerMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_headerMouseDragged
+        int x = evt.getXOnScreen();
+        int y = evt.getYOnScreen();
+        this.setLocation(x - xmouse, y - ymouse);
+    }//GEN-LAST:event_headerMouseDragged
+
     private void ExitMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ExitMouseClicked
         System.exit(0);
     }//GEN-LAST:event_ExitMouseClicked
+
+    private void ClosetxtMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ClosetxtMouseClicked
+        System.exit(0);
+    }//GEN-LAST:event_ClosetxtMouseClicked
+
+    private void ClosetxtMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ClosetxtMouseEntered
+        Closebtn.setBackground(Color.red);
+        Closetxt.setForeground(new Color(250, 250, 250));
+    }//GEN-LAST:event_ClosetxtMouseEntered
+
+    private void ClosetxtMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ClosetxtMouseExited
+        Closebtn.setBackground(new Color(30, 56, 136));
+        Closetxt.setForeground(new Color(250, 250, 250));
+    }//GEN-LAST:event_ClosetxtMouseExited
+
+    private void minimizetxtMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_minimizetxtMouseClicked
+        this.setState(JFrame.ICONIFIED);
+    }//GEN-LAST:event_minimizetxtMouseClicked
+
+    private void minimizetxtMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_minimizetxtMouseEntered
+        minimizebtn.setBackground(Color.decode("#2e4ca9"));
+    }//GEN-LAST:event_minimizetxtMouseEntered
+
+    private void minimizetxtMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_minimizetxtMouseExited
+        minimizebtn.setBackground(new Color(30, 56, 136));
+        minimizetxt.setForeground(new Color(250, 250, 250));
+    }//GEN-LAST:event_minimizetxtMouseExited
 
     private void toggleMenu(java.awt.event.MouseEvent evt) {
         if (menuVisible) {
@@ -278,6 +401,7 @@ public class Home extends javax.swing.JFrame {
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
+        FlatLightLaf.setup();
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -305,21 +429,25 @@ public class Home extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel Closebtn;
+    private javax.swing.JLabel Closetxt;
     private javax.swing.JLabel EstadiscasGenerales;
-    private javax.swing.JLabel Exit;
     private javax.swing.JLabel Menu;
     private javax.swing.JLabel QueDeseas;
     private javax.swing.JLabel Titulo;
     private javax.swing.JLabel Titulo1;
     private javax.swing.JLabel UltimaLeccion;
+    private javax.swing.JPanel header;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel minimizebtn;
+    private javax.swing.JLabel minimizetxt;
     private Rounded.RoundedPanel roundedPanel1;
     private Rounded.RoundedPanel roundedPanel2;
     private Rounded.RoundedPanel roundedPanel3;
     private Rounded.RoundedPanel roundedPanel4;
     private Rounded.RoundedPanel roundedPanel5;
+    
     // End of variables declaration//GEN-END:variables
 }
