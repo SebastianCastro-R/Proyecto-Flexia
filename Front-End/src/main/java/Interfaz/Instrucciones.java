@@ -45,7 +45,6 @@ public class Instrucciones extends javax.swing.JFrame {
         // Configurar información del ejercicio
         configurarInformacionEjercicio();
     }
-    
 
     private void configurarPanelVideo() {
         JPanel panelContenido = new JPanel(new BorderLayout());
@@ -63,80 +62,169 @@ public class Instrucciones extends javax.swing.JFrame {
         jfxPanel.setPreferredSize(new Dimension(800, 450));
 
         Platform.runLater(() -> {
-            WebView webView = new WebView();
-            WebEngine engine = webView.getEngine();
-            
-            String html = String.format("""
-            <html>
-            <body style='margin:0;background:black;display:flex;align-items:center;justify-content:center'>
-                <video width='800' height='450' controls autoplay>
-                    <source src='%s' type='video/mp4'>
-                    Tu navegador no soporta video HTML5.
-                </video>
-            </body>
-            </html>
-            """, archivo);
+            try {
+                WebView webView = new WebView();
+                WebEngine engine = webView.getEngine();
+                
+                // Depurar la URL del video
+                System.out.println("URL del video: " + archivo);
+                
+                // Crear contenido HTML mejorado
+                String html = String.format("""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            background: black;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            height: 100%%;
+                        }
+                        video {
+                            max-width: 100%%;
+                            max-height: 100%%;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <video controls autoplay muted playsinline>
+                        <source src="%s" type="video/mp4">
+                        <source src="%s" type="video/webm">
+                        Tu navegador no soporta el elemento video.
+                    </video>
+                </body>
+                </html>
+                """, archivo, archivo);
 
-            engine.loadContent(html);
-            jfxPanel.setScene(new Scene(webView));
+                engine.loadContent(html);
+                
+                // Agregar listener para errores
+                engine.setOnError(e -> {
+                    System.err.println("Error cargando video: " + e.getMessage());
+                    System.err.println("URL problemática: " + archivo);
+                });
+                
+                // Agregar listener para estado de carga
+                engine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+                    switch (newState) {
+                        case SUCCEEDED:
+                            System.out.println("Video cargado exitosamente");
+                            break;
+                        case FAILED:
+                            System.err.println("Error al cargar el video");
+                            break;
+                    }
+                });
+                
+                jfxPanel.setScene(new Scene(webView));
+                
+            } catch (Exception e) {
+                System.err.println("Error en JavaFX: " + e.getMessage());
+                e.printStackTrace();
+                
+                // Mostrar mensaje de error en caso de fallo
+                JLabel errorLabel = new JLabel("Error al cargar el video: " + e.getMessage());
+                errorLabel.setForeground(Color.RED);
+                jfxPanel.setLayout(new BorderLayout());
+                jfxPanel.add(errorLabel, BorderLayout.CENTER);
+            }
         });
 
         panelContenido.add(jfxPanel, BorderLayout.CENTER);
-
         jPanel1.add(panelContenido, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 1440, 600));
     }
 
     private void configurarInformacionEjercicio() {
-        // Panel de información del ejercicio
+        // Panel principal de información con diseño mejorado
         JPanel infoPanel = new JPanel(new BorderLayout());
         infoPanel.setBackground(new Color(250, 250, 250));
         infoPanel.setBorder(new CompoundBorder(
-            new LineBorder(new Color(200, 220, 250), 2),
-            new EmptyBorder(20, 50, 20, 50)
+            new LineBorder(new Color(180, 200, 240), 2, true), // Borde más suave y redondeado
+            new EmptyBorder(25, 40, 25, 40)
         ));
 
-        // Descripción
-        JLabel lblDescTitle = new JLabel("Descripción del Ejercicio:");
-        lblDescTitle.setFont(new Font("Epunda Slab ExtraBold", Font.PLAIN, 20));
-        lblDescTitle.setForeground(new Color(30, 56, 136));
+        // Panel contenedor principal usando GridLayout para dos columnas
+        JPanel contenedorPrincipal = new JPanel(new GridLayout(1, 2, 40, 0)); // 2 columnas, 40px de separación
+        contenedorPrincipal.setBackground(new Color(250, 250, 250));
+        contenedorPrincipal.setBorder(new EmptyBorder(10, 20, 10, 20));
 
+        // --- COLUMNA IZQUIERDA: DESCRIPCIÓN ---
+        JPanel panelDescripcion = new JPanel(new BorderLayout());
+        panelDescripcion.setBackground(new Color(250, 250, 250));
+        panelDescripcion.setBorder(new CompoundBorder(
+            new MatteBorder(0, 0, 0, 2, new Color(230, 230, 250)), // Línea divisoria suave
+            new EmptyBorder(0, 0, 0, 20)
+        ));
+
+        // Título Descripción
+        JLabel lblDescTitle = new JLabel("Descripción del Ejercicio");
+        lblDescTitle.setFont(new Font("Epunda Slab ExtraBold", Font.PLAIN, 22));
+        lblDescTitle.setForeground(new Color(30, 56, 136));
+        lblDescTitle.setBorder(new EmptyBorder(0, 0, 15, 0));
+        panelDescripcion.add(lblDescTitle, BorderLayout.NORTH);
+
+        // Área de texto de descripción
         JTextArea txtDescripcion = new JTextArea(descripcionEjercicio);
         txtDescripcion.setLineWrap(true);
         txtDescripcion.setWrapStyleWord(true);
         txtDescripcion.setEditable(false);
-        txtDescripcion.setBackground(new Color(250, 250, 250));
-        txtDescripcion.setFont(new Font("SansSerif", Font.PLAIN, 16));
-        txtDescripcion.setBorder(new EmptyBorder(10, 0, 10, 0));
+        txtDescripcion.setBackground(new Color(245, 247, 255)); // Fondo ligeramente azul
+        txtDescripcion.setFont(new Font("Lato", Font.PLAIN, 16));
+        txtDescripcion.setBorder(new CompoundBorder(
+            new LineBorder(new Color(220, 230, 255), 1, true),
+            new EmptyBorder(15, 15, 15, 15)
+        ));
+        txtDescripcion.setPreferredSize(new Dimension(300, 120));
 
-        // Instrucciones adicionales
-        JLabel lblInstruccionesTitle = new JLabel("Instrucciones Adicionales:");
-        lblInstruccionesTitle.setFont(new Font("Epunda Slab ExtraBold", Font.PLAIN, 20));
+        JScrollPane scrollDescripcion = new JScrollPane(txtDescripcion);
+        scrollDescripcion.setBorder(null);
+        scrollDescripcion.setBackground(new Color(245, 247, 255));
+        panelDescripcion.add(scrollDescripcion, BorderLayout.CENTER);
+
+        // --- COLUMNA DERECHA: INSTRUCCIONES ---
+        JPanel panelInstrucciones = new JPanel(new BorderLayout());
+        panelInstrucciones.setBackground(new Color(250, 250, 250));
+
+        // Título Instrucciones
+        JLabel lblInstruccionesTitle = new JLabel("Instrucciones Adicionales");
+        lblInstruccionesTitle.setFont(new Font("Epunda Slab ExtraBold", Font.PLAIN, 22));
         lblInstruccionesTitle.setForeground(new Color(30, 56, 136));
-        lblInstruccionesTitle.setBorder(new EmptyBorder(20, 0, 10, 0));
+        lblInstruccionesTitle.setBorder(new EmptyBorder(0, 20, 15, 0));
+        panelInstrucciones.add(lblInstruccionesTitle, BorderLayout.NORTH);
 
-        JTextArea txtInstrucciones = new JTextArea(instruccionesAdicionales != null ? 
-                                                  instruccionesAdicionales : obtenerInstruccionesPorDefecto());
+        // Área de texto de instrucciones
+        String textoInstrucciones = instruccionesAdicionales != null ? 
+                                instruccionesAdicionales : obtenerInstruccionesPorDefecto();
+        JTextArea txtInstrucciones = new JTextArea(textoInstrucciones);
         txtInstrucciones.setLineWrap(true);
         txtInstrucciones.setWrapStyleWord(true);
         txtInstrucciones.setEditable(false);
-        txtInstrucciones.setBackground(new Color(250, 250, 250));
-        txtInstrucciones.setFont(new Font("SansSerif", Font.PLAIN, 16));
-        txtInstrucciones.setBorder(new EmptyBorder(10, 0, 10, 0));
+        txtInstrucciones.setBackground(new Color(255, 245, 245)); // Fondo ligeramente rojizo
+        txtInstrucciones.setFont(new Font("Lato", Font.PLAIN, 16));
+        txtInstrucciones.setBorder(new CompoundBorder(
+            new LineBorder(new Color(255, 220, 220), 1, true),
+            new EmptyBorder(15, 15, 15, 15)
+        ));
+        txtInstrucciones.setPreferredSize(new Dimension(300, 120));
 
-        // Agregar componentes al panel de información
-        JPanel contenidoInfo = new JPanel();
-        contenidoInfo.setLayout(new BoxLayout(contenidoInfo, BoxLayout.Y_AXIS));
-        contenidoInfo.setBackground(new Color(250, 250, 250));
-        
-        contenidoInfo.add(lblDescTitle);
-        contenidoInfo.add(txtDescripcion);
-        contenidoInfo.add(lblInstruccionesTitle);
-        contenidoInfo.add(txtInstrucciones);
+        JScrollPane scrollInstrucciones = new JScrollPane(txtInstrucciones);
+        scrollInstrucciones.setBorder(null);
+        scrollInstrucciones.setBackground(new Color(255, 245, 245));
+        panelInstrucciones.add(scrollInstrucciones, BorderLayout.CENTER);
 
-        infoPanel.add(contenidoInfo, BorderLayout.CENTER);
+        // Agregar ambos paneles al contenedor principal
+        contenedorPrincipal.add(panelDescripcion);
+        contenedorPrincipal.add(panelInstrucciones);
 
         // Agregar al panel principal
-        jPanel1.add(infoPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 650, 1440, 180));
+        infoPanel.add(contenedorPrincipal, BorderLayout.CENTER);
+
+        // Ajustar la posición y tamaño en el panel principal
+        jPanel1.add(infoPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 650, 1360, 220));
     }
 
     public String obtenerInstruccionesPorDefecto() {

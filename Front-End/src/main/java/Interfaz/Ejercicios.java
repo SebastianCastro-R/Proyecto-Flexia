@@ -2,6 +2,10 @@ package Interfaz;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.net.URL;
+
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.*;
 
@@ -10,6 +14,7 @@ import Login.FuenteUtil;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mycompany.flexia.database.LeccionesDAO;
 import com.mycompany.flexia.database.VideosDAO;
 
 public class Ejercicios extends javax.swing.JFrame {
@@ -197,10 +202,14 @@ public class Ejercicios extends javax.swing.JFrame {
         tituloPag.setBorder(new EmptyBorder(30, 0, 30, 0));
         contenido.add(tituloPag);
 
-        // Crear unidades
-        contenido.add(crearUnidad("Unidad 1", 6)); // 6 ejercicios como ejemplo
-        contenido.add(Box.createVerticalStrut(30));
-        contenido.add(crearUnidad("Unidad 2", 4));
+        // Cargar lecciones y videos desde la base de datos
+        LeccionesDAO leccionesDAO = new LeccionesDAO();
+        List<LeccionesDAO.Leccion> lecciones = leccionesDAO.obtenerTodasLasLeccionesConVideos();
+        
+        for (LeccionesDAO.Leccion leccion : lecciones) {
+            contenido.add(crearUnidad(leccion.getTitulo(), leccion.getVideos()));
+            contenido.add(Box.createVerticalStrut(30));
+        }
 
         JScrollPane scroll = new JScrollPane(contenido);
         scroll.setBorder(null);
@@ -213,7 +222,7 @@ public class Ejercicios extends javax.swing.JFrame {
     }
 
     // ---------------- CREACIÓN DE UNIDAD ----------------
-    private JPanel crearUnidad(String nombre, int numEjercicios) {
+    private JPanel crearUnidad(String nombre, List<VideosDAO.Video> videos) {
         JPanel unidadPanel = new JPanel(new BorderLayout());
         unidadPanel.setBackground(new Color(250, 250, 250));
 
@@ -223,6 +232,17 @@ public class Ejercicios extends javax.swing.JFrame {
         tituloUnidad.setBorder(new EmptyBorder(10, 20, 10, 0));
         unidadPanel.add(tituloUnidad, BorderLayout.NORTH);
 
+        // Si no hay videos, mostrar mensaje
+        if (videos == null || videos.isEmpty()) {
+            JLabel sinVideos = new JLabel("No hay ejercicios disponibles para esta lección");
+            sinVideos.setFont(new Font("SansSerif", Font.ITALIC, 16));
+            sinVideos.setForeground(Color.GRAY);
+            sinVideos.setHorizontalAlignment(SwingConstants.CENTER);
+            sinVideos.setBorder(new EmptyBorder(20, 20, 20, 20));
+            unidadPanel.add(sinVideos, BorderLayout.CENTER);
+            return unidadPanel;
+        }
+
         // Panel contenedor con botones de navegación
         JPanel contenedor = new JPanel(new BorderLayout());
         contenedor.setBackground(new Color(250, 250, 250));
@@ -230,12 +250,15 @@ public class Ejercicios extends javax.swing.JFrame {
                 new LineBorder(new Color(200, 220, 250), 2, true),
                 new EmptyBorder(15, 20, 15, 20)));
 
-        // Lista con todos los ejercicios
+        // Lista con todos los ejercicios usando los videos reales
         List<JPanel> ejercicios = new ArrayList<>();
-        for (int i = 1; i <= numEjercicios; i++) {
-            ejercicios.add(crearEjercicio("Ejercicio #" + i,
-                    "Este ejercicio ayuda a mejorar la movilidad y fuerza de la muñeca.",
-                    "/Images/Background.jpg"));
+        for (VideosDAO.Video video : videos) {
+            ejercicios.add(crearEjercicio(
+                video.getTitulo(),
+                video.getDescripcion(),
+                video.getIdVideo(),
+                video // Pasar el objeto video completo para usar después
+            ));
         }
 
         // Panel que mostrará los ejercicios visibles
@@ -246,45 +269,53 @@ public class Ejercicios extends javax.swing.JFrame {
         final int[] indice = { 0 };
         mostrarEjercicios(panelVisible, ejercicios, indice[0]);
 
-        // Botones izquierda y derecha
-        JButton btnIzquierda = new JButton();
-        JButton btnDerecha = new JButton();
+        // Botones izquierda y derecha (solo si hay más de 3 videos)
+        if (ejercicios.size() > 3) {
+            JButton btnIzquierda = new JButton();
+            JButton btnDerecha = new JButton();
 
-        // Cargar imágenes desde la carpeta /icons/
-        ImageIcon iconIzq = new ImageIcon(getClass().getResource("/icons/izquierda.png"));
-        ImageIcon iconDer = new ImageIcon(getClass().getResource("/icons/derecha.png"));
+            // Cargar imágenes desde la carpeta /icons/
+            ImageIcon iconIzq = new ImageIcon(getClass().getResource("/icons/izquierda.png"));
+            ImageIcon iconDer = new ImageIcon(getClass().getResource("/icons/derecha.png"));
 
-        // Escalar las imágenes para que se vean proporcionadas
-        Image imgIzq = iconIzq.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-        Image imgDer = iconDer.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+            // Escalar las imágenes
+            Image imgIzq = iconIzq.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+            Image imgDer = iconDer.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
 
-        // Asignar íconos a los botones
-        btnIzquierda.setIcon(new ImageIcon(imgIzq));
-        btnDerecha.setIcon(new ImageIcon(imgDer));
-        estiloBotonNavegacion(btnIzquierda);
-        estiloBotonNavegacion(btnDerecha);
+            btnIzquierda.setIcon(new ImageIcon(imgIzq));
+            btnDerecha.setIcon(new ImageIcon(imgDer));
+            estiloBotonNavegacion(btnIzquierda);
+            estiloBotonNavegacion(btnDerecha);
 
-        btnIzquierda.addActionListener(e -> {
-            if (indice[0] > 0) {
-                indice[0] -= 3;
-                mostrarEjercicios(panelVisible, ejercicios, indice[0]);
+            btnIzquierda.addActionListener(e -> {
+                if (indice[0] > 0) {
+                    indice[0] -= 3;
+                    mostrarEjercicios(panelVisible, ejercicios, indice[0]);
+                }
+            });
+
+            btnDerecha.addActionListener(e -> {
+                if (indice[0] + 3 < ejercicios.size()) {
+                    indice[0] += 3;
+                    mostrarEjercicios(panelVisible, ejercicios, indice[0]);
+                }
+            });
+
+            contenedor.add(btnIzquierda, BorderLayout.WEST);
+            contenedor.add(panelVisible, BorderLayout.CENTER);
+            contenedor.add(btnDerecha, BorderLayout.EAST);
+        } else {
+            // Si hay 3 o menos videos, mostrarlos todos sin botones de navegación
+            for (JPanel ejercicio : ejercicios) {
+                panelVisible.add(ejercicio);
             }
-        });
-
-        btnDerecha.addActionListener(e -> {
-            if (indice[0] + 3 < ejercicios.size()) {
-                indice[0] += 3;
-                mostrarEjercicios(panelVisible, ejercicios, indice[0]);
-            }
-        });
-
-        contenedor.add(btnIzquierda, BorderLayout.WEST);
-        contenedor.add(panelVisible, BorderLayout.CENTER);
-        contenedor.add(btnDerecha, BorderLayout.EAST);
+            contenedor.add(panelVisible, BorderLayout.CENTER);
+        }
 
         unidadPanel.add(contenedor, BorderLayout.CENTER);
         return unidadPanel;
     }
+  
 
     private void mostrarEjercicios(JPanel panelVisible, List<JPanel> ejercicios, int inicio) {
         panelVisible.removeAll();
@@ -305,7 +336,7 @@ public class Ejercicios extends javax.swing.JFrame {
     }
 
     // ---------------- CREACIÓN DE EJERCICIO ----------------
-    private JPanel crearEjercicio(String titulo, String descripcion, String rutaImagen) {
+    private JPanel crearEjercicio(String titulo, String descripcion, int idVideo, VideosDAO.Video video) {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(new Color(245, 245, 250));
@@ -317,21 +348,41 @@ public class Ejercicios extends javax.swing.JFrame {
         tituloLbl.setFont(new Font("Epunda Slab ExtraBold", Font.PLAIN, 18));
         tituloLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Usar JLayeredPane - CONFIGURACIÓN IMPORTANTE
+        // Obtener la miniatura desde el objeto Video
+        String rutaImagen = video.getMiniatura();
+        
+        // Si no hay miniatura en BD, usar una por defecto
+        if (rutaImagen == null || rutaImagen.isEmpty()) {
+            rutaImagen = "/Images/Background.jpg";
+        }
+
+        // Resto del código permanece igual...
         JLayeredPane contenedorImagen = new JLayeredPane() {
             @Override
             public boolean contains(int x, int y) {
-                // Delegar la detección de mouse a los componentes hijos
                 return getComponentCount() > 0;
             }
         };
         contenedorImagen.setPreferredSize(new Dimension(250, 140));
         contenedorImagen.setMaximumSize(new Dimension(250, 140));
         contenedorImagen.setBackground(new Color(245, 245, 250));
-        contenedorImagen.setOpaque(false); // IMPORTANTE
+        contenedorImagen.setOpaque(false);
 
-        // Imagen de fondo
-        ImageIcon original = new ImageIcon(getClass().getResource(rutaImagen));
+        // Imagen de fondo - ahora usa la miniatura de la BD
+        ImageIcon original = null;
+        try {
+            // Intentar cargar desde URL (Drive)
+            if (rutaImagen.startsWith("http")) {
+                original = cargarImagenDesdeURL(rutaImagen, 250, 140);
+            } else {
+                // Cargar desde recursos locales
+                original = new ImageIcon(getClass().getResource(rutaImagen));
+            }
+        } catch (Exception e) {
+            // Si hay error, usar imagen por defecto
+            original = new ImageIcon(getClass().getResource("/Images/Background.jpg"));
+        }
+
         Image imgEscalada = original.getImage().getScaledInstance(250, 140, Image.SCALE_SMOOTH);
         JLabel preview = new JLabel(new ImageIcon(imgEscalada));
         preview.setBounds(0, 0, 250, 140);
@@ -439,15 +490,12 @@ public class Ejercicios extends javax.swing.JFrame {
 
             @Override
             public void mouseClicked(MouseEvent e) {
-                // Obtener datos del ejercicio desde BD
-                VideosDAO videosDAO = new VideosDAO();
-                VideosDAO.Video video = videosDAO.obtenerVideoPorTitulo(titulo);
-
-                String tituloEjercicio = titulo;
-                String descripcionEjercicio = descripcion;
-                String archivo = obtenerUrlVideoDeBD(titulo);
-                String instruccionesAdicionales = (video != null && video.getInstrucciones() != null)
-                        ? video.getInstrucciones()
+                // Usar el objeto video que ya tenemos
+                String tituloEjercicio = video.getTitulo();
+                String descripcionEjercicio = video.getDescripcion();
+                String archivo = formatearUrlCloudinary(video.getArchivo());
+                String instruccionesAdicionales = (video.getInstrucciones() != null) 
+                        ? video.getInstrucciones() 
                         : obtenerInstruccionesPorDefecto();
 
                 // Abrir ventana de instrucciones con los datos
@@ -489,6 +537,22 @@ public class Ejercicios extends javax.swing.JFrame {
         return panel;
     }
 
+    public static ImageIcon cargarImagenDesdeURL(String urlString, int width, int height) {
+        try {
+            URL url = new URL(urlString);
+            BufferedImage image = ImageIO.read(url);
+            if (image != null) {
+                Image scaled = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+                return new ImageIcon(scaled);
+            } else {
+                System.out.println("No se pudo leer imagen (¿URL inválida?)");
+            }
+        } catch (Exception e) {
+            System.err.println("Error cargando imagen: " + e.getMessage());
+        }
+        return null;
+    }
+
     private String obtenerInstruccionesPorDefecto() {
         return "• Realice el ejercicio en un espacio amplio y seguro.\n" +
                 "• Mantenga una postura correcta durante todo el ejercicio.\n" +
@@ -497,30 +561,19 @@ public class Ejercicios extends javax.swing.JFrame {
                 "• Respire profundamente durante la ejecución del movimiento.";
     }
 
-    // Método para obtener URL del video desde BD (debes implementarlo según tu
-    // estructura)
-    private String obtenerUrlVideoDeBD(String tituloEjercicio) {
-        VideosDAO videosDAO = new VideosDAO();
-        VideosDAO.Video video = videosDAO.obtenerVideoPorTitulo(tituloEjercicio);
-
-        if (video != null && video.getArchivo() != null) {
-            String url = video.getArchivo();
-            System.out.println("URL obtenida de BD: " + url); // Para debug
-
-            // Formatear URL de Cloudinary si es necesario
-            return formatearUrlCloudinary(url);
-        } else {
-            // URL por defecto si no se encuentra en BD
-            return "https://res.cloudinary.com/tu-cloud/video/upload/v1234567/default-video.mp4";
-        }
-    }
-
     private String formatearUrlCloudinary(String url) {
-        if (url == null)
+        if (url == null || url.trim().isEmpty()) {
+            System.err.println("URL de video es nula o vacía");
             return "";
+        }
+
+        System.out.println("URL original: " + url);
 
         // Si ya es una URL directa de Cloudinary con formato de video
         if (url.contains("res.cloudinary.com") && url.contains("/video/upload/")) {
+            // Asegurar que sea HTTPS
+            url = url.replace("http://", "https://");
+            System.out.println("URL formateada (ya es video): " + url);
             return url;
         }
 
@@ -528,9 +581,12 @@ public class Ejercicios extends javax.swing.JFrame {
         if (url.contains("cloudinary.com") && !url.contains("/video/upload/")) {
             // Convertir a URL directa de video
             url = url.replace("http://", "https://")
-                    .replace("/upload/", "/video/upload/f_mp4/");
+                    .replace("/upload/", "/video/upload/");
+            System.out.println("URL formateada (convertida a video): " + url);
+            return url;
         }
 
+        System.out.println("URL final: " + url);
         return url;
     }
 

@@ -6,52 +6,56 @@ import java.util.List;
 
 public class VideosDAO {
     
-    public static class Video {
-        private int idVideo;
-        private String titulo;
-        private String tipo;
-        private String descripcion;
-        private String archivo;
-        private String duracion;
-        private String nivelDificultad;
-        private String instrucciones;
-        
-        public Video(int idVideo, String titulo, String tipo, String descripcion, 
-                    String archivo, String duracion, String nivelDificultad, 
-                    String instrucciones) {
-            this.idVideo = idVideo;
-            this.titulo = titulo;
-            this.tipo = tipo;
-            this.descripcion = descripcion;
-            this.archivo = archivo;
-            this.duracion = duracion;
-            this.nivelDificultad = nivelDificultad;
-            this.instrucciones = instrucciones;
-        }
-        
-        // Getters
-        public int getIdVideo() { return idVideo; }
-        public String getTitulo() { return titulo; }
-        public String getTipo() { return tipo; }
-        public String getDescripcion() { return descripcion; }
-        public String getArchivo() { return archivo; }
-        public String getDuracion() { return duracion; }
-        public String getNivelDificultad() { return nivelDificultad; }
-        public String getInstrucciones() { return instrucciones; }
+public static class Video {
+    private int idVideo;
+    private String miniatura; // Agregar este campo
+    private String titulo;
+    private String tipo;
+    private String descripcion;
+    private String archivo;
+    private String duracion;
+    private String nivelDificultad;
+    private String instrucciones;
+    
+    public Video(int idVideo, String miniatura, String titulo, String tipo, String descripcion, 
+                String archivo, String duracion, String nivelDificultad, 
+                String instrucciones) {
+        this.idVideo = idVideo;
+        this.miniatura = miniatura;
+        this.titulo = titulo;
+        this.tipo = tipo;
+        this.descripcion = descripcion;
+        this.archivo = archivo;
+        this.duracion = duracion;
+        this.nivelDificultad = nivelDificultad;
+        this.instrucciones = instrucciones;
     }
     
-    // Obtener todos los videos
+    // Getters
+    public int getIdVideo() { return idVideo; }
+    public String getMiniatura() { return miniatura; } // Nuevo getter
+    public String getTitulo() { return titulo; }
+    public String getTipo() { return tipo; }
+    public String getDescripcion() { return descripcion; }
+    public String getArchivo() { return archivo; }
+    public String getDuracion() { return duracion; }
+    public String getNivelDificultad() { return nivelDificultad; }
+    public String getInstrucciones() { return instrucciones; }
+}
+
+// Actualizar las consultas SQL para incluir miniatura
     public List<Video> obtenerTodosLosVideos() {
         List<Video> videos = new ArrayList<>();
-        String sql = "SELECT id_video, titulo, tipo, descripcion, archivo, duracion, nivel_dificultad, instrucciones FROM videos";
+        String sql = "SELECT id_video, miniatura, titulo, tipo, descripcion, archivo, duracion, nivel_dificultad, instrucciones FROM videos";
         
         try (Connection conn = Conexion.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            ResultSet rs = pstmt.executeQuery()) {
             
             while (rs.next()) {
                 Video video = new Video(
                     rs.getInt("id_video"),
+                    rs.getString("miniatura"), // Nuevo campo
                     rs.getString("titulo"),
                     rs.getString("tipo"),
                     rs.getString("descripcion"),
@@ -70,8 +74,8 @@ public class VideosDAO {
     
     // Obtener video por título
     public Video obtenerVideoPorTitulo(String titulo) {
-        String sql = "SELECT id_video, titulo, tipo, descripcion, archivo, duracion, nivel_dificultad, instrucciones FROM videos WHERE titulo = ?";
-        
+        String sql = "SELECT id_video, miniatura, titulo, tipo, descripcion, archivo, duracion, nivel_dificultad, instrucciones FROM videos WHERE titulo = ?";
+
         try (Connection conn = Conexion.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
@@ -82,6 +86,7 @@ public class VideosDAO {
                 return new Video(
                     rs.getInt("id_video"),
                     rs.getString("titulo"),
+                    rs.getString("miniatura"),
                     rs.getString("tipo"),
                     rs.getString("descripcion"),
                     rs.getString("archivo"),
@@ -98,7 +103,7 @@ public class VideosDAO {
     
     // Obtener video por ID
     public Video obtenerVideoPorId(int idVideo) {
-        String sql = "SELECT id_video, titulo, tipo, descripcion, archivo, duracion, nivel_dificultad, instrucciones FROM videos WHERE id_video = ?";
+        String sql = "SELECT id_video, miniatura, titulo, tipo, descripcion, archivo, duracion, nivel_dificultad, instrucciones FROM videos WHERE id_video = ?";
         
         try (Connection conn = Conexion.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -110,6 +115,7 @@ public class VideosDAO {
                 return new Video(
                     rs.getInt("id_video"),
                     rs.getString("titulo"),
+                    rs.getString("miniatura"),
                     rs.getString("tipo"),
                     rs.getString("descripcion"),
                     rs.getString("archivo"),
