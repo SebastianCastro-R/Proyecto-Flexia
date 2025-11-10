@@ -40,7 +40,7 @@ public class login extends javax.swing.JFrame {
      * Creates new form login
      */
     public login() {
-        
+
         initComponents();
         initStyles();
         initPanels();
@@ -121,8 +121,7 @@ public class login extends javax.swing.JFrame {
         // ===== Texto secundario =====
         JLabel lblSubtexto = new JLabel(
                 "<html><div style='text-align:center;'>Accede a tu cuenta con tus credenciales<br>O</div></html>",
-                SwingConstants.CENTER
-        );
+                SwingConstants.CENTER);
         lblSubtexto.setFont(new Font("Epunda Slab Regular", Font.PLAIN, 20));
         lblSubtexto.setForeground(Color.BLACK);
 
@@ -150,8 +149,7 @@ public class login extends javax.swing.JFrame {
         // ===== Texto dentro de la burbuja =====
         JLabel lblTextoBurbuja = new JLabel(
                 "<html><div style='text-align:center;'>Si aún no tienes<br>cuenta, primero<br>debes registrarte</div></html>",
-                SwingConstants.CENTER
-        );
+                SwingConstants.CENTER);
         lblTextoBurbuja.setFont(new Font("Epunda Slab Regular", Font.PLAIN, 18));
         lblTextoBurbuja.setForeground(Color.BLACK);
 
@@ -172,14 +170,15 @@ public class login extends javax.swing.JFrame {
         lblMano.setBounds(xMano, yMano, 227, 221);
         panelIzquierdo.add(lblMano);
 
-        // configura el botón (dentro de initPanels), reemplaza las líneas previas donde ponías setOpaque(false) etc.
+        // configura el botón (dentro de initPanels), reemplaza las líneas previas donde
+        // ponías setOpaque(false) etc.
         registrarsebtn.setText("Registrarse");
         registrarsebtn.setFont(new Font("Epunda Slab Regular", Font.PLAIN, 20));
         registrarsebtn.setForeground(Color.BLACK);
         registrarsebtn.setBackground(new Color(0xFAFAFA));
         registrarsebtn.setFocusPainted(false);
         registrarsebtn.setBorderPainted(false); // opcional según si quieres borde
-        registrarsebtn.setOpaque(false);         // IMPORTANT: deja true para que L&F pinte el fondo
+        registrarsebtn.setOpaque(false); // IMPORTANT: deja true para que L&F pinte el fondo
         registrarsebtn.setContentAreaFilled(true);
         registrarsebtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         registrarsebtn.setBounds(140, 600, 170, 45);
@@ -261,10 +260,10 @@ public class login extends javax.swing.JFrame {
         panelDerecho.add(lblCorreo);
 
         // ===== Campo correo =====
-        
+
         txtCorreo.setBounds(80, 440, 286, 40);
         txtCorreo.setFont(new Font("Lato", Font.PLAIN, 16));
-        txtCorreo.setForeground(new Color(142,142,147));
+        txtCorreo.setForeground(new Color(142, 142, 147));
         txtCorreo.putClientProperty("JComponent.roundRect", true);
 
         // Crear un panel para el icono
@@ -286,7 +285,6 @@ public class login extends javax.swing.JFrame {
 
         panelDerecho.add(txtCorreo);
 
-
         // ===== Label "Contraseña" =====
         JLabel lblPass = new JLabel("Contraseña:");
         lblPass.setFont(new Font("Epunda Slab SemiBold", Font.PLAIN, 20));
@@ -294,7 +292,7 @@ public class login extends javax.swing.JFrame {
         panelDerecho.add(lblPass);
 
         // ===== Campo contraseña =====
-        
+
         txtPass.setBounds(80, 520, 286, 40);
         txtPass.setFont(new Font("Lato", Font.PLAIN, 16));
         txtPass.setForeground(new Color(142, 142, 147));
@@ -311,7 +309,8 @@ public class login extends javax.swing.JFrame {
         txtPass.putClientProperty("JTextField.leadingComponent", leftPanel);
 
         // --- Icono a la derecha (mostrar/ocultar contraseña) ---
-        JLabel lblIconoRight = new JLabel(new javax.swing.ImageIcon(getClass().getResource("/Images/eye_off.png"))); // icono cerrado
+        JLabel lblIconoRight = new JLabel(new javax.swing.ImageIcon(getClass().getResource("/Images/eye_off.png"))); // icono
+                                                                                                                     // cerrado
         lblIconoRight.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 15));
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.setOpaque(false);
@@ -342,8 +341,6 @@ public class login extends javax.swing.JFrame {
         txtPass.putClientProperty("TextField.placeholderForeground", new Color(150, 150, 150));
 
         panelDerecho.add(txtPass);
-
-
 
         // ===== Label "¿Olvidaste tu contraseña?" =====
         JLabel lblOlvidar = new JLabel("<html><u>¿Olvidaste tu contraseña?</u></html>");
@@ -386,7 +383,7 @@ public class login extends javax.swing.JFrame {
         btnIniciar.setBackground(new Color(0x98CEFF));
         btnIniciar.setFocusPainted(false);
         btnIniciar.setBounds((panelDerecho.getWidth() - 180) / 2, 600, 180, 45);
-        
+
         btnIniciar.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         // Efecto hover manual (opcional)
@@ -401,7 +398,6 @@ public class login extends javax.swing.JFrame {
                 btnIniciar.setForeground(Color.BLACK);
             }
 
-            
         });
 
         // ====== Acción al hacer clic (ActionListener) ======
@@ -413,11 +409,10 @@ public class login extends javax.swing.JFrame {
 
                 if (correo.isEmpty() || contrasena.isEmpty()) {
                     JOptionPane.showMessageDialog(
-                        null,
-                        "⚠️ Por favor, complete todos los campos.",
-                        "Campos vacíos",
-                        JOptionPane.WARNING_MESSAGE
-                    );
+                            null,
+                            "⚠️ Por favor, complete todos los campos.",
+                            "Campos vacíos",
+                            JOptionPane.WARNING_MESSAGE);
                     return;
                 }
 
@@ -426,17 +421,16 @@ public class login extends javax.swing.JFrame {
                 if (dao.autenticarUsuarioPorCorreo(correo, contrasena)) {
                     // ✅ LOGIN EXITOSO - OBTENER DATOS DEL USUARIO Y GUARDAR SESIÓN
                     String nombreUsuario = obtenerNombreUsuarioDesdeBD(correo);
-                    
+
                     if (nombreUsuario != null) {
                         // Guardar en sesión
                         SesionUsuario.getInstancia().iniciarSesion(correo, nombreUsuario);
-                        
+
                         JOptionPane.showMessageDialog(
-                            null,
-                            "✅ Inicio de sesión exitoso.\nBienvenido " + nombreUsuario,
-                            "Bienvenido",
-                            JOptionPane.INFORMATION_MESSAGE
-                        );
+                                null,
+                                "✅ Inicio de sesión exitoso.\nBienvenido " + nombreUsuario,
+                                "Bienvenido",
+                                JOptionPane.INFORMATION_MESSAGE);
                         // ✅ Verificar si el usuario ya respondió encuesta
                         if (usuarioTieneEncuesta(correo)) {
                             // ✅ Ya respondió → ir al Home
@@ -455,51 +449,50 @@ public class login extends javax.swing.JFrame {
                         dispose(); // Cierra la ventana de Login
                     } else {
                         JOptionPane.showMessageDialog(
-                            null,
-                            "❌ Error al obtener datos del usuario.",
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE
-                        );
+                                null,
+                                "❌ Error al obtener datos del usuario.",
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE);
                     }
 
                 } else {
                     JOptionPane.showMessageDialog(
-                        null,
-                        "❌ Correo o contraseña incorrectos.",
-                        "Error de inicio de sesión",
-                        JOptionPane.ERROR_MESSAGE
-                    );
+                            null,
+                            "❌ Correo o contraseña incorrectos.",
+                            "Error de inicio de sesión",
+                            JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
-
-        
 
         panelDerecho.add(btnIniciar);
 
     }
 
-    // Método auxiliar para obtener el nombre del usuario desde la BD
-        private String obtenerNombreUsuarioDesdeBD(String correo) {
-            String sql = "SELECT nombres, apellidos FROM usuarios WHERE correo_electronico = ?";
-            
-            try (Connection conn = Conexion.getConnection();
+    // Método auxiliar para obtener SOLO el nombre del usuario desde la BD
+    private String obtenerNombreUsuarioDesdeBD(String correo) {
+        String sql = "SELECT nombres FROM usuarios WHERE correo_electronico = ?";
+
+        try (Connection conn = Conexion.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
-                
-                ps.setString(1, correo);
-                ResultSet rs = ps.executeQuery();
-                
-                if (rs.next()) {
-                    String nombres = rs.getString("nombres");
-                    String apellidos = rs.getString("apellidos");
-                    return nombres + " " + apellidos;
+
+            ps.setString(1, correo);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                String nombres = rs.getString("nombres");
+                // Retornar solo el primer nombre
+                if (nombres != null && nombres.contains(" ")) {
+                    return nombres.split(" ")[0];
                 }
-                
-            } catch (SQLException e) {
-                System.err.println("❌ Error al obtener datos del usuario: " + e.getMessage());
+                return nombres;
             }
-            return null;
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error al obtener datos del usuario: " + e.getMessage());
         }
+        return null;
+    }
 
     private JButton crearBotonSocial(String rutaIcono, int x, int y, Color fondo) {
         URL url = getClass().getResource(rutaIcono);
@@ -546,7 +539,8 @@ public class login extends javax.swing.JFrame {
      * regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc="Generated
+    // Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         header = new javax.swing.JPanel();
@@ -586,9 +580,11 @@ public class login extends javax.swing.JFrame {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 ClosetxtMouseClicked(evt);
             }
+
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 ClosetxtMouseEntered(evt);
             }
+
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 ClosetxtMouseExited(evt);
             }
@@ -597,15 +593,14 @@ public class login extends javax.swing.JFrame {
         javax.swing.GroupLayout ClosebtnLayout = new javax.swing.GroupLayout(Closebtn);
         Closebtn.setLayout(ClosebtnLayout);
         ClosebtnLayout.setHorizontalGroup(
-            ClosebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(Closetxt, javax.swing.GroupLayout.DEFAULT_SIZE, 60, Short.MAX_VALUE)
-        );
+                ClosebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(Closetxt, javax.swing.GroupLayout.DEFAULT_SIZE, 60, Short.MAX_VALUE));
         ClosebtnLayout.setVerticalGroup(
-            ClosebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(ClosebtnLayout.createSequentialGroup()
-                .addComponent(Closetxt, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
+                ClosebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(ClosebtnLayout.createSequentialGroup()
+                                .addComponent(Closetxt, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addContainerGap()));
 
         minimizebtn.setBackground(new java.awt.Color(30, 56, 136));
 
@@ -615,9 +610,11 @@ public class login extends javax.swing.JFrame {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 minimizetxtMouseClicked(evt);
             }
+
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 minimizetxtMouseEntered(evt);
             }
+
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 minimizetxtMouseExited(evt);
             }
@@ -626,35 +623,42 @@ public class login extends javax.swing.JFrame {
         javax.swing.GroupLayout minimizebtnLayout = new javax.swing.GroupLayout(minimizebtn);
         minimizebtn.setLayout(minimizebtnLayout);
         minimizebtnLayout.setHorizontalGroup(
-            minimizebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, minimizebtnLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(minimizetxt, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
+                minimizebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, minimizebtnLayout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(minimizetxt, javax.swing.GroupLayout.PREFERRED_SIZE, 60,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE)));
         minimizebtnLayout.setVerticalGroup(
-            minimizebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(minimizetxt, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
-        );
+                minimizebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(minimizetxt, javax.swing.GroupLayout.PREFERRED_SIZE, 46,
+                                javax.swing.GroupLayout.PREFERRED_SIZE));
 
         javax.swing.GroupLayout headerLayout = new javax.swing.GroupLayout(header);
         header.setLayout(headerLayout);
         headerLayout.setHorizontalGroup(
-            headerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(headerLayout.createSequentialGroup()
-                .addGap(23, 23, 23)
-                .addComponent(titlelbl, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 1125, Short.MAX_VALUE)
-                .addComponent(minimizebtn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(Closebtn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
+                headerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(headerLayout.createSequentialGroup()
+                                .addGap(23, 23, 23)
+                                .addComponent(titlelbl, javax.swing.GroupLayout.PREFERRED_SIZE, 166,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 1125,
+                                        Short.MAX_VALUE)
+                                .addComponent(minimizebtn, javax.swing.GroupLayout.PREFERRED_SIZE,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(Closebtn, javax.swing.GroupLayout.PREFERRED_SIZE,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)));
         headerLayout.setVerticalGroup(
-            headerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(titlelbl, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(headerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                .addComponent(minimizebtn, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(Closebtn, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
+                headerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(titlelbl, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(headerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(minimizebtn, javax.swing.GroupLayout.Alignment.LEADING,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE)
+                                .addComponent(Closebtn, javax.swing.GroupLayout.Alignment.LEADING,
+                                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                        Short.MAX_VALUE)));
 
         registrarsebtn.setText("jButton1");
         registrarsebtn.setIconTextGap(12);
@@ -667,64 +671,64 @@ public class login extends javax.swing.JFrame {
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(header, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(221, 221, 221)
-                .addComponent(registrarsebtn))
-        );
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(header, javax.swing.GroupLayout.PREFERRED_SIZE,
+                                javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(layout.createSequentialGroup()
+                                .addGap(221, 221, 221)
+                                .addComponent(registrarsebtn)));
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(header, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(479, 479, 479)
-                .addComponent(registrarsebtn)
-                .addContainerGap(606, Short.MAX_VALUE))
-        );
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                                .addComponent(header, javax.swing.GroupLayout.PREFERRED_SIZE, 40,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(479, 479, 479)
+                                .addComponent(registrarsebtn)
+                                .addContainerGap(606, Short.MAX_VALUE)));
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void headerMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_headerMousePressed
+    private void headerMousePressed(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_headerMousePressed
         xmouse = evt.getX();
         ymouse = evt.getY();
-    }//GEN-LAST:event_headerMousePressed
+    }// GEN-LAST:event_headerMousePressed
 
-    private void headerMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_headerMouseDragged
+    private void headerMouseDragged(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_headerMouseDragged
         int x = evt.getXOnScreen();
         int y = evt.getYOnScreen();
         this.setLocation(x - xmouse, y - ymouse);
-    }//GEN-LAST:event_headerMouseDragged
+    }// GEN-LAST:event_headerMouseDragged
 
-    private void ClosetxtMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ClosetxtMouseClicked
+    private void ClosetxtMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ClosetxtMouseClicked
         System.exit(0);
-    }//GEN-LAST:event_ClosetxtMouseClicked
+    }// GEN-LAST:event_ClosetxtMouseClicked
 
-    private void ClosetxtMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ClosetxtMouseEntered
+    private void ClosetxtMouseEntered(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ClosetxtMouseEntered
         Closebtn.setBackground(Color.red);
         Closetxt.setForeground(new Color(250, 250, 250));
-    }//GEN-LAST:event_ClosetxtMouseEntered
+    }// GEN-LAST:event_ClosetxtMouseEntered
 
-    private void ClosetxtMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ClosetxtMouseExited
+    private void ClosetxtMouseExited(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ClosetxtMouseExited
         Closebtn.setBackground(new Color(30, 56, 136));
         Closetxt.setForeground(new Color(250, 250, 250));
-    }//GEN-LAST:event_ClosetxtMouseExited
+    }// GEN-LAST:event_ClosetxtMouseExited
 
-    private void minimizetxtMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_minimizetxtMouseEntered
+    private void minimizetxtMouseEntered(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_minimizetxtMouseEntered
         minimizebtn.setBackground(Color.decode("#2e4ca9"));
-    }//GEN-LAST:event_minimizetxtMouseEntered
+    }// GEN-LAST:event_minimizetxtMouseEntered
 
-    private void minimizetxtMouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_minimizetxtMouseExited
+    private void minimizetxtMouseExited(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_minimizetxtMouseExited
         minimizebtn.setBackground(new Color(30, 56, 136));
         minimizetxt.setForeground(new Color(250, 250, 250));
-    }//GEN-LAST:event_minimizetxtMouseExited
+    }// GEN-LAST:event_minimizetxtMouseExited
 
-    private void minimizetxtMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_minimizetxtMouseClicked
+    private void minimizetxtMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_minimizetxtMouseClicked
         this.setState(JFrame.ICONIFIED);
-    }//GEN-LAST:event_minimizetxtMouseClicked
+    }// GEN-LAST:event_minimizetxtMouseClicked
 
-    private void registrarsebtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_registrarsebtnMouseClicked
+    private void registrarsebtnMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_registrarsebtnMouseClicked
         // Cerrar la ventana actual
         this.dispose();
         UIManager.put("ComboBox.arc", 30);
@@ -732,7 +736,7 @@ public class login extends javax.swing.JFrame {
         SignIn signin = new SignIn();
         signin.setVisible(true);
         signin.setLocationRelativeTo(null); // Centrar en pantalla
-    }//GEN-LAST:event_registrarsebtnMouseClicked
+    }// GEN-LAST:event_registrarsebtnMouseClicked
 
     /**
      * @param args the command line arguments

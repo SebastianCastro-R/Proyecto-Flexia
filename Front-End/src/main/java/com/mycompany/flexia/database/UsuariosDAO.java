@@ -10,25 +10,26 @@ public class UsuariosDAO {
 
     /**
      * Registra un usuario: hashea la contraseña con BCrypt antes de guardarla.
+     * 
      * @return true si insertó correctamente
      */
     public boolean registrarUsuario(String tipoId,
-                                    String numeroId,
-                                    String nombres,
-                                    String apellidos,
-                                    String correo,
-                                    String contrasenaPlano,
-                                    java.sql.Date fechaNacimiento,
-                                    String telefono,
-                                    String genero,
-                                    boolean esPremium) {
+            String numeroId,
+            String nombres,
+            String apellidos,
+            String correo,
+            String contrasenaPlano,
+            java.sql.Date fechaNacimiento,
+            String telefono,
+            String genero,
+            boolean esPremium) {
         String sql = "INSERT INTO usuarios (tipo_id, numero_id, nombres, apellidos, correo_electronico, contrasena, fecha_nacimiento, telefono, genero, es_premium) "
-                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         // Generamos el hash con coste 12 (puedes ajustar)
         String hashed = BCrypt.hashpw(contrasenaPlano, BCrypt.gensalt(12));
 
         try (Connection conn = Conexion.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, tipoId);
             ps.setString(2, numeroId);
@@ -58,7 +59,7 @@ public class UsuariosDAO {
         String sql = "SELECT contrasena FROM usuarios WHERE correo_electronico = ?";
 
         try (Connection conn = Conexion.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, correo);
             try (ResultSet rs = ps.executeQuery()) {
@@ -82,7 +83,7 @@ public class UsuariosDAO {
         String sql = "SELECT contrasena FROM usuarios WHERE correo_electronico = ?";
 
         try (Connection conn = Conexion.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, correo);
             ResultSet rs = ps.executeQuery();
@@ -102,33 +103,34 @@ public class UsuariosDAO {
     /**
      * Actualiza la contraseña de un usuario por su correo electrónico
      */
-public boolean actualizarContrasena(String correo, String nuevaContrasenaPlano) {
-    String sql = "UPDATE usuarios SET contrasena = ? WHERE correo_electronico = ?";
+    public boolean actualizarContrasena(String correo, String nuevaContrasenaPlano) {
+        String sql = "UPDATE usuarios SET contrasena = ? WHERE correo_electronico = ?";
 
-    // Generar nuevo hash con un salt distinto cada vez
-    String hashed = BCrypt.hashpw(nuevaContrasenaPlano, BCrypt.gensalt(12));
+        // Generar nuevo hash con un salt distinto cada vez
+        String hashed = BCrypt.hashpw(nuevaContrasenaPlano, BCrypt.gensalt(12));
 
-    try (Connection conn = Conexion.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = Conexion.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        ps.setString(1, hashed);
-        ps.setString(2, correo);
+            ps.setString(1, hashed);
+            ps.setString(2, correo);
 
-        int filas = ps.executeUpdate();
+            int filas = ps.executeUpdate();
 
-        if (filas > 0) {
-            System.out.println("🔐 Contraseña actualizada correctamente para: " + correo);
-            return true;
-        } else {
-            System.out.println("⚠️ No se encontró usuario con el correo: " + correo);
+            if (filas > 0) {
+                System.out.println("🔐 Contraseña actualizada correctamente para: " + correo);
+                return true;
+            } else {
+                System.out.println("⚠️ No se encontró usuario con el correo: " + correo);
+                return false;
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error al actualizar contraseña: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
-
-    } catch (SQLException e) {
-        System.err.println("❌ Error al actualizar contraseña: " + e.getMessage());
-        e.printStackTrace();
-        return false;
     }
-}
+    
 
 }

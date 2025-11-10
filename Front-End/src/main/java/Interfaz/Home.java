@@ -47,7 +47,7 @@ public class Home extends javax.swing.JFrame {
         // Configuración de la ventana
         setSize(1440, 1024);
         setLocationRelativeTo(null);
-        setResizable(false); 
+        setResizable(false);
     }
 
     /**

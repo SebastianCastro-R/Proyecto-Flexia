@@ -1,4 +1,7 @@
 {
     "git.ignoreLimitWarning": true,
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "files.watcherExclude": {
+        "**/target": true
+    }
 }

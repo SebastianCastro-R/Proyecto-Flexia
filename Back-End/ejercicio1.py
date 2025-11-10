@@ -70,9 +70,6 @@ try:
                 if mano_abierta(hand_landmarks):
                     estado_actual = True
                     
-                    # Dibujar texto de confirmación
-                    cv2.putText(frame, "MANO ABIERTA DETECTADA", (50, 50),
-                               cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
         # Suavizar la detección
         if estado_actual:

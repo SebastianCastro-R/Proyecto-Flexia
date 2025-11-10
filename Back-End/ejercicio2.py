@@ -69,9 +69,6 @@ try:
                 if mano_cerrada(hand_landmarks):
                     estado_actual = True
                     
-                    # Dibujar texto de confirmación
-                    cv2.putText(frame, "PUÑO DETECTADO", (50, 50),
-                               cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
         # Suavizar la detección
         if estado_actual:
@@ -101,12 +98,6 @@ try:
                 break
 
         ultimo_estado = estado_suavizado
-
-        # Mostrar instrucción en pantalla
-        cv2.putText(frame, "EJERCICIO 2: Puño Cerrado", (50, 450),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-        cv2.putText(frame, "Cierra la mano completamente", (50, 480),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
 
         # Enviar frame comprimido (limitado a 10 FPS)
         if time.time() - ultimo_envio > 0.1:
