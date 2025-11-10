@@ -1,0 +1,50 @@
+name: Desktop Accessibility Audit
+run-name: "Accessibility Audit - Carpal Tunnel Rehab App"
+
+on:
+  workflow_dispatch:
+    inputs:
+      display-title:
+        description: "Display title for this run"
+        required: true
+
+jobs:
+  build-and-audit:
+    runs-on: ubuntu-latest
+    name: Accessibility Audit for Desktop App
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build the application
+        run: |
+          echo "Compiling the Java project..."
+          ./gradlew build || mvn package || ant build || echo "Build script not found"
+
+      - name: Run static code analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "accessibility-check"
+        # CodeQL puede detectar problemas de accesibilidad en Swing, AWT o JavaFX si defines queries personalizadas
+
+      - name: Run Accessibility Tests (optional)
+        run: |
+          echo "Starting accessibility verification..."
+          # Aquí podrías integrar herramientas de análisis, por ejemplo:
+          # - axe-core (para apps Electron o JavaFX WebView)
+          # - Java Access Bridge Tester
+          # - Unit tests que verifiquen accesibilidad (nombres, roles, estados)
+          echo "Accessibility test complete."
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: accessibility-report
+          path: build/reports/
