@@ -44,7 +44,7 @@ jobs:
           echo "Accessibility test complete."
 
       - name: Upload reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: accessibility-report
           path: build/reports/
