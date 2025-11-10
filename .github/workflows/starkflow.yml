@@ -15,36 +15,33 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Build the application
         run: |
-          echo "Compiling the Java project..."
-          ./gradlew build || mvn package || ant build || echo "Build script not found"
+          echo "Compiling the Java Maven project..."
+          cd "Front-End"
+          mvn -B clean package --file pom.xml
 
       - name: Run static code analysis
         uses: github/codeql-action/analyze@v3
         with:
           category: "accessibility-check"
-        # CodeQL puede detectar problemas de accesibilidad en Swing, AWT o JavaFX si defines queries personalizadas
 
       - name: Run Accessibility Tests (optional)
         run: |
           echo "Starting accessibility verification..."
-          # Aquí podrías integrar herramientas de análisis, por ejemplo:
-          # - axe-core (para apps Electron o JavaFX WebView)
-          # - Java Access Bridge Tester
-          # - Unit tests que verifiquen accesibilidad (nombres, roles, estados)
+          # Aquí puedes agregar tus propios tests de accesibilidad
           echo "Accessibility test complete."
 
       - name: Upload reports
         uses: actions/upload-artifact@v4
         with:
           name: accessibility-report
-          path: build/reports/
+          path: Front-End/target/
