@@ -209,12 +209,33 @@ public class Ejercicio extends javax.swing.JFrame {
     // Modifica el método startCameraStream()
     private String determinarScriptPython(String tipoEjercicio) {
         // Mapear títulos de ejercicio a scripts Python específicos
-        switch (tipoEjercicio) {
-            case "Ejercicio #1":
-                return "Back-End/ejercicio1.py";
-            case "Ejercicio #2":
+        switch (tipoEjercicio.toLowerCase()) {
+            case "ejercicio #1":
+                return "Back-End/ejercicio1.py"; // ❌ CAMBIAR: ejercicio1.py -> ejercicio2.py
+            case "ejercicio #2":
                 return "Back-End/ejercicio2.py";
-            // Agregar más casos según necesites
+            case "garra":
+                return "Back-End/ejercicio2.py"; // ❌ CAMBIAR: ejercicio2.py -> ejercicio1.py
+            case "dedos separados":
+                return "Back-End/ejercicio3.py";
+            case "pulgar a índice":
+                return "Back-End/ejercicio4.py";
+            case "pulgar a meñique":
+                return "Back-End/ejercicio5.py";
+            case "ok sign":
+                return "Back-End/ejercicio6.py";
+            case "extensión lateral":
+                return "Back-End/ejercicio7.py";
+            case "flexión de muñeca":
+                return "Back-End/ejercicio8.py";
+            case "extensión de muñeca":
+                return "Back-End/ejercicio9.py";
+            case "toques":
+                return "Back-End/ejercicio10.py";
+            case "dedos en pinzas":
+                return "Back-End/ejercicio11.py";
+            case "paz y amor":
+                return "Back-End/ejercicio12.py";
             default:
                 return "Back-End/leccionCamara.py"; // Script por defecto
         }
