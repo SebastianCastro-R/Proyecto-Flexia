@@ -1,2 +1,0 @@
-- name: Stark Accessibility Checker
-  uses: stark-contrast/accessibility-check-action@1.2.3

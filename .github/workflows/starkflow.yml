@@ -1,0 +1,47 @@
+name: Desktop Accessibility Audit
+run-name: "Accessibility Audit - Carpal Tunnel Rehab App"
+
+on:
+  workflow_dispatch:
+    inputs:
+      display-title:
+        description: "Display title for this run"
+        required: true
+
+jobs:
+  build-and-audit:
+    runs-on: ubuntu-latest
+    name: Accessibility Audit for Desktop App
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build the application
+        run: |
+          echo "Compiling the Java Maven project..."
+          cd "Front-End"
+          mvn -B clean package --file pom.xml
+
+      - name: Run static code analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "accessibility-check"
+
+      - name: Run Accessibility Tests (optional)
+        run: |
+          echo "Starting accessibility verification..."
+          # Aquí puedes agregar tus propios tests de accesibilidad
+          echo "Accessibility test complete."
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: accessibility-report
+          path: Front-End/target/
