@@ -112,7 +112,7 @@ public class Ejercicios extends javax.swing.JFrame {
         });
         barra.add(menu, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 5, -1, 30));
 
-        JLabel titulo = new JLabel("FLEX-IA");
+        JLabel titulo = new JLabel("EJERCICIOS");
         titulo.setFont(new Font("Epunda Slab ExtraBold", Font.PLAIN, 24));
         titulo.setForeground(Color.WHITE);
         barra.add(titulo, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 0, -1, 40));

@@ -124,7 +124,7 @@ public class Formulario extends javax.swing.JFrame {
 
         flexiaLabel.setFont(new java.awt.Font("Epunda Slab ExtraBold", 0, 24)); // NOI18N
         flexiaLabel.setForeground(new java.awt.Color(255, 255, 255));
-        flexiaLabel.setText("FLEX-IA");
+        flexiaLabel.setText("ENCUESTA DIAGNOSTICA");
         BarraPanel.add(flexiaLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 0, -1, 40));
 
         Exit2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/exit.png"))); // NOI18N
@@ -154,7 +154,7 @@ public class Formulario extends javax.swing.JFrame {
                 NombreFieldActionPerformed(evt);
             }
         });
-        
+
         FondoPanel.add(NombreField, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 260, 230, 40));
 
         EdadLabel.setFont(new java.awt.Font("Epunda Slab ExtraBold", 0, 18)); // NOI18N

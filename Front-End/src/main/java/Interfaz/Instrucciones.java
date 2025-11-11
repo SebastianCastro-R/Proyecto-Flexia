@@ -42,7 +42,7 @@ public class Instrucciones extends javax.swing.JFrame {
 
     private void personalizarInterfaz() {
         // Actualizar título de la ventana
-        Titulo.setText("FLEX-IA - " + tituloEjercicio);
+        Titulo.setText("INSTRUCCIONES - " + tituloEjercicio);
 
         // Configurar panel de video
         configurarPanelVideo();

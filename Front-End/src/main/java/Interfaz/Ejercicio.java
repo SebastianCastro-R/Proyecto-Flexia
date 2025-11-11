@@ -47,7 +47,7 @@ public class Ejercicio extends javax.swing.JFrame {
 
         // Actualizar título de la ventana con el nombre del ejercicio
         if (tituloEjercicio != null && !tituloEjercicio.equals("Ejercicio Predeterminado")) {
-            titlelbl.setText("FLEX-IA - " + tituloEjercicio);
+            titlelbl.setText("EJERCICIO - " + tituloEjercicio);
         }
 
         setSize(905, 680);
