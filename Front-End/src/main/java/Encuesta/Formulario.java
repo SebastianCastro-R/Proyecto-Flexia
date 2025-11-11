@@ -165,14 +165,6 @@ public class Formulario extends javax.swing.JFrame {
         EdadField.setToolTipText("");
         FondoPanel.add(EdadField, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 340, 120, 40));
 
-        GeneroLabel.setFont(new java.awt.Font("Epunda Slab ExtraBold", 0, 18)); // NOI18N
-        GeneroLabel.setForeground(new java.awt.Color(51, 51, 51));
-        GeneroLabel.setText("Genero:");
-        FondoPanel.add(GeneroLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 400, 90, 50));
-
-        GeneroComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Seleccione una", "Femenino", "Masculino", "Prefiero no decirlo", " " }));
-        FondoPanel.add(GeneroComboBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 450, 220, 40));
-
         DominanteLabel.setFont(new java.awt.Font("Epunda Slab ExtraBold", 0, 18)); // NOI18N
         DominanteLabel.setForeground(new java.awt.Color(51, 51, 51));
         DominanteLabel.setText("Mano Dominante: *");

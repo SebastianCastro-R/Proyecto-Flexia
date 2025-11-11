@@ -701,15 +701,6 @@ public class SignIn extends javax.swing.JFrame {
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/Group 5.png"))); // NOI18N
         white.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 230, -1, -1));
 
-        Telefono1.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
-        Telefono1.setText("Genero");
-        white.add(Telefono1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 480, -1, -1));
-
-        Genre.setFont(new java.awt.Font("Lato", 0, 16)); // NOI18N
-        Genre.setForeground(new java.awt.Color(142, 142, 147));
-        Genre.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Femenino", "Masculino" }));
-        white.add(Genre, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 510, 180, 35));
-
         CorreoText.setForeground(new java.awt.Color(142, 142, 147));
         CorreoText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/correo.png"))); // NOI18N
         CorreoText.setText("Escribe tu Correo");
