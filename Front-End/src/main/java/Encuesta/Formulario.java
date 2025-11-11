@@ -4,7 +4,24 @@
  */
 package Encuesta;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.FontMetrics;
+import java.awt.Insets;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.event.MouseMotionListener;
+
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.UIManager;
+import javax.swing.border.Border;
 
 import Interfaz.Home;
 
@@ -128,7 +145,7 @@ public class Formulario extends javax.swing.JFrame {
 
         NombreLabel.setFont(new java.awt.Font("Epunda Slab ExtraBold", 0, 18)); // NOI18N
         NombreLabel.setForeground(new java.awt.Color(51, 51, 51));
-        NombreLabel.setText("Nombre completo:");
+        NombreLabel.setText("Nombre completo: *");
         FondoPanel.add(NombreLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 200, 154, 50));
 
         NombreField.setToolTipText("");
@@ -141,7 +158,7 @@ public class Formulario extends javax.swing.JFrame {
 
         EdadLabel.setFont(new java.awt.Font("Epunda Slab ExtraBold", 0, 18)); // NOI18N
         EdadLabel.setForeground(new java.awt.Color(51, 51, 51));
-        EdadLabel.setText("Edad:");
+        EdadLabel.setText("Edad: *");
         FondoPanel.add(EdadLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 340, 90, 50));
 
         EdadField.setToolTipText("");
@@ -157,7 +174,7 @@ public class Formulario extends javax.swing.JFrame {
 
         DominanteLabel.setFont(new java.awt.Font("Epunda Slab ExtraBold", 0, 18)); // NOI18N
         DominanteLabel.setForeground(new java.awt.Color(51, 51, 51));
-        DominanteLabel.setText("Mano Dominate:");
+        DominanteLabel.setText("Mano Dominante: *");
         FondoPanel.add(DominanteLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 500, 140, 50));
 
         ManoComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Seleccione una", "Derecha ", " Izquierda ", "Ambas", " " }));
@@ -165,13 +182,13 @@ public class Formulario extends javax.swing.JFrame {
 
         OcupacionLabel.setFont(new java.awt.Font("Epunda Slab ExtraBold", 0, 16)); // NOI18N
         OcupacionLabel.setForeground(new java.awt.Color(51, 51, 51));
-        OcupacionLabel.setText("Ocupación o actividad principal:");
+        OcupacionLabel.setText("Ocupación o actividad principal:*");
         FondoPanel.add(OcupacionLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 610, 240, 50));
         FondoPanel.add(OcupacionField, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 660, 230, 40));
 
         HorasLabel.setFont(new java.awt.Font("Epunda Slab ExtraBold", 0, 16)); // NOI18N
         HorasLabel.setForeground(new java.awt.Color(51, 51, 51));
-        HorasLabel.setText("Horas diarias frente al computador: ");
+        HorasLabel.setText("Horas diarias frente al computador:");
         FondoPanel.add(HorasLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 720, -1, 50));
 
         HorasComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Seleccione una", "Menos de 2 horas", "2 - 4 horas", "5 - 7 horas", "Más de 8 horas" }));
@@ -199,7 +216,7 @@ public class Formulario extends javax.swing.JFrame {
 
         SintomasLabel.setFont(new java.awt.Font("Epunda Slab ExtraBold", 0, 18)); // NOI18N
         SintomasLabel.setForeground(new java.awt.Color(51, 51, 51));
-        SintomasLabel.setText("Sintomas actuales:");
+        SintomasLabel.setText("Sintomas actuales: *");
         FondoPanel.add(SintomasLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(390, 200, 170, 50));
 
         Ej1Label.setFont(new java.awt.Font("Epunda Slab", 0, 17)); // NOI18N
@@ -209,7 +226,7 @@ public class Formulario extends javax.swing.JFrame {
 
         Ej1_2Label.setFont(new java.awt.Font("Epunda Slab", 0, 17)); // NOI18N
         Ej1_2Label.setForeground(new java.awt.Color(0, 0, 0));
-        Ej1_2Label.setText(" los dedos (pulgar, índice, medio o anular)? ");
+        Ej1_2Label.setText(" los dedos (pulgar, índice, medio o anular)? *");
         FondoPanel.add(Ej1_2Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(390, 290, 310, 30));
 
         jComboBox01.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Seleccione una", "Nunca", "Rara vez", "A veces", "Frecuentemente", "Siempre", " " }));
@@ -227,7 +244,7 @@ public class Formulario extends javax.swing.JFrame {
 
         Ej2_2Label.setFont(new java.awt.Font("Epunda Slab", 0, 17)); // NOI18N
         Ej2_2Label.setForeground(new java.awt.Color(0, 0, 0));
-        Ej2_2Label.setText("al sujetar objetos? ");
+        Ej2_2Label.setText("al sujetar objetos? *");
         FondoPanel.add(Ej2_2Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(390, 430, 320, 20));
 
         jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Seleccione una", "Nunca", "Rara vez", "A veces", "Frecuentemente", "Siempre", " " }));
@@ -240,7 +257,7 @@ public class Formulario extends javax.swing.JFrame {
 
         Ej3_2Label.setFont(new java.awt.Font("Epunda Slab", 0, 17)); // NOI18N
         Ej3_2Label.setForeground(new java.awt.Color(0, 0, 0));
-        Ej3_2Label.setText("antebrazo, durante el día ? ");
+        Ej3_2Label.setText("antebrazo, durante el día ? *");
         FondoPanel.add(Ej3_2Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(390, 560, 320, 30));
 
         jComboBox03.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Seleccione una", "Nunca", "Rara vez", "A veces", "Frecuentemente", "Siempre", " " }));
@@ -281,7 +298,7 @@ public class Formulario extends javax.swing.JFrame {
 
         Ej5_2Label.setFont(new java.awt.Font("Epunda Slab", 0, 17)); // NOI18N
         Ej5_2Label.setForeground(new java.awt.Color(0, 0, 0));
-        Ej5_2Label.setText("(abotonar, escribir, agarrar cosas pequeñas)?");
+        Ej5_2Label.setText("(abotonar, escribir, agarrar cosas pequeñas)? *");
         FondoPanel.add(Ej5_2Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(750, 230, 320, 30));
 
         jComboBox5.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Seleccione una", "Nunca", "Rara vez", "A veces", "Frecuentemente", "Siempre", " " }));
@@ -294,7 +311,7 @@ public class Formulario extends javax.swing.JFrame {
 
         Ej6_2Label.setFont(new java.awt.Font("Epunda Slab", 0, 17)); // NOI18N
         Ej6_2Label.setForeground(new java.awt.Color(0, 0, 0));
-        Ej6_2Label.setText("su sueño? ");
+        Ej6_2Label.setText("su sueño? *");
         FondoPanel.add(Ej6_2Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(750, 360, 320, 30));
 
         jComboBox6.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Seleccione una", "Nunca", "Rara vez", "A veces", "Frecuentemente", "Siempre", " " }));
@@ -312,7 +329,7 @@ public class Formulario extends javax.swing.JFrame {
 
         Ej7_2Label.setFont(new java.awt.Font("Epunda Slab", 0, 17)); // NOI18N
         Ej7_2Label.setForeground(new java.awt.Color(0, 0, 0));
-        Ej7_2Label.setText("durante su jornada laboral? ");
+        Ej7_2Label.setText("durante su jornada laboral? *");
         FondoPanel.add(Ej7_2Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(750, 530, 320, 40));
 
         jComboBox7.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Seleccione una", "Nunca", "Rara vez", "A veces", "Frecuentemente", "Siempre", " " }));
@@ -330,7 +347,7 @@ public class Formulario extends javax.swing.JFrame {
 
         Ej8_3Label.setFont(new java.awt.Font("Epunda Slab", 0, 17)); // NOI18N
         Ej8_3Label.setForeground(new java.awt.Color(0, 0, 0));
-        Ej8_3Label.setText("teclado bajo, silla adecuada)? ");
+        Ej8_3Label.setText("teclado bajo, silla adecuada)? *");
         FondoPanel.add(Ej8_3Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(750, 690, 320, 30));
 
         jComboBox8.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Seleccione una", "Nunca", "Rara vez", "A veces", "Frecuentemente", "Siempre", " " }));
@@ -358,7 +375,7 @@ public class Formulario extends javax.swing.JFrame {
 
         Ej9_2Label.setFont(new java.awt.Font("Epunda Slab", 0, 17)); // NOI18N
         Ej9_2Label.setForeground(new java.awt.Color(0, 0, 0));
-        Ej9_2Label.setText("o muñequera para aliviar molestias? ");
+        Ej9_2Label.setText("o muñequera para aliviar molestias?");
         FondoPanel.add(Ej9_2Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(1110, 230, 300, 40));
 
         jComboBox09.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Seleccione una", "Si", "No", "A veces" }));
@@ -371,7 +388,7 @@ public class Formulario extends javax.swing.JFrame {
 
         Ej10_2Label.setFont(new java.awt.Font("Epunda Slab", 0, 17)); // NOI18N
         Ej10_2Label.setForeground(new java.awt.Color(0, 0, 0));
-        Ej10_2Label.setText("o estirarla? ");
+        Ej10_2Label.setText("o estirarla? *");
         FondoPanel.add(Ej10_2Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(1110, 360, 300, 30));
 
         jComboBox010.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Seleccione una", "Si", "No", "A veces" }));
@@ -394,7 +411,7 @@ public class Formulario extends javax.swing.JFrame {
 
         Ej11_2Label.setFont(new java.awt.Font("Epunda Slab", 0, 17)); // NOI18N
         Ej11_2Label.setForeground(new java.awt.Color(0, 0, 0));
-        Ej11_2Label.setText("de dolor o molestia en la muñeca? ");
+        Ej11_2Label.setText("de dolor o molestia en la muñeca? *");
         FondoPanel.add(Ej11_2Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(1120, 570, 300, 40));
 
         NumerosLabel.setFont(new java.awt.Font("Epunda Slab ExtraBold", 0, 18)); // NOI18N
@@ -448,6 +465,133 @@ public class Formulario extends javax.swing.JFrame {
         );
 
         pack();
+        // --- INICIO: Accesibilidad/asteriscos y borde azul para encuesta ---
+
+        Color azulIntenso = new Color(0, 82, 204);
+        Border bordeAzul = BorderFactory.createLineBorder(azulIntenso, 2);
+
+        // Obtener bordes por defecto según tipo (seguro si alguno es null)
+        Border bordeDefaultText = UIManager.getBorder("TextField.border") != null
+                ? UIManager.getBorder("TextField.border")
+                : BorderFactory.createLineBorder(Color.GRAY, 1);
+        Border bordeDefaultCombo = UIManager.getBorder("ComboBox.border") != null
+                ? UIManager.getBorder("ComboBox.border")
+                : BorderFactory.createLineBorder(Color.GRAY, 1);
+
+        // Labels obligatorios (incluyendo preguntas con *)
+        JLabel[] labelsObligatorios = {
+            NombreLabel, EdadLabel, GeneroLabel, DominanteLabel, OcupacionLabel, HorasLabel,
+            Ej5_2Label, Ej6_2Label, Ej7_2Label, Ej8_3Label, Ej10_2Label, Ej11_2Label
+        };
+
+        // Componentes obligatorios correspondientes
+        JComponent[] campos = {
+            NombreField, EdadField, GeneroComboBox, ManoComboBox, OcupacionField, HorasComboBox,
+            jComboBox5, jComboBox6, jComboBox7, jComboBox8, jComboBox010,
+            (JComponent)jSlider10 // Slider → se valida diferente, pero se agrega aquí para foco/borde
+        };
+
+        // Creamos array de bordes por defecto correspondiente a cada campo
+        Border[] bordesDefaultPorCampo = new Border[campos.length];
+        for (int i = 0; i < campos.length; i++) {
+            if (campos[i] instanceof javax.swing.JTextField) {
+                bordesDefaultPorCampo[i] = bordeDefaultText;
+            } else if (campos[i] instanceof javax.swing.JComboBox) {
+                bordesDefaultPorCampo[i] = bordeDefaultCombo;
+            } else {
+                // fallback
+                bordesDefaultPorCampo[i] = campos[i].getBorder() != null ? campos[i].getBorder() : bordeDefaultText;
+            }
+            // aseguramos que el componente tenga ese borde inicial
+            campos[i].setBorder(bordesDefaultPorCampo[i]);
+        }
+
+        // Detector de hover puntual sobre el asterisco dentro del JLabel
+        MouseMotionListener asteriskDetector = new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                JLabel lbl = (JLabel) e.getSource();
+                String text = lbl.getText();
+                if (text == null || !text.contains("*")) {
+                    lbl.setToolTipText(null);
+                    return;
+                }
+                int idx = text.lastIndexOf('*');
+                if (idx < 0) { lbl.setToolTipText(null); return; }
+
+                String before = text.substring(0, idx).trim();
+                FontMetrics fm = lbl.getFontMetrics(lbl.getFont());
+                Insets inset = lbl.getInsets();
+                int start = inset.left + fm.stringWidth(before);
+                int end = start + fm.charWidth('*');
+                int x = e.getX();
+                int margin = 3;
+                if (x >= start - margin && x <= end + margin) {
+                    lbl.setToolTipText("Campo obligatorio");
+                } else {
+                    lbl.setToolTipText(null);
+                }
+            }
+        };
+
+        // Focus listener: pone borde azul solo mientras hay foco y restaura al perderlo
+        FocusListener focusBorder = new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                Component c = e.getComponent();
+                // encontrar índice del componente para usar su borde default al perder foco
+                int idx = -1;
+                for (int i = 0; i < campos.length; i++) if (campos[i] == c) { idx = i; break; }
+                ((JComponent) c).setBorder(bordeAzul);
+            }
+            @Override
+            public void focusLost(FocusEvent e) {
+                Component c = e.getComponent();
+                int idx = -1;
+                for (int i = 0; i < campos.length; i++) if (campos[i] == c) { idx = i; break; }
+                if (idx >= 0) {
+                    ((JComponent) c).setBorder(bordesDefaultPorCampo[idx]);
+                } else {
+                    ((JComponent) c).setBorder(bordeDefaultText);
+                }
+            }
+        };
+
+        // Click en label → dar foco al campo correspondiente
+        MouseAdapter clickLabel = new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                Component src = e.getComponent();
+                for (int i = 0; i < labelsObligatorios.length; i++) {
+                    if (src == labelsObligatorios[i]) {
+                        campos[i].requestFocusInWindow();
+                        campos[i].setBorder(bordeAzul);
+                        break;
+                    }
+                }
+            }
+        };
+
+        // Asignar listeners a labels y campos
+        for (int i = 0; i < labelsObligatorios.length; i++) {
+            labelsObligatorios[i].addMouseMotionListener(asteriskDetector);
+            labelsObligatorios[i].setFocusable(true); // accesibilidad teclado
+            labelsObligatorios[i].addMouseListener(clickLabel);
+        }
+
+        for (int i = 0; i < campos.length; i++) {
+            campos[i].addFocusListener(focusBorder);
+            // también permitir click en el campo para forzar borde azul
+            campos[i].addMouseListener(new MouseAdapter() {
+                @Override public void mousePressed(MouseEvent e) {
+                    ((JComponent)e.getComponent()).setBorder(bordeAzul);
+                }
+            });
+        }
+
+        // --- FIN: Accesibilidad/asteriscos y borde azul para encuesta ---
+
+
     }// </editor-fold>//GEN-END:initComponents
 
     private void guardarDatosEnBD() {
