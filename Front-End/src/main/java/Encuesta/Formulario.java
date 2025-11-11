@@ -154,6 +154,7 @@ public class Formulario extends javax.swing.JFrame {
                 NombreFieldActionPerformed(evt);
             }
         });
+        
         FondoPanel.add(NombreField, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 260, 230, 40));
 
         EdadLabel.setFont(new java.awt.Font("Epunda Slab ExtraBold", 0, 18)); // NOI18N
