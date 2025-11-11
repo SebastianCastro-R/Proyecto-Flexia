@@ -20,11 +20,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.*;
 
 import Encuesta.Formulario;
-
 
 /**
  *
@@ -35,6 +36,15 @@ public class login extends javax.swing.JFrame {
     int xmouse, ymouse;
     private JTextField txtCorreo = new JTextField();
     private JPasswordField txtPass = new JPasswordField();
+    private RoundedPanelS panelDerecho;
+    private JButton lblOlvidar;
+    private java.util.List<Component> focusOrder;
+    private int currentFocusIndex = 0;
+    // Variables para los botones sociales
+    private JButton btnGoogle;
+    private JButton btnFacebook;
+    private JButton btnOutlook;
+    private JButton btnIniciar;
 
     /**
      * Creates new form login
@@ -44,6 +54,9 @@ public class login extends javax.swing.JFrame {
         initComponents();
         initStyles();
         initPanels();
+        initFocusOrder();
+        setupKeyboardNavigation();
+
         setSize(1440, 1024);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null);
@@ -78,6 +91,16 @@ public class login extends javax.swing.JFrame {
         titlelbl.setFont(FuenteUtil.cargarFuente("EpundaSlab-ExtraBold.ttf", 28f));
         titlelbl.setForeground(new Color(250, 250, 250));
 
+    }
+
+    private void abrirVentanaRegistro() {
+        // Cerrar la ventana actual
+        this.dispose();
+        UIManager.put("ComboBox.arc", 30);
+        // Abrir la ventana de SignIn (registro)
+        SignIn signin = new SignIn();
+        signin.setVisible(true);
+        signin.setLocationRelativeTo(null); // Centrar en pantalla
     }
 
     private void initPanels() {
@@ -197,10 +220,17 @@ public class login extends javax.swing.JFrame {
             }
         });
 
+        registrarsebtn.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                abrirVentanaRegistro();
+            }
+        });
+
         panelIzquierdo.add(registrarsebtn);
 
         // ===== Panel derecho (blanco) =====
-        RoundedPanelS panelDerecho = new RoundedPanelS(40, new Color(0xFAFAFA)) {
+        panelDerecho = new RoundedPanelS(40, new Color(0xFAFAFA)) {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -239,13 +269,13 @@ public class login extends javax.swing.JFrame {
         int espacio = 50; // separación horizontal entre ellos
         int inicioX = (panelDerecho.getWidth() - (3 * 51 + 2 * 40)) / 2; // centrado dinámico
 
-        JButton btnGoogle = crearBotonSocial("/Images/google.png", inicioX, baseY, fondoCirculo);
+        btnGoogle = crearBotonSocial("/Images/google.png", inicioX, baseY, fondoCirculo);
         btnGoogle.setOpaque(false);
         btnGoogle.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        JButton btnFacebook = crearBotonSocial("/Images/facebook.png", inicioX + espacio + 40, baseY, fondoCirculo);
+        btnFacebook = crearBotonSocial("/Images/facebook.png", inicioX + espacio + 40, baseY, fondoCirculo);
         btnFacebook.setOpaque(false);
         btnFacebook.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        JButton btnOutlook = crearBotonSocial("/Images/outlook.png", inicioX + (espacio + 40) * 2, baseY, fondoCirculo);
+        btnOutlook = crearBotonSocial("/Images/outlook.png", inicioX + (espacio + 40) * 2, baseY, fondoCirculo);
         btnOutlook.setOpaque(false);
         btnOutlook.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
@@ -342,27 +372,22 @@ public class login extends javax.swing.JFrame {
 
         panelDerecho.add(txtPass);
 
-        // ===== Label "¿Olvidaste tu contraseña?" =====
-        JLabel lblOlvidar = new JLabel("<html><u>¿Olvidaste tu contraseña?</u></html>");
+        // En lugar de JLabel lblOlvidar, usar JButton con estilo de label
+        lblOlvidar = new JButton("<html><u>¿Olvidaste tu contraseña?</u></html>");
         lblOlvidar.setFont(new Font("Lato", Font.ITALIC, 14));
-        lblOlvidar.setForeground(new Color(0x1E3888)); // azul oscuro
-        lblOlvidar.setBounds(80, 570, 200, 20);
+        lblOlvidar.setForeground(new Color(0x1E3888));
+        lblOlvidar.setBackground(Color.WHITE); // Fondo transparente
+        lblOlvidar.setBorderPainted(false);
+        lblOlvidar.setContentAreaFilled(false);
+        lblOlvidar.setFocusPainted(false);
         lblOlvidar.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        // Opcional: efecto hover (cambiar color al pasar)
-        lblOlvidar.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                lblOlvidar.setForeground(new Color(0x020300)); // un azul más oscuro
-            }
+        lblOlvidar.setBounds(80, 570, 200, 20);
 
+        // Agregar ActionListener en lugar de MouseListener
+        lblOlvidar.addActionListener(new java.awt.event.ActionListener() {
             @Override
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                lblOlvidar.setForeground(new Color(0x1E3888));
-            }
-
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                String correoUsuario = txtCorreo.getText(); // el texto del campo de correo
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                String correoUsuario = txtCorreo.getText();
                 if (correoUsuario.isEmpty()) {
                     JOptionPane.showMessageDialog(null, "Por favor, ingresa tu correo primero.");
                     return;
@@ -370,14 +395,27 @@ public class login extends javax.swing.JFrame {
 
                 RecuperarContrasena ventanaRecuperar = new RecuperarContrasena(correoUsuario);
                 ventanaRecuperar.setVisible(true);
-                ventanaRecuperar.setLocationRelativeTo(null); // centrar
+                ventanaRecuperar.setLocationRelativeTo(null);
+            }
+        });
+
+        // Efecto hover
+        lblOlvidar.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                lblOlvidar.setForeground(new Color(0x020300));
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                lblOlvidar.setForeground(new Color(0x1E3888));
             }
         });
 
         panelDerecho.add(lblOlvidar);
 
         // ===== Botón "Iniciar Sesión" =====
-        JButton btnIniciar = new JButton("Iniciar Sesión");
+        btnIniciar = new JButton("Iniciar Sesión");
         btnIniciar.setFont(new Font("Epunda Slab SemiBold", Font.PLAIN, 18));
         btnIniciar.setForeground(Color.BLACK);
         btnIniciar.setBackground(new Color(0x98CEFF));
@@ -467,6 +505,103 @@ public class login extends javax.swing.JFrame {
 
         panelDerecho.add(btnIniciar);
 
+        // ===== MEJORAS DE ACCESIBILIDAD PARA LECTORES DE PANTALLA =====
+
+        // Panel Izquierdo - Configurar propiedades de accesibilidad
+        panelIzquierdo.getAccessibleContext().setAccessibleName("Panel de bienvenida");
+        panelIzquierdo.getAccessibleContext().setAccessibleDescription(
+                "Panel que contiene información de bienvenida y opción para registrarse");
+
+        // Texto "Bienvenido"
+        lblBienvenido.getAccessibleContext().setAccessibleName("Bienvenido");
+        lblBienvenido.getAccessibleContext().setAccessibleDescription(
+                "Título de bienvenida al sistema");
+
+        // Texto secundario
+        lblSubtexto.getAccessibleContext().setAccessibleName("Instrucciones de acceso");
+        lblSubtexto.getAccessibleContext().setAccessibleDescription(
+                "Accede a tu cuenta con tus credenciales o regístrate si no tienes cuenta");
+
+        // Texto dentro de la burbuja
+        lblTextoBurbuja.getAccessibleContext().setAccessibleName("Información para nuevos usuarios");
+        lblTextoBurbuja.getAccessibleContext().setAccessibleDescription(
+                "Si aún no tienes cuenta, primero debes registrarte");
+
+        // Botón Registrarse
+        registrarsebtn.getAccessibleContext().setAccessibleName("Botón registrarse");
+        registrarsebtn.getAccessibleContext().setAccessibleDescription(
+                "Botón para ir al formulario de registro de nueva cuenta");
+        registrarsebtn.setToolTipText("Haga clic para registrarse como nuevo usuario");
+
+        // Panel Derecho - Configurar propiedades de accesibilidad
+        panelDerecho.getAccessibleContext().setAccessibleName("Panel de inicio de sesión");
+        panelDerecho.getAccessibleContext().setAccessibleDescription(
+                "Panel para ingresar credenciales e iniciar sesión");
+
+        // Logo
+        lblLogo.getAccessibleContext().setAccessibleName("Logo de Flex IA");
+        lblLogo.getAccessibleContext().setAccessibleDescription("Logo de la aplicación Flex IA");
+        // Agregar texto alternativo para la imagen
+        lblLogo.putClientProperty("AccessibleDescription", "Logo de la aplicación Flex IA");
+
+        // Título "Iniciar Sesión"
+        lblIniciar.getAccessibleContext().setAccessibleName("Iniciar Sesión");
+        lblIniciar.getAccessibleContext().setAccessibleDescription("Título de inicio de sesión");
+
+        // Botones sociales - Agregar textos accesibles
+        btnGoogle.getAccessibleContext().setAccessibleName("Iniciar sesión con Google");
+        btnGoogle.getAccessibleContext().setAccessibleDescription("Botón para iniciar sesión usando cuenta de Google");
+        btnGoogle.setToolTipText("Iniciar sesión con Google");
+
+        btnFacebook.getAccessibleContext().setAccessibleName("Iniciar sesión con Facebook");
+        btnFacebook.getAccessibleContext()
+                .setAccessibleDescription("Botón para iniciar sesión usando cuenta de Facebook");
+        btnFacebook.setToolTipText("Iniciar sesión con Facebook");
+
+        btnOutlook.getAccessibleContext().setAccessibleName("Iniciar sesión con Outlook");
+        btnOutlook.getAccessibleContext()
+                .setAccessibleDescription("Botón para iniciar sesión usando cuenta de Outlook");
+        btnOutlook.setToolTipText("Iniciar sesión con Outlook");
+
+        // Campo correo electrónico
+        lblCorreo.getAccessibleContext().setAccessibleName("Etiqueta correo electrónico");
+        lblCorreo.getAccessibleContext().setAccessibleDescription("Etiqueta para el campo de correo electrónico");
+
+        txtCorreo.getAccessibleContext().setAccessibleName("Campo de correo electrónico");
+        txtCorreo.getAccessibleContext().setAccessibleDescription(
+                "Ingrese su dirección de correo electrónico para iniciar sesión");
+        // Mejorar el placeholder para accesibilidad
+        txtCorreo.putClientProperty("JTextField.placeholderText", "Ingresa tu correo electrónico");
+
+        // Campo contraseña
+        lblPass.getAccessibleContext().setAccessibleName("Etiqueta contraseña");
+        lblPass.getAccessibleContext().setAccessibleDescription("Etiqueta para el campo de contraseña");
+
+        txtPass.getAccessibleContext().setAccessibleName("Campo de contraseña");
+        txtPass.getAccessibleContext().setAccessibleDescription(
+                "Ingrese su contraseña para iniciar sesión. Use el icono del ojo para mostrar u ocultar la contraseña");
+
+        // Icono de mostrar/ocultar contraseña
+        lblIconoRight.getAccessibleContext().setAccessibleName("Botón mostrar ocultar contraseña");
+        lblIconoRight.getAccessibleContext().setAccessibleDescription(
+                "Botón para mostrar u ocultar el texto de la contraseña. Presione para alternar entre modo visible y oculto");
+
+        // Enlace "¿Olvidaste tu contraseña?"
+        lblOlvidar.getAccessibleContext().setAccessibleName("Enlace olvidé mi contraseña");
+        lblOlvidar.getAccessibleContext().setAccessibleDescription(
+                "Enlace para recuperar contraseña si la ha olvidado. Presione Enter o Espacio para activar");
+        lblOlvidar.setToolTipText("Haga clic para recuperar su contraseña");
+
+        // Botón Iniciar Sesión
+        btnIniciar.getAccessibleContext().setAccessibleName("Botón iniciar sesión");
+        btnIniciar.getAccessibleContext().setAccessibleDescription(
+                "Botón para iniciar sesión con las credenciales ingresadas");
+        btnIniciar.setToolTipText("Haga clic para iniciar sesión con el correo y contraseña ingresados");
+
+        // Configurar mnemónicos para navegación con teclado
+        lblCorreo.setLabelFor(txtCorreo);
+        lblPass.setLabelFor(txtPass);
+
     }
 
     // Método auxiliar para obtener SOLO el nombre del usuario desde la BD
@@ -513,25 +648,24 @@ public class login extends javax.swing.JFrame {
     }
 
     private boolean usuarioTieneEncuesta(String correo) {
-    String sql = "SELECT id FROM encuesta WHERE correo_usuario = ? LIMIT 1";
+        String sql = "SELECT id FROM encuesta WHERE correo_usuario = ? LIMIT 1";
 
-    try (Connection conn = Conexion.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = Conexion.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        ps.setString(1, correo);
-        ResultSet rs = ps.executeQuery();
+            ps.setString(1, correo);
+            ResultSet rs = ps.executeQuery();
 
-        if (rs.next()) {
-            return true; // ✅ Ya tiene encuesta
+            if (rs.next()) {
+                return true; // ✅ Ya tiene encuesta
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error al consultar encuesta: " + e.getMessage());
         }
 
-    } catch (SQLException e) {
-        System.err.println("❌ Error al consultar encuesta: " + e.getMessage());
+        return false; // ❌ No encontró encuesta
     }
-
-    return false; // ❌ No encontró encuesta
-}
-
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -690,6 +824,235 @@ public class login extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
+    private void initFocusOrder() {
+        focusOrder = new ArrayList<>();
+
+        // Definir el orden lógico de navegación
+        focusOrder.add(txtCorreo);
+        focusOrder.add(txtPass);
+
+        // Agregar botones sociales usando las variables de clase
+        if (btnGoogle != null)
+            focusOrder.add(btnGoogle);
+        if (btnFacebook != null)
+            focusOrder.add(btnFacebook);
+        if (btnOutlook != null)
+            focusOrder.add(btnOutlook);
+
+        // Agregar el botón de iniciar sesión
+        if (btnIniciar != null)
+            focusOrder.add(btnIniciar);
+
+        // Agregar el label "¿Olvidaste tu contraseña?" como focusable
+        if (lblOlvidar != null) {
+            lblOlvidar.setFocusable(true);
+            focusOrder.add(lblOlvidar);
+        }
+
+        // AGREGAR EL BOTÓN DE REGISTRARSE (IMPORTANTE)
+        if (registrarsebtn != null) {
+            registrarsebtn.setFocusable(true);
+            focusOrder.add(registrarsebtn);
+        }
+    }
+
+    private void setupKeyboardNavigation() {
+        // Hacer que todos los componentes sean focusables
+        for (Component comp : focusOrder) {
+            comp.setFocusable(true);
+
+            // Configurar efectos visuales básicos para cada tipo de componente
+            if (comp instanceof JButton) {
+                JButton button = (JButton) comp;
+                button.setFocusPainted(false); // Desactivar el efecto por defecto
+            }
+            // Para JTextField y JPasswordField, mantener los estilos originales de FlatLaf
+        }
+
+        // Agregar KeyListener global para navegación con Tab
+        addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                handleKeyPress(evt);
+            }
+        });
+
+        // Asegurar que el JFrame sea focusable
+        setFocusable(true);
+        requestFocusInWindow();
+
+        // Agregar FocusListener para cambiar el aspecto visual
+        for (Component comp : focusOrder) {
+            comp.addFocusListener(new java.awt.event.FocusAdapter() {
+                @Override
+                public void focusGained(java.awt.event.FocusEvent evt) {
+                    showFocusIndicator(comp, true);
+                }
+
+                @Override
+                public void focusLost(java.awt.event.FocusEvent evt) {
+                    showFocusIndicator(comp, false);
+                }
+            });
+        }
+    }
+
+    private void showFocusIndicator(Component comp, boolean hasFocus) {
+        // Color azul claro para el indicador de foco
+        Color focusColor = new Color(0x98CEFF); // El mismo azul claro que usas en tu diseño
+
+        if (hasFocus) {
+            // Componente con foco - agregar borde azul claro sutil
+            if (comp instanceof JButton) {
+                JButton button = (JButton) comp;
+                // Guardar el borde original si no se ha guardado
+                if (button.getClientProperty("originalBorder") == null) {
+                    button.putClientProperty("originalBorder", button.getBorder());
+                }
+                button.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(focusColor, 2), // Borde azul claro fino
+                        (javax.swing.border.Border) button.getClientProperty("originalBorder")));
+            } else if (comp instanceof JTextField) {
+                JTextField textField = (JTextField) comp;
+                if (textField.getClientProperty("originalBorder") == null) {
+                    textField.putClientProperty("originalBorder", textField.getBorder());
+                }
+                textField.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(focusColor, 2),
+                        (javax.swing.border.Border) textField.getClientProperty("originalBorder")));
+            } else if (comp instanceof JPasswordField) {
+                JPasswordField passwordField = (JPasswordField) comp;
+                if (passwordField.getClientProperty("originalBorder") == null) {
+                    passwordField.putClientProperty("originalBorder", passwordField.getBorder());
+                }
+                passwordField.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(focusColor, 2),
+                        (javax.swing.border.Border) passwordField.getClientProperty("originalBorder")));
+            } else if (comp instanceof JLabel) {
+                JLabel label = (JLabel) comp;
+                if (label.getClientProperty("originalBorder") == null) {
+                    label.putClientProperty("originalBorder", label.getBorder());
+                    label.putClientProperty("originalOpaque", label.isOpaque());
+                    label.putClientProperty("originalBackground", label.getBackground());
+                }
+                // Para labels, solo cambiar el color del texto o agregar subrayado
+                label.setForeground(focusColor);
+                Font originalFont = label.getFont();
+                label.setFont(originalFont.deriveFont(Font.BOLD));
+            }
+        } else {
+            // Componente sin foco - restaurar apariencia original
+            if (comp instanceof JButton) {
+                JButton button = (JButton) comp;
+                Object originalBorder = button.getClientProperty("originalBorder");
+                if (originalBorder != null) {
+                    button.setBorder((javax.swing.border.Border) originalBorder);
+                }
+            } else if (comp instanceof JTextField) {
+                JTextField textField = (JTextField) comp;
+                Object originalBorder = textField.getClientProperty("originalBorder");
+                if (originalBorder != null) {
+                    textField.setBorder((javax.swing.border.Border) originalBorder);
+                }
+            } else if (comp instanceof JPasswordField) {
+                JPasswordField passwordField = (JPasswordField) comp;
+                Object originalBorder = passwordField.getClientProperty("originalBorder");
+                if (originalBorder != null) {
+                    passwordField.setBorder((javax.swing.border.Border) originalBorder);
+                }
+            } else if (comp instanceof JLabel) {
+                JLabel label = (JLabel) comp;
+                Object originalBorder = label.getClientProperty("originalBorder");
+                Object originalOpaque = label.getClientProperty("originalOpaque");
+                Object originalBackground = label.getClientProperty("originalBackground");
+
+                if (originalBorder != null) {
+                    label.setBorder((javax.swing.border.Border) originalBorder);
+                }
+                if (originalOpaque != null) {
+                    label.setOpaque((Boolean) originalOpaque);
+                }
+                if (originalBackground != null) {
+                    label.setBackground((Color) originalBackground);
+                }
+                // Restaurar estilo de texto original
+                label.setForeground(new Color(0x1E3888)); // Color azul original de los labels
+                Font originalFont = label.getFont();
+                label.setFont(originalFont.deriveFont(Font.PLAIN)); // Quitar negrita
+            }
+        }
+    }
+
+    private void handleKeyPress(java.awt.event.KeyEvent evt) {
+        switch (evt.getKeyCode()) {
+            case java.awt.event.KeyEvent.VK_TAB:
+                if (evt.isShiftDown()) {
+                    moveFocusBackward();
+                } else {
+                    moveFocusForward();
+                }
+                evt.consume();
+                break;
+
+            case java.awt.event.KeyEvent.VK_ENTER:
+                performActionOnFocusedComponent();
+                evt.consume();
+                break;
+
+            case java.awt.event.KeyEvent.VK_SPACE:
+                performActionOnFocusedComponent();
+                evt.consume();
+                break;
+
+            case java.awt.event.KeyEvent.VK_ESCAPE:
+                // Cerrar la aplicación con ESC
+                int option = JOptionPane.showConfirmDialog(
+                        this,
+                        "¿Está seguro que desea salir?",
+                        "Confirmar salida",
+                        JOptionPane.YES_NO_OPTION);
+                if (option == JOptionPane.YES_OPTION) {
+                    System.exit(0);
+                }
+                evt.consume();
+                break;
+        }
+    }
+
+    private void moveFocusForward() {
+        currentFocusIndex = (currentFocusIndex + 1) % focusOrder.size();
+        focusOrder.get(currentFocusIndex).requestFocusInWindow();
+    }
+
+    private void moveFocusBackward() {
+        currentFocusIndex = (currentFocusIndex - 1 + focusOrder.size()) % focusOrder.size();
+        focusOrder.get(currentFocusIndex).requestFocusInWindow();
+    }
+
+    private void performActionOnFocusedComponent() {
+        Component focused = focusOrder.get(currentFocusIndex);
+
+        if (focused instanceof JTextField || focused instanceof JPasswordField) {
+            // Ya está enfocado, no hacer nada adicional
+        } else if (focused instanceof JButton) {
+            ((JButton) focused).doClick();
+        } else if (focused instanceof JLabel) {
+            // Simular click en el label "¿Olvidaste tu contraseña?"
+            if (focused == lblOlvidar) {
+                java.awt.event.MouseEvent mockEvent = new java.awt.event.MouseEvent(
+                        focused,
+                        java.awt.event.MouseEvent.MOUSE_CLICKED,
+                        System.currentTimeMillis(),
+                        0, 0, 0, 1, false);
+
+                for (java.awt.event.MouseListener listener : lblOlvidar.getMouseListeners()) {
+                    listener.mouseClicked(mockEvent);
+                }
+            }
+        }
+        // No llamar a updateFocusVisual() aquí - los FocusListener ya manejan esto
+    }
+
     private void headerMousePressed(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_headerMousePressed
         xmouse = evt.getX();
         ymouse = evt.getY();
@@ -729,13 +1092,7 @@ public class login extends javax.swing.JFrame {
     }// GEN-LAST:event_minimizetxtMouseClicked
 
     private void registrarsebtnMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_registrarsebtnMouseClicked
-        // Cerrar la ventana actual
-        this.dispose();
-        UIManager.put("ComboBox.arc", 30);
-        // Abrir la ventana de LogIn
-        SignIn signin = new SignIn();
-        signin.setVisible(true);
-        signin.setLocationRelativeTo(null); // Centrar en pantalla
+        abrirVentanaRegistro();
     }// GEN-LAST:event_registrarsebtnMouseClicked
 
     /**
@@ -743,10 +1100,16 @@ public class login extends javax.swing.JFrame {
      */
     public static void main(String args[]) {
 
+        System.setProperty("awt.embed.singleThread", "true");
+
         FlatLightLaf.setup();
-        UIManager.put("TextComponent.arc", 20); // Redondea todos los textfields
-        UIManager.put("Component.borderColor", new Color(180, 180, 180)); // Color de borde gris
-        UIManager.put("Component.borderWidth", 2); // Grosor del borde
+        UIManager.put("TextComponent.arc", 20);
+        UIManager.put("Component.borderColor", new Color(180, 180, 180));
+        UIManager.put("Component.borderWidth", 2);
+
+        // Configurar soporte para lectores de pantalla
+        ToolTipManager.sharedInstance().setInitialDelay(500);
+        ToolTipManager.sharedInstance().setDismissDelay(10000);
 
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {

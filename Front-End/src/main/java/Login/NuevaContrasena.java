@@ -14,6 +14,7 @@ public class NuevaContrasena extends javax.swing.JFrame {
         this.correoUsuario = correoUsuario;
         this.usuariosDAO = new UsuariosDAO();
         initComponents();
+        setupAccessibility();
         setLocationRelativeTo(null);
     }
 
@@ -89,15 +90,51 @@ public class NuevaContrasena extends javax.swing.JFrame {
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 
         pack();
+    }
+
+    private void setupAccessibility() {
+        // Hacer que todos los componentes interactivos sean focusables
+        nuevaContrasenaField.setFocusable(true);
+        confirmarContrasenaField.setFocusable(true);
+        guardarButton.setFocusable(true);
+        cancelarButton.setFocusable(true);
+
+        // Agregar descripciones accesibles para los componentes de NuevaContrasena
+        nuevaContrasenaField.getAccessibleContext().setAccessibleName("Campo de nueva contraseña");
+        nuevaContrasenaField.getAccessibleContext().setAccessibleDescription(
+                "Ingrese su nueva contraseña. Debe tener al menos 6 caracteres");
+
+        confirmarContrasenaField.getAccessibleContext().setAccessibleName("Campo de confirmación de contraseña");
+        confirmarContrasenaField.getAccessibleContext().setAccessibleDescription(
+                "Confirme su nueva contraseña ingresándola nuevamente");
+
+        guardarButton.getAccessibleContext().setAccessibleName("Botón guardar nueva contraseña");
+        guardarButton.getAccessibleContext().setAccessibleDescription(
+                "Botón para guardar la nueva contraseña y actualizarla en el sistema");
+        guardarButton.setToolTipText("Haga clic para guardar la nueva contraseña");
+
+        cancelarButton.getAccessibleContext().setAccessibleName("Botón cancelar");
+        cancelarButton.getAccessibleContext().setAccessibleDescription(
+                "Botón para cancelar el proceso de cambio de contraseña");
+        cancelarButton.setToolTipText("Haga clic para cancelar sin guardar cambios");
+
+        // Configurar etiquetas para los campos
+        nuevaLabel.setLabelFor(nuevaContrasenaField);
+        confirmarLabel.setLabelFor(confirmarContrasenaField);
+
+        // Configurar el título
+        tituloLabel.getAccessibleContext().setAccessibleName("Título establecer nueva contraseña");
+        tituloLabel.getAccessibleContext().setAccessibleDescription(
+                "Ventana para establecer una nueva contraseña después de la verificación");
     }
 
     private void guardarNuevaContrasena() {
@@ -106,13 +143,15 @@ public class NuevaContrasena extends javax.swing.JFrame {
 
         // Validaciones
         if (nuevaContrasena.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Por favor ingresa la nueva contraseña.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Por favor ingresa la nueva contraseña.", "Error",
+                    JOptionPane.ERROR_MESSAGE);
             nuevaContrasenaField.requestFocus();
             return;
         }
 
         if (confirmarContrasena.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Por favor confirma la contraseña.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Por favor confirma la contraseña.", "Error",
+                    JOptionPane.ERROR_MESSAGE);
             confirmarContrasenaField.requestFocus();
             return;
         }
@@ -126,23 +165,24 @@ public class NuevaContrasena extends javax.swing.JFrame {
         }
 
         if (nuevaContrasena.length() < 6) {
-            JOptionPane.showMessageDialog(this, "La contraseña debe tener al menos 6 caracteres.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "La contraseña debe tener al menos 6 caracteres.", "Error",
+                    JOptionPane.ERROR_MESSAGE);
             nuevaContrasenaField.requestFocus();
             return;
         }
 
         // Actualizar contraseña en la base de datos
         if (actualizarContrasena(correoUsuario, nuevaContrasena)) {
-            JOptionPane.showMessageDialog(this, 
-                "✅ Contraseña actualizada correctamente.\n\nAhora puedes iniciar sesión con tu nueva contraseña.", 
-                "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "✅ Contraseña actualizada correctamente.\n\nAhora puedes iniciar sesión con tu nueva contraseña.",
+                    "Éxito", JOptionPane.INFORMATION_MESSAGE);
             this.dispose();
             // Aquí puedes redirigir al login si lo deseas
             // new LoginForm().setVisible(true);
         } else {
-            JOptionPane.showMessageDialog(this, 
-                "❌ Error al actualizar la contraseña.\nPor favor intenta nuevamente.", 
-                "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "❌ Error al actualizar la contraseña.\nPor favor intenta nuevamente.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -154,27 +194,28 @@ public class NuevaContrasena extends javax.swing.JFrame {
                 // Si tienes el método en el DAO, úsalo:
                 // return usuariosDAO.actualizarContrasena(correo, nuevaContrasena);
             }
-            
+
             // Si no, hacer la actualización directa
-            String hashedPassword = org.mindrot.jbcrypt.BCrypt.hashpw(nuevaContrasena, org.mindrot.jbcrypt.BCrypt.gensalt(12));
-            
+            String hashedPassword = org.mindrot.jbcrypt.BCrypt.hashpw(nuevaContrasena,
+                    org.mindrot.jbcrypt.BCrypt.gensalt(12));
+
             String sql = "UPDATE usuarios SET contrasena = ? WHERE correo_electronico = ?";
-            
+
             try (java.sql.Connection conn = com.mycompany.flexia.database.Conexion.getConnection();
-                 java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
-                
+                    java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+
                 ps.setString(1, hashedPassword);
                 ps.setString(2, correo);
-                
+
                 int filasAfectadas = ps.executeUpdate();
                 return filasAfectadas > 0;
-                
+
             } catch (java.sql.SQLException e) {
                 System.err.println("❌ Error al actualizar contraseña: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
-            
+
         } catch (Exception e) {
             System.err.println("❌ Error general al actualizar contraseña: " + e.getMessage());
             e.printStackTrace();
@@ -184,11 +225,11 @@ public class NuevaContrasena extends javax.swing.JFrame {
 
     private void cancelar() {
         int respuesta = JOptionPane.showConfirmDialog(this,
-            "¿Estás seguro de que quieres cancelar?\nLos cambios no se guardarán.",
-            "Confirmar cancelación",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE);
-        
+                "¿Estás seguro de que quieres cancelar?\nLos cambios no se guardarán.",
+                "Confirmar cancelación",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+
         if (respuesta == JOptionPane.YES_OPTION) {
             this.dispose();
         }
