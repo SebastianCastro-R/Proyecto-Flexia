@@ -25,10 +25,14 @@ public class Contactanos extends javax.swing.JFrame {
     private int menuWidth = 370;
     private int menuX = -menuWidth;
     int xmouse, ymouse;
+    private javax.swing.border.Border bordeSinFoco = javax.swing.BorderFactory.createEmptyBorder(2, 2, 2, 2);
+    private javax.swing.border.Border bordeConFoco = javax.swing.BorderFactory.createLineBorder(new Color(0, 102, 204),
+            2);
 
     public Contactanos() {
         setUndecorated(true);
         initComponents();
+        configurarNavegacionTecladoContactanos();
 
         // Obtener el correo del usuario logueado desde la sesión
         String correoUsuario = SesionUsuario.getInstancia().getCorreoUsuario();
@@ -254,6 +258,158 @@ public class Contactanos extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    // Agregar después del constructor
+    private void configurarNavegacionTecladoContactanos() {
+        // Hacer elementos interactivos enfocables
+        Menu.setFocusable(true);
+        minimizetxt.setFocusable(true);
+        Closetxt.setFocusable(true);
+        Asunto.setFocusable(true);
+        MensajeTxt.setFocusable(true);
+        ButtonEnviar.setFocusable(true);
+
+        // Configurar bordes iniciales
+        Menu.setBorder(bordeSinFoco);
+        minimizetxt.setBorder(bordeSinFoco);
+        Closetxt.setBorder(bordeSinFoco);
+        Asunto.setBorder(bordeSinFoco);
+        MensajeTxt.setBorder(bordeSinFoco);
+        ButtonEnviar.setBorder(bordeSinFoco);
+
+        // Configurar acciones para Enter y Space
+        configurarAccionTecladoContactanos(Menu, new Runnable() {
+            public void run() {
+                toggleMenu(null);
+            }
+        });
+
+        configurarAccionTecladoContactanos(minimizetxt, new Runnable() {
+            public void run() {
+                minimizetxtMouseClicked(null);
+            }
+        });
+
+        configurarAccionTecladoContactanos(Closetxt, new Runnable() {
+            public void run() {
+                ClosetxtMouseClicked(null);
+            }
+        });
+
+        configurarAccionTecladoContactanos(ButtonEnviar, new Runnable() {
+            public void run() {
+                ButtonEnviarActionPerformed(null);
+            }
+        });
+
+        // Configurar ESC para cerrar menú si está abierto
+        this.getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "cerrarMenu");
+
+        this.getRootPane().getActionMap().put("cerrarMenu", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                if (menuVisible) {
+                    toggleMenu(null);
+                }
+            }
+        });
+
+        // Configurar navegación entre campos con Tab
+        configurarNavegacionCampos();
+    }
+
+    private void configurarAccionTecladoContactanos(javax.swing.JComponent componente, Runnable accion) {
+        // Enter key
+        componente.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ENTER, 0), "pressed");
+        componente.getActionMap().put("pressed", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                accion.run();
+            }
+        });
+
+        // Space key (solo para componentes que no son campos de texto)
+        if (!(componente instanceof componentes.IconTextField)) {
+            componente.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
+                    javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_SPACE, 0), "spacePressed");
+            componente.getActionMap().put("spacePressed", new javax.swing.AbstractAction() {
+                @Override
+                public void actionPerformed(java.awt.event.ActionEvent e) {
+                    accion.run();
+                }
+            });
+        }
+
+        // Agregar listeners para cambiar el borde cuando gana/pierde el foco
+        componente.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                componente.setBorder(bordeConFoco);
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                componente.setBorder(bordeSinFoco);
+            }
+        });
+    }
+
+    private void configurarNavegacionCampos() {
+        // Configurar comportamiento especial para campos de texto
+        Asunto.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                Asunto.setBorder(bordeConFoco);
+                // Limpiar texto por defecto cuando gana foco
+                if (Asunto.getText().equals("Escriba aqui el asunto")) {
+                    Asunto.setText("");
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                Asunto.setBorder(bordeSinFoco);
+                // Restaurar texto por defecto si está vacío
+                if (Asunto.getText().isEmpty()) {
+                    Asunto.setText("Escriba aqui el asunto");
+                }
+            }
+        });
+
+        MensajeTxt.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                MensajeTxt.setBorder(bordeConFoco);
+                // Limpiar texto por defecto cuando gana foco
+                if (MensajeTxt.getText().equals("Escriba aqui su mensaje")) {
+                    MensajeTxt.setText("");
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                MensajeTxt.setBorder(bordeSinFoco);
+                // Restaurar texto por defecto si está vacío
+                if (MensajeTxt.getText().isEmpty()) {
+                    MensajeTxt.setText("Escriba aqui su mensaje");
+                }
+            }
+        });
+
+        // Configurar Enter para enviar en el campo Mensaje (como atajo)
+        MensajeTxt.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ENTER,
+                        java.awt.event.InputEvent.CTRL_DOWN_MASK),
+                "enviarConEnter");
+        MensajeTxt.getActionMap().put("enviarConEnter", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                ButtonEnviarActionPerformed(null);
+            }
+        });
+    }
+
     private void ButtonEnviarMouseEntered(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ButtonEnviarMouseEntered
         ButtonEnviar.setBackground(new Color(0x1E3888));
         ButtonEnviar.setForeground(Color.WHITE);
@@ -334,7 +490,6 @@ public class Contactanos extends javax.swing.JFrame {
                     javax.swing.JOptionPane.ERROR_MESSAGE);
         }
     }
-
 
     private void MensajeTxtActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_MensajeTxtActionPerformed
         MensajeTxt.setText("");

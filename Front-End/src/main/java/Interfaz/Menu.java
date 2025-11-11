@@ -15,6 +15,8 @@ import SignIn.SesionUsuario;
 public class Menu extends javax.swing.JPanel {
 
     private Runnable onCloseCallback;
+    private javax.swing.JButton[] botonesMenu;
+    private int indiceBotonActivo = 0;
 
     /**
      * Creates new form Menu
@@ -23,6 +25,7 @@ public class Menu extends javax.swing.JPanel {
     // Constructor simplificado
     public Menu(String pantallaActiva) {
         initComponents();
+        configurarNavegacionTeclado();
         setBackground(new Color(250, 250, 250));
         setOpaque(true);
 
@@ -391,6 +394,89 @@ public class Menu extends javax.swing.JPanel {
                                 javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 
     }// </editor-fold>//GEN-END:initComponents
+
+    // Agregar en el constructor después de initComponents():
+    private void configurarNavegacionTeclado() {
+        // Hacer todos los botones enfocables
+        Inicio.setFocusable(true);
+        Videos.setFocusable(true);
+        Estadisticas.setFocusable(true);
+        Perfil.setFocusable(true);
+        Contactanos.setFocusable(true);
+        ButtonCerrarSesion.setFocusable(true);
+
+        // Configurar acciones para Enter y Space en cada botón
+        configurarAccionTeclado(Inicio, new Runnable() {
+            public void run() {
+                InicioMouseClicked(null);
+            }
+        });
+
+        configurarAccionTeclado(Videos, new Runnable() {
+            public void run() {
+                VideosMouseClicked(null);
+            }
+        });
+
+        configurarAccionTeclado(Estadisticas, new Runnable() {
+            public void run() {
+                EstadisticasMouseClicked(null);
+            }
+        });
+
+        configurarAccionTeclado(Perfil, new Runnable() {
+            public void run() {
+                PerfilMouseClicked(null);
+            }
+        });
+
+        configurarAccionTeclado(Contactanos, new Runnable() {
+            public void run() {
+                ContactanosMouseClicked(null);
+            }
+        });
+
+        configurarAccionTeclado(ButtonCerrarSesion, new Runnable() {
+            public void run() {
+                ButtonCerrarSesionMouseClicked(null);
+            }
+        });
+
+        // Configurar ESC para cerrar el menú
+        this.getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "cerrarMenu");
+
+        this.getActionMap().put("cerrarMenu", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                if (onCloseCallback != null) {
+                    onCloseCallback.run();
+                }
+            }
+        });
+    }
+
+    private void configurarAccionTeclado(javax.swing.JButton boton, Runnable accion) {
+        // Enter key
+        boton.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ENTER, 0), "pressed");
+        boton.getActionMap().put("pressed", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                accion.run();
+            }
+        });
+
+        // Space key
+        boton.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_SPACE, 0), "spacePressed");
+        boton.getActionMap().put("spacePressed", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                accion.run();
+            }
+        });
+    }
 
     // Método para marcar el botón activo (azul)
     public void setActiveButton(javax.swing.JButton activeButton) {

@@ -28,6 +28,8 @@ public class Ejercicios extends javax.swing.JFrame {
     private javax.swing.JLabel Closetxt;
     private javax.swing.JPanel minimizebtn;
     private javax.swing.JLabel minimizetxt;
+    private Border bordeSinFoco = BorderFactory.createEmptyBorder(2, 2, 2, 2);
+    private Border bordeConFoco = BorderFactory.createLineBorder(new Color(0, 102, 204), 2);
 
     // Nuevas variables para controlar la capa de bloqueo
     private JLayeredPane layeredPane;
@@ -35,6 +37,7 @@ public class Ejercicios extends javax.swing.JFrame {
 
     public Ejercicios() {
         initComponents();
+        configurarNavegacionTecladoEjercicios();
 
         // Configurar layered pane
         layeredPane = getLayeredPane();
@@ -205,7 +208,7 @@ public class Ejercicios extends javax.swing.JFrame {
         // Cargar lecciones y videos desde la base de datos
         LeccionesDAO leccionesDAO = new LeccionesDAO();
         List<LeccionesDAO.Leccion> lecciones = leccionesDAO.obtenerTodasLasLeccionesConVideos();
-        
+
         for (LeccionesDAO.Leccion leccion : lecciones) {
             contenido.add(crearUnidad(leccion.getTitulo(), leccion.getVideos()));
             contenido.add(Box.createVerticalStrut(30));
@@ -219,6 +222,111 @@ public class Ejercicios extends javax.swing.JFrame {
 
         fondo.setBounds(0, 0, 1440, 1024);
         getContentPane().add(fondo);
+    }
+
+    // Agregar en el constructor después de initComponents():
+    private void configurarNavegacionTecladoEjercicios() {
+        // Hacer elementos interactivos enfocables
+        // Necesitamos encontrar o crear referencias a los componentes de la barra
+        // superior
+
+        // Buscar los componentes en la barra
+        Component[] components = ((JPanel) getContentPane().getComponent(0)).getComponents();
+        JPanel barra = null;
+
+        for (Component comp : components) {
+            if (comp instanceof JPanel) {
+                barra = (JPanel) comp;
+                break;
+            }
+        }
+
+        if (barra != null) {
+            // Encontrar los componentes en la barra
+            for (Component comp : barra.getComponents()) {
+                if (comp instanceof JLabel) {
+                    JLabel label = (JLabel) comp;
+                    // Buscar el ícono del menú
+                    if (label.getIcon() != null && label.getIcon().toString().contains("menu")) {
+                        label.setFocusable(true);
+                        label.setBorder(bordeSinFoco);
+                        configurarAccionTecladoEjercicios(label, new Runnable() {
+                            public void run() {
+                                toggleMenu(null);
+                            }
+                        });
+                    }
+                }
+            }
+        }
+
+        // Configurar botones de minimizar y cerrar
+        minimizetxt.setFocusable(true);
+        Closetxt.setFocusable(true);
+
+        minimizetxt.setBorder(bordeSinFoco);
+        Closetxt.setBorder(bordeSinFoco);
+
+        // Configurar acciones para Enter y Space
+        configurarAccionTecladoEjercicios(minimizetxt, new Runnable() {
+            public void run() {
+                minimizetxtMouseClicked(null);
+            }
+        });
+
+        configurarAccionTecladoEjercicios(Closetxt, new Runnable() {
+            public void run() {
+                ClosetxtMouseClicked(null);
+            }
+        });
+
+        // Configurar ESC para cerrar menú si está abierto
+        this.getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "cerrarMenu");
+
+        this.getRootPane().getActionMap().put("cerrarMenu", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                if (menuVisible) {
+                    toggleMenu(null);
+                }
+            }
+        });
+    }
+
+    private void configurarAccionTecladoEjercicios(javax.swing.JComponent componente, Runnable accion) {
+        // Enter key
+        componente.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ENTER, 0), "pressed");
+        componente.getActionMap().put("pressed", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                accion.run();
+            }
+        });
+
+        // Space key
+        componente.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_SPACE, 0), "spacePressed");
+        componente.getActionMap().put("spacePressed", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                accion.run();
+            }
+        });
+
+        // Agregar listeners para cambiar el borde cuando gana/pierde el foco
+        componente.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                componente.setBorder(bordeConFoco);
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                componente.setBorder(bordeSinFoco);
+            }
+        });
     }
 
     // ---------------- CREACIÓN DE UNIDAD ----------------
@@ -254,10 +362,10 @@ public class Ejercicios extends javax.swing.JFrame {
         List<JPanel> ejercicios = new ArrayList<>();
         for (VideosDAO.Video video : videos) {
             ejercicios.add(crearEjercicio(
-                video.getTitulo(),
-                video.getDescripcion(),
-                video.getIdVideo(),
-                video // Pasar el objeto video completo para usar después
+                    video.getTitulo(),
+                    video.getDescripcion(),
+                    video.getIdVideo(),
+                    video // Pasar el objeto video completo para usar después
             ));
         }
 
@@ -284,6 +392,10 @@ public class Ejercicios extends javax.swing.JFrame {
 
             btnIzquierda.setIcon(new ImageIcon(imgIzq));
             btnDerecha.setIcon(new ImageIcon(imgDer));
+            btnIzquierda.setFocusable(true);
+            btnDerecha.setFocusable(true);
+            btnIzquierda.setBorder(bordeSinFoco);
+            btnDerecha.setBorder(bordeSinFoco);
             estiloBotonNavegacion(btnIzquierda);
             estiloBotonNavegacion(btnDerecha);
 
@@ -301,6 +413,31 @@ public class Ejercicios extends javax.swing.JFrame {
                 }
             });
 
+            // Agregar listeners de foco para los botones de navegación
+            btnIzquierda.addFocusListener(new java.awt.event.FocusAdapter() {
+                @Override
+                public void focusGained(java.awt.event.FocusEvent evt) {
+                    btnIzquierda.setBorder(bordeConFoco);
+                }
+
+                @Override
+                public void focusLost(java.awt.event.FocusEvent evt) {
+                    btnIzquierda.setBorder(bordeSinFoco);
+                }
+            });
+
+            btnDerecha.addFocusListener(new java.awt.event.FocusAdapter() {
+                @Override
+                public void focusGained(java.awt.event.FocusEvent evt) {
+                    btnDerecha.setBorder(bordeConFoco);
+                }
+
+                @Override
+                public void focusLost(java.awt.event.FocusEvent evt) {
+                    btnDerecha.setBorder(bordeSinFoco);
+                }
+            });
+
             contenedor.add(btnIzquierda, BorderLayout.WEST);
             contenedor.add(panelVisible, BorderLayout.CENTER);
             contenedor.add(btnDerecha, BorderLayout.EAST);
@@ -315,7 +452,6 @@ public class Ejercicios extends javax.swing.JFrame {
         unidadPanel.add(contenedor, BorderLayout.CENTER);
         return unidadPanel;
     }
-  
 
     private void mostrarEjercicios(JPanel panelVisible, List<JPanel> ejercicios, int inicio) {
         panelVisible.removeAll();
@@ -350,7 +486,7 @@ public class Ejercicios extends javax.swing.JFrame {
 
         // Obtener la miniatura desde el objeto Video
         String rutaImagen = video.getMiniatura();
-        
+
         // Si no hay miniatura en BD, usar una por defecto
         if (rutaImagen == null || rutaImagen.isEmpty()) {
             rutaImagen = "/Images/Background.jpg";
@@ -431,6 +567,33 @@ public class Ejercicios extends javax.swing.JFrame {
         playBtn.setBounds(100, 45, 50, 50);
         playBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         playBtn.setOpaque(false);
+        playBtn.setFocusable(true);
+        playBtn.setBorder(bordeSinFoco);
+
+        // Agregar listener de foco para el botón de play
+        playBtn.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                playBtn.setBorder(bordeConFoco);
+                // También activar el efecto hover cuando tiene foco
+                targetAlpha[0] = 128;
+                if (!hoverTimer.isRunning()) {
+                    hoverTimer.start();
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                playBtn.setBorder(bordeSinFoco);
+                // Desactivar el efecto hover cuando pierde foco
+                targetAlpha[0] = 0;
+                if (!hoverTimer.isRunning()) {
+                    hoverTimer.start();
+                }
+            }
+        });
+
+        configurarAccionPlayBtn(playBtn, video);
 
         hoverTimer.addActionListener(e -> {
             // Animación del alpha (overlay azul)
@@ -468,6 +631,10 @@ public class Ejercicios extends javax.swing.JFrame {
                             (targetAlpha[0] == 0 && playSize[0] == playMin))) {
                 ((Timer) e.getSource()).stop();
             }
+
+            if (playBtn.hasFocus() && targetAlpha[0] == 0) {
+                targetAlpha[0] = 128;
+            }
         });
 
         // MouseAdapter para el botón de play
@@ -490,22 +657,7 @@ public class Ejercicios extends javax.swing.JFrame {
 
             @Override
             public void mouseClicked(MouseEvent e) {
-                // Usar el objeto video que ya tenemos
-                String tituloEjercicio = video.getTitulo();
-                String descripcionEjercicio = video.getDescripcion();
-                String archivo = formatearUrlCloudinary(video.getArchivo());
-                String instruccionesAdicionales = (video.getInstrucciones() != null) 
-                        ? video.getInstrucciones() 
-                        : obtenerInstruccionesPorDefecto();
-
-                // Abrir ventana de instrucciones con los datos
-                Instrucciones instrucciones = new Instrucciones(tituloEjercicio, descripcionEjercicio, archivo,
-                        instruccionesAdicionales);
-                instrucciones.setVisible(true);
-                instrucciones.setLocationRelativeTo(null);
-
-                // Cerrar ventana actual
-                Ejercicios.this.dispose();
+                abrirInstrucciones(video);
             }
 
             @Override
@@ -535,6 +687,48 @@ public class Ejercicios extends javax.swing.JFrame {
         panel.add(desc);
 
         return panel;
+    }
+
+    // Y agrega este método para manejar la acción desde el teclado también:
+    private void configurarAccionPlayBtn(JLabel playBtn, VideosDAO.Video video) {
+        // Enter key
+        playBtn.getInputMap(JComponent.WHEN_FOCUSED).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "abrirInstrucciones");
+        playBtn.getActionMap().put("abrirInstrucciones", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                abrirInstrucciones(video);
+            }
+        });
+
+        // Space key
+        playBtn.getInputMap(JComponent.WHEN_FOCUSED).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "abrirInstruccionesSpace");
+        playBtn.getActionMap().put("abrirInstruccionesSpace", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                abrirInstrucciones(video);
+            }
+        });
+    }
+
+    // Método para abrir instrucciones (extraído del mouseClicked)
+    private void abrirInstrucciones(VideosDAO.Video video) {
+        String tituloEjercicio = video.getTitulo();
+        String descripcionEjercicio = video.getDescripcion();
+        String archivo = formatearUrlCloudinary(video.getArchivo());
+        String instruccionesAdicionales = (video.getInstrucciones() != null)
+                ? video.getInstrucciones()
+                : obtenerInstruccionesPorDefecto();
+
+        // Abrir ventana de instrucciones con los datos
+        Instrucciones instrucciones = new Instrucciones(tituloEjercicio, descripcionEjercicio, archivo,
+                instruccionesAdicionales);
+        instrucciones.setVisible(true);
+        instrucciones.setLocationRelativeTo(null);
+
+        // Cerrar ventana actual
+        Ejercicios.this.dispose();
     }
 
     public static ImageIcon cargarImagenDesdeURL(String urlString, int width, int height) {

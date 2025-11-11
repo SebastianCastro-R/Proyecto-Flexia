@@ -24,6 +24,9 @@ public class Instrucciones extends javax.swing.JFrame {
     private String descripcionEjercicio;
     private String archivo;
     private String instruccionesAdicionales;
+    private javax.swing.border.Border bordeSinFoco = javax.swing.BorderFactory.createEmptyBorder(2, 2, 2, 2);
+    private javax.swing.border.Border bordeConFoco = javax.swing.BorderFactory.createLineBorder(new Color(0, 102, 204),
+            2);
 
     // Constructor modificado
     public Instrucciones(String tituloEjercicio, String descripcionEjercicio, String archivo,
@@ -33,6 +36,7 @@ public class Instrucciones extends javax.swing.JFrame {
         this.archivo = archivo;
         this.instruccionesAdicionales = instruccionesAdicionales;
         initComponents();
+        configurarNavegacionTecladoInstrucciones();
         personalizarInterfaz();
     }
 
@@ -137,6 +141,157 @@ public class Instrucciones extends javax.swing.JFrame {
 
         panelContenido.add(jfxPanel, BorderLayout.CENTER);
         jPanel1.add(panelContenido, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 1440, 600));
+    }
+
+    // Agregar después del constructor
+    private void configurarNavegacionTecladoInstrucciones() {
+        // Hacer elementos interactivos enfocables
+        Exit.setFocusable(true);
+        ButtonVolver.setFocusable(true);
+        ButtonEjercicio.setFocusable(true);
+
+        // Configurar bordes iniciales
+        Exit.setBorder(bordeSinFoco);
+        ButtonVolver.setBorder(bordeSinFoco);
+        ButtonEjercicio.setBorder(bordeSinFoco);
+
+        // Configurar acciones para Enter y Space
+        configurarAccionTecladoInstrucciones(Exit, new Runnable() {
+            public void run() {
+                ExitMouseClicked(null);
+            }
+        });
+
+        configurarAccionTecladoInstrucciones(ButtonVolver, new Runnable() {
+            public void run() {
+                ButtonVolverMouseClicked(null);
+            }
+        });
+
+        configurarAccionTecladoInstrucciones(ButtonEjercicio, new Runnable() {
+            public void run() {
+                ButtonEjercicioMouseClicked(null);
+            }
+        });
+
+        // Configurar ESC para cerrar la ventana
+        this.getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "cerrarVentana");
+
+        this.getRootPane().getActionMap().put("cerrarVentana", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                // Preguntar si quiere salir o volver
+                int opcion = JOptionPane.showConfirmDialog(
+                        Instrucciones.this,
+                        "¿Qué deseas hacer?",
+                        "Salir de Instrucciones",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE);
+
+                if (opcion == JOptionPane.YES_OPTION) {
+                    // Salir de la aplicación
+                    System.exit(0);
+                } else {
+                    // Volver a ejercicios
+                    ButtonVolverMouseClicked(null);
+                }
+            }
+        });
+
+        // Configurar atajos de teclado adicionales
+        configurarAtajosTeclado();
+    }
+
+    private void configurarAccionTecladoInstrucciones(javax.swing.JComponent componente, Runnable accion) {
+        // Enter key
+        componente.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ENTER, 0), "pressed");
+        componente.getActionMap().put("pressed", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                accion.run();
+            }
+        });
+
+        // Space key
+        componente.getInputMap(javax.swing.JComponent.WHEN_FOCUSED).put(
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_SPACE, 0), "spacePressed");
+        componente.getActionMap().put("spacePressed", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                accion.run();
+            }
+        });
+
+        // Agregar listeners para cambiar el borde cuando gana/pierde el foco
+        componente.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                componente.setBorder(bordeConFoco);
+
+                // Efecto visual adicional para botones
+                if (componente == ButtonVolver) {
+                    ButtonVolver.setBackground(new Color(0x1E3888));
+                    ButtonVolver.setForeground(Color.WHITE);
+                } else if (componente == ButtonEjercicio) {
+                    ButtonEjercicio.setBackground(new Color(0xD9D9D9));
+                    ButtonEjercicio.setForeground(new Color(0x1E3888));
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                componente.setBorder(bordeSinFoco);
+
+                // Restaurar colores originales de botones
+                if (componente == ButtonVolver) {
+                    ButtonVolver.setBackground(new Color(0xD9D9D9));
+                    ButtonVolver.setForeground(new Color(0x1E3888));
+                } else if (componente == ButtonEjercicio) {
+                    ButtonEjercicio.setBackground(new Color(0x1E3888));
+                    ButtonEjercicio.setForeground(Color.WHITE);
+                }
+            }
+        });
+    }
+
+    private void configurarAtajosTeclado() {
+        // Atajo V para Volver
+        this.getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_V,
+                        java.awt.event.InputEvent.CTRL_DOWN_MASK),
+                "volverAtajo");
+        this.getRootPane().getActionMap().put("volverAtajo", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                ButtonVolverMouseClicked(null);
+            }
+        });
+
+        // Atajo E para Ejercicio
+        this.getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E,
+                        java.awt.event.InputEvent.CTRL_DOWN_MASK),
+                "ejercicioAtajo");
+        this.getRootPane().getActionMap().put("ejercicioAtajo", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                ButtonEjercicioMouseClicked(null);
+            }
+        });
+
+        // Atajo Q para Salir
+        this.getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Q,
+                        java.awt.event.InputEvent.CTRL_DOWN_MASK),
+                "salirAtajo");
+        this.getRootPane().getActionMap().put("salirAtajo", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                ExitMouseClicked(null);
+            }
+        });
     }
 
     private void configurarInformacionEjercicio() {
@@ -380,10 +535,13 @@ public class Instrucciones extends javax.swing.JFrame {
         // Cerrar la ventana actual
         this.setVisible(false);
 
-        // Abrir la ventana de LogIn
-        Ejercicios Ejercicios = new Ejercicios();
-        Ejercicios.setVisible(true);
-        Ejercicios.setLocationRelativeTo(null); // Centrar en pantalla
+        // Abrir la ventana de Ejercicios
+        Ejercicios ejercicios = new Ejercicios();
+        ejercicios.setVisible(true);
+        ejercicios.setLocationRelativeTo(null); // Centrar en pantalla
+
+        // Opcional: cerrar completamente esta ventana
+        // this.dispose();
     }// GEN-LAST:event_ButtonVolverMouseClicked
 
     private void ButtonEjercicioMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ButtonEjercicioMouseClicked
@@ -392,12 +550,22 @@ public class Instrucciones extends javax.swing.JFrame {
         ejercicio.setVisible(true);
         ejercicio.setLocationRelativeTo(null); // Centrar en pantalla
 
-        // Opcional: cerrar ventana actual
-        // this.dispose();
+        // Cerrar ventana actual
+        this.dispose();
     }// GEN-LAST:event_ButtonEjercicioMouseClicked
 
     private void ExitMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ExitMouseClicked
-        System.exit(0);
+        // Confirmar antes de salir
+        int confirmacion = JOptionPane.showConfirmDialog(
+                this,
+                "¿Estás seguro de que quieres salir de la aplicación?",
+                "Confirmar salida",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+
+        if (confirmacion == JOptionPane.YES_OPTION) {
+            System.exit(0);
+        }
     }// GEN-LAST:event_ExitMouseClicked
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
