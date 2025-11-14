@@ -90,7 +90,7 @@ public class SignIn extends javax.swing.JFrame {
             Font labelFont = FuenteUtil.cargarFuente("EpundaSlab-Regular.ttf", 20f);
 
             FotoPefil.setFont(labelFont);
-            FotoPefil8.setFont(labelFont);
+            TypeIDLabel.setFont(labelFont);
             numIDLabel.setFont(labelFont);
             nombres.setFont(labelFont);
             Apellidos.setFont(labelFont);
@@ -408,7 +408,7 @@ public class SignIn extends javax.swing.JFrame {
         Fnacimiento = new javax.swing.JLabel();
         Correo = new javax.swing.JLabel();
         IDType = new javax.swing.JComboBox<>();
-        FotoPefil8 = new javax.swing.JLabel();
+        TypeIDLabel = new javax.swing.JLabel();
         PasswordText = new javax.swing.JPasswordField();
         jLabel1 = new javax.swing.JLabel();
         Telefono1 = new javax.swing.JLabel();
@@ -608,15 +608,15 @@ public class SignIn extends javax.swing.JFrame {
 
         Title.setFont(new java.awt.Font("Epunda Slab SemiBold", 1, 28)); // NOI18N
         Title.setText("Registrarse");
-        white.add(Title, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 110, -1, -1));
+        white.add(Title, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 120, -1, -1));
 
         FotoPefil.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
         FotoPefil.setText("Foto de Perfil");
-        white.add(FotoPefil, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 200, -1, -1));
+        white.add(FotoPefil, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 230, -1, -1));
 
         Telefono.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
         Telefono.setText("Teléfono");
-        white.add(Telefono, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 480, -1, -1));
+        white.add(Telefono, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 460, -1, -1));
 
         ButtonSignIn.setBackground(new java.awt.Color(152, 206, 255));
         ButtonSignIn.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
@@ -652,27 +652,27 @@ public class SignIn extends javax.swing.JFrame {
 
         Apellidos.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
         Apellidos.setText("Apellidos");
-        white.add(Apellidos, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 340, -1, -1));
+        white.add(Apellidos, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 380, -1, -1));
 
         numIDLabel.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
         numIDLabel.setText("N° de Documento");
-        white.add(numIDLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 270, -1, -1));
+        white.add(numIDLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 310, -1, -1));
 
         nombres.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
         nombres.setText("Nombres");
-        white.add(nombres, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 340, -1, -1));
+        white.add(nombres, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 380, -1, -1));
 
         password.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
         password.setText("Contraseña");
-        white.add(password, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 550, -1, -1));
+        white.add(password, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 540, -1, -1));
 
         Fnacimiento.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
         Fnacimiento.setText("Fecha de Nacimiento");
-        white.add(Fnacimiento, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 410, -1, -1));
+        white.add(Fnacimiento, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 460, -1, -1));
 
         Correo.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
         Correo.setText("Correo Electrónico");
-        white.add(Correo, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 550, -1, -1));
+        white.add(Correo, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 540, -1, -1));
 
         IDType.setFont(new java.awt.Font("Lato", 0, 16)); // NOI18N
         IDType.setForeground(new java.awt.Color(142, 142, 147));
@@ -682,11 +682,11 @@ public class SignIn extends javax.swing.JFrame {
                 IDTypeActionPerformed(evt);
             }
         });
-        white.add(IDType, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 230, 180, 35));
+        white.add(IDType, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 260, 180, 35));
 
-        FotoPefil8.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
-        FotoPefil8.setText("Tipo de Documento");
-        white.add(FotoPefil8, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 200, -1, -1));
+        TypeIDLabel.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
+        TypeIDLabel.setText("Tipo de Documento");
+        white.add(TypeIDLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 230, -1, -1));
 
         PasswordText.setFont(new java.awt.Font("Lato", 0, 12)); // NOI18N
         PasswordText.setForeground(new java.awt.Color(142, 142, 147));
@@ -700,7 +700,7 @@ public class SignIn extends javax.swing.JFrame {
                 PasswordTextActionPerformed(evt);
             }
         });
-        white.add(PasswordText, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 580, 180, 35));
+        white.add(PasswordText, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 570, 180, 35));
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/Group 5.png"))); // NOI18N
         jLabel1.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -734,7 +734,7 @@ public class SignIn extends javax.swing.JFrame {
         }
     });
 
-        white.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 230, -1, -1));
+        white.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 260, -1, -1));
 
         CorreoText.setForeground(new java.awt.Color(142, 142, 147));
         CorreoText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/correo.png"))); // NOI18N
@@ -745,7 +745,7 @@ public class SignIn extends javax.swing.JFrame {
                 CorreoTextMouseClicked(evt);
             }
         });
-        white.add(CorreoText, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 580, 180, 35));
+        white.add(CorreoText, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 570, 180, 35));
 
         ApellidosText.setForeground(new java.awt.Color(142, 142, 147));
         ApellidosText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/user.png"))); // NOI18N
@@ -763,7 +763,7 @@ public class SignIn extends javax.swing.JFrame {
                 ApellidosTextActionPerformed(evt);
             }
         });
-        white.add(ApellidosText, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 370, 180, 35));
+        white.add(ApellidosText, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 410, 180, 35));
 
         nameText.setForeground(new java.awt.Color(142, 142, 147));
         nameText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/user.png"))); // NOI18N
@@ -781,7 +781,7 @@ public class SignIn extends javax.swing.JFrame {
                 nameTextActionPerformed(evt);
             }
         });
-        white.add(nameText, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 370, 180, 35));
+        white.add(nameText, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 410, 180, 35));
 
         numIDText.setForeground(new java.awt.Color(142, 142, 147));
         numIDText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/id-card.png"))); // NOI18N
@@ -794,7 +794,7 @@ public class SignIn extends javax.swing.JFrame {
                 numIDTextMousePressed(evt);
             }
         });
-        white.add(numIDText, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 300, 180, 35));
+        white.add(numIDText, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 340, 180, 35));
 
         celText.setForeground(new java.awt.Color(142, 142, 147));
         celText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/mynaui_telephone.png"))); // NOI18N
@@ -807,7 +807,7 @@ public class SignIn extends javax.swing.JFrame {
                 celTextMousePressed(evt);
             }
         });
-        white.add(celText, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 510, 180, 35));
+        white.add(celText, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 490, 180, 35));
 
         DateText.setForeground(new java.awt.Color(142, 142, 147));
         DateText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/date.png"))); // NOI18N
@@ -825,7 +825,7 @@ public class SignIn extends javax.swing.JFrame {
                 DateTextActionPerformed(evt);
             }
         });
-        white.add(DateText, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 440, 180, 35));
+        white.add(DateText, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 490, 180, 35));
 
         BackGround.add(white, new org.netbeans.lib.awtextra.AbsoluteConstraints(720, 180, 449, 729));
 
@@ -1271,7 +1271,7 @@ public class SignIn extends javax.swing.JFrame {
     private javax.swing.JLabel Dialog;
     private javax.swing.JLabel Fnacimiento;
     private javax.swing.JLabel FotoPefil;
-    private javax.swing.JLabel FotoPefil8;
+    private javax.swing.JLabel TypeIDLabel;
     private javax.swing.JComboBox<String> Genre;
     private javax.swing.JComboBox<String> IDType;
     private javax.swing.JLabel LabelImagen1;
