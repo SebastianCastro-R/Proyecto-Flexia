@@ -463,7 +463,7 @@ public class login extends javax.swing.JFrame {
 
                         JOptionPane.showMessageDialog(
                                 null,
-                                "✅ Inicio de sesión exitoso.\nBienvenido " + nombreUsuario,
+                                "✅ Inicio de sesión exitoso.\nBienvenid@ " + nombreUsuario,
                                 "Bienvenido",
                                 JOptionPane.INFORMATION_MESSAGE);
                         // ✅ Verificar si el usuario ya respondió encuesta

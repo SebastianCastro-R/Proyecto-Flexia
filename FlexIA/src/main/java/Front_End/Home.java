@@ -4,15 +4,33 @@
  */
 package Front_End;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.border.Border;
 
 import com.formdev.flatlaf.FlatLightLaf;
 
 import Back_End.FuenteUtil;
+
+import java.awt.Cursor;
 
 /**
  *
@@ -36,6 +54,7 @@ public class Home extends javax.swing.JFrame {
     public Home() {
 
         initComponents();
+        colocarFechaActual();
         configurarNavegacionTecladoHome();
 
         menuPanel = new Menu("Home");
@@ -77,8 +96,10 @@ public class Home extends javax.swing.JFrame {
         minimizebtn = new javax.swing.JPanel();
         minimizetxt = new javax.swing.JLabel();
         roundedPanel1 = new componentes.RoundedPanel();
-        roundedPanel5 = new componentes.RoundedPanel();
-        jLabel3 = new javax.swing.JLabel();
+        PanelFecha = new componentes.RoundedPanel();
+        fecha = new javax.swing.JLabel();
+        icondate = new javax.swing.JLabel();
+        notification = new javax.swing.JLabel();
         roundedPanel2 = new componentes.RoundedPanel();
         roundedPanel3 = new componentes.RoundedPanel();
         jLabel1 = new javax.swing.JLabel();
@@ -202,47 +223,54 @@ public class Home extends javax.swing.JFrame {
 
         roundedPanel1.setBackground(new java.awt.Color(229, 229, 234));
         roundedPanel1.setPreferredSize(new java.awt.Dimension(444, 885));
+        roundedPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        roundedPanel5.setArc(25);
-        roundedPanel5.setBackground(new java.awt.Color(152, 206, 255));
-        roundedPanel5.setPreferredSize(new java.awt.Dimension(235, 40));
+        PanelFecha.setArc(25);
+        PanelFecha.setBackground(new java.awt.Color(152, 206, 255));
+        PanelFecha.setPreferredSize(new java.awt.Dimension(235, 40));
 
-        javax.swing.GroupLayout roundedPanel5Layout = new javax.swing.GroupLayout(roundedPanel5);
-        roundedPanel5.setLayout(roundedPanel5Layout);
-        roundedPanel5Layout.setHorizontalGroup(
-                roundedPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGap(0, 280, Short.MAX_VALUE));
-        roundedPanel5Layout.setVerticalGroup(
-                roundedPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGap(0, 40, Short.MAX_VALUE));
+        fecha.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
+        fecha.setText("noviemre 22 del 2025");
 
-        jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/notificacion.png"))); // NOI18N
+        icondate.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/datelack.png"))); // NOI18N
 
-        javax.swing.GroupLayout roundedPanel1Layout = new javax.swing.GroupLayout(roundedPanel1);
-        roundedPanel1.setLayout(roundedPanel1Layout);
-        roundedPanel1Layout.setHorizontalGroup(
-                roundedPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(roundedPanel1Layout.createSequentialGroup()
-                                .addGap(36, 36, 36)
-                                .addComponent(roundedPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, 280,
-                                        javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 45,
-                                        Short.MAX_VALUE)
-                                .addComponent(jLabel3)
-                                .addGap(23, 23, 23)));
-        roundedPanel1Layout.setVerticalGroup(
-                roundedPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(roundedPanel1Layout.createSequentialGroup()
-                                .addGap(23, 23, 23)
-                                .addGroup(roundedPanel1Layout
-                                        .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel3)
-                                        .addGroup(roundedPanel1Layout.createSequentialGroup()
-                                                .addGap(9, 9, 9)
-                                                .addComponent(roundedPanel5, javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                        javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                        javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addContainerGap(814, Short.MAX_VALUE)));
+        javax.swing.GroupLayout PanelFechaLayout = new javax.swing.GroupLayout(PanelFecha);
+        PanelFecha.setLayout(PanelFechaLayout);
+        PanelFechaLayout.setHorizontalGroup(
+            PanelFechaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(PanelFechaLayout.createSequentialGroup()
+                .addGap(14, 14, 14)
+                .addComponent(icondate)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(fecha)
+                .addContainerGap(49, Short.MAX_VALUE))
+        );
+        PanelFechaLayout.setVerticalGroup(
+            PanelFechaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(PanelFechaLayout.createSequentialGroup()
+                .addGap(4, 4, 4)
+                .addGroup(PanelFechaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(fecha, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(PanelFechaLayout.createSequentialGroup()
+                        .addComponent(icondate)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+
+        roundedPanel1.add(PanelFecha, new org.netbeans.lib.awtextra.AbsoluteConstraints(36, 32, 280, -1));
+
+        notification.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/notificacion.png"))); // NOI18N
+        notification.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        roundedPanel1.add(notification, new org.netbeans.lib.awtextra.AbsoluteConstraints(361, 23, -1, -1));
+
+        JPanel panelRacha = crearPanelRacha();
+        roundedPanel1.add(panelRacha, new org.netbeans.lib.awtextra.AbsoluteConstraints(36, 125, -1, -1));
+
+        JPanel panelEncuesta = crearPanelEncuestaDolor();
+        roundedPanel1.add(panelEncuesta, new org.netbeans.lib.awtextra.AbsoluteConstraints(36, 255, 370, 220));
+
+        JPanel panelConsejo = crearPanelConsejo();
+        roundedPanel1.add(panelConsejo, new org.netbeans.lib.awtextra.AbsoluteConstraints(36, 500, 370, 370));
 
         jPanel1.add(roundedPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(960, 90, 444, 895));
 
@@ -484,6 +512,345 @@ public class Home extends javax.swing.JFrame {
         }
     }
 
+    private JPanel crearPanelRacha() {
+        PanelRacha = new componentes.RoundedPanel();
+        PanelRacha.setBackground(new Color(203, 230, 255));
+        PanelRacha.setLayout(new BoxLayout(PanelRacha, BoxLayout.Y_AXIS));
+        PanelRacha.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        PanelRacha.setPreferredSize(new Dimension(380, 100));
+
+        // Panel de días
+        JPanel panelDias = new JPanel(new GridLayout(2, 7, 8, 8));
+        panelDias.setBackground(new Color(203, 230, 255));
+        panelDias.setMaximumSize(new Dimension(250, 80));
+        panelDias.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+
+        String[] dias = {"L", "M", "M", "J", "V", "S", "D"};
+
+        // Primera fila: letras de días
+        for (String dia : dias) {
+            JLabel lblDia = new JLabel(dia, SwingConstants.CENTER);
+            lblDia.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 16f));
+            lblDia.setForeground(new Color(30, 56, 136));
+            panelDias.add(lblDia);
+        }
+
+        // Segunda fila: checks o círculos
+        for (int i = 0; i < 7; i++) {
+            JPanel circuloDia = new JPanel();
+            circuloDia.setLayout(new BorderLayout());
+            circuloDia.setPreferredSize(new Dimension(35, 35));
+            circuloDia.setBackground(new Color(152, 206, 255));
+            circuloDia.setBorder(BorderFactory.createLineBorder(new Color(30, 56, 136), 2));
+
+            JLabel check = new JLabel("✓", SwingConstants.CENTER);
+            check.setFont(new java.awt.Font("Poppins", java.awt.Font.BOLD, 16));
+            check.setForeground(new Color(30, 56, 136));
+            
+            circuloDia.add(check, BorderLayout.CENTER);
+            panelDias.add(circuloDia);
+        }
+
+        PanelRacha.add(panelDias);
+        PanelRacha.add(Box.createVerticalStrut(10));
+        return PanelRacha;
+    }
+
+    private JPanel crearPanelConsejo() {
+        panelConsejo = new componentes.RoundedPanel();
+        panelConsejo.setLayout(new BoxLayout(panelConsejo, BoxLayout.Y_AXIS));
+        panelConsejo.setBackground(new Color(203, 230, 255));
+        panelConsejo.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panelConsejo.setMaximumSize(new Dimension(370, 370));
+
+        // Panel para la imagen (arriba)
+        JPanel panelImagen = new componentes.RoundedPanel();
+        panelImagen.setBackground(new Color(203, 230, 255));
+        panelImagen.setMaximumSize(new Dimension(360, 160));
+        panelImagen.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        try {
+            // Cargar imagen del consejo
+            ImageIcon iconoConsejo = new ImageIcon(getClass().getResource("/Images/consejo.png"));
+            // Redimensionar manteniendo proporciones
+            java.awt.Image img = iconoConsejo.getImage();
+            int ancho = 350;
+            int alto = 160;
+            java.awt.Image imgEscalada = img.getScaledInstance(ancho, alto, java.awt.Image.SCALE_SMOOTH);
+            JLabel lblImagen = new JLabel(new ImageIcon(imgEscalada));
+            lblImagen.setHorizontalAlignment(SwingConstants.CENTER);
+            panelImagen.add(lblImagen, BorderLayout.CENTER);
+        } catch (Exception e) {
+            // Si no encuentra la imagen, poner un placeholder
+            JLabel lblPlaceholder = new JLabel("💡");
+            lblPlaceholder.setFont(new java.awt.Font("Segoe UI Emoji", java.awt.Font.PLAIN, 40));
+            lblPlaceholder.setHorizontalAlignment(SwingConstants.CENTER);
+            panelImagen.add(lblPlaceholder, BorderLayout.CENTER);
+        }
+
+        // Título "Consejo del Día"
+        JLabel lblTituloConsejo = new JLabel("Consejo del Día");
+        lblTituloConsejo.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 20f));
+        lblTituloConsejo.setForeground(new Color(30, 56, 136));
+        lblTituloConsejo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Texto del consejo
+        lblConsejoTexto = new JLabel(
+            "<html><body style='width:250px; text-align:center;'>" +
+            consejos[indiceConsejoActual] +
+            "</body></html>"
+        );
+        lblConsejoTexto.setFont(FuenteUtil.cargarFuente("EpundaSlab-Regular.ttf", 16f));
+        lblConsejoTexto.setForeground(new Color(30, 56, 136));
+        lblConsejoTexto.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Panel de botones
+        JPanel panelBotones = new JPanel();
+        panelBotones.setLayout(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        panelBotones.setBackground(new Color(203, 230, 255));
+        panelBotones.setMaximumSize(new Dimension(360, 50));
+        panelBotones.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JButton btnLeerMas = new JButton("Leer Más");
+        btnLeerMas.setFont(FuenteUtil.cargarFuente("EpundaSlab-Medium.ttf", 14f));
+        btnLeerMas.setBackground(new Color(30, 56, 136));
+        btnLeerMas.setForeground(Color.WHITE);
+        btnLeerMas.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        btnLeerMas.setFocusPainted(false);
+        btnLeerMas.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        JButton btnCambiarConsejo = new JButton("Otro consejo");
+        btnCambiarConsejo.setFont(FuenteUtil.cargarFuente("EpundaSlab-Medium.ttf", 14f));
+        btnCambiarConsejo.setBackground(new Color(152, 206, 255));
+        btnCambiarConsejo.setForeground(new Color(30, 56, 136));
+        btnCambiarConsejo.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        btnCambiarConsejo.setFocusPainted(false);
+        btnCambiarConsejo.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // ActionListener para cambiar consejo
+        btnCambiarConsejo.addActionListener(e -> cambiarConsejo());
+
+        panelBotones.add(btnLeerMas);
+        panelBotones.add(btnCambiarConsejo);
+
+        // Ensamblar todo en orden vertical
+        panelConsejo.add(panelImagen);
+        panelConsejo.add(Box.createVerticalStrut(15));
+        panelConsejo.add(lblTituloConsejo);
+        panelConsejo.add(Box.createVerticalStrut(10));
+        panelConsejo.add(lblConsejoTexto);
+        panelConsejo.add(Box.createVerticalStrut(20));
+        panelConsejo.add(panelBotones);
+
+        return panelConsejo;
+    }
+
+    private void cambiarConsejo() {
+        indiceConsejoActual = (indiceConsejoActual + 1) % consejos.length;
+        lblConsejoTexto.setText(
+            "<html><body style='width:250px; text-align:center;'>" +
+            consejos[indiceConsejoActual] +
+            "</body></html>"
+        );
+        // Forzar repintado para actualizar la visualización
+        lblConsejoTexto.revalidate();
+        lblConsejoTexto.repaint();
+    }
+
+    // Lista de consejos predefinidos
+    private String[] consejos = {
+        "Descansa bien, tus manos también lo necesitan.",
+        "Realiza estiramientos cada hora de trabajo.",
+        "Mantén una postura correcta al usar el teclado. asdfgfhjkl.kiujyhgtrfdewsxwcvgfhgjmhk,hmgjfhdgs",
+        "Hidrata tus manos regularmente.",
+        "Usa técnicas de respiración para relajarte."
+    };
+
+    private void colocarFechaActual() {
+        LocalDate hoy = LocalDate.now();
+        DateTimeFormatter formato = DateTimeFormatter.ofPattern("MMMM dd 'del' yyyy", new Locale("es", "COL"));
+        fecha.setText(hoy.format(formato));
+    }
+
+    private JLabel lblConsejoTexto; // Variable de instancia para poder actualizar el consejo
+    private int indiceConsejoActual = 0;
+
+    // Variables para la encuesta de dolor
+    private int nivelDolorActual = -1;
+    private JLabel[] labelsCaritas;
+
+    private JPanel crearPanelEncuestaDolor() {
+        panelEncuestaDolor = new componentes.RoundedPanel();
+        panelEncuestaDolor.setLayout(new BoxLayout(panelEncuestaDolor, BoxLayout.Y_AXIS));
+        panelEncuestaDolor.setBackground(new Color(203, 230, 255));
+        panelEncuestaDolor.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        panelEncuestaDolor.setMaximumSize(new Dimension(370, 220));
+
+        // Título
+        JLabel lblTitulo = new JLabel("¿Cómo te sientes hoy?");
+        lblTitulo.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 20f));
+        lblTitulo.setForeground(new Color(30, 56, 136));
+        lblTitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Descripción
+        JLabel lblDescripcion = new JLabel(
+            "<html><body style='width:250px; text-align:center;'>" +
+            "Selecciona tu nivel de dolor actual" +
+            "</body></html>"
+        );
+        lblDescripcion.setFont(FuenteUtil.cargarFuente("EpundaSlab-Regular.ttf", 16f));
+        lblDescripcion.setForeground(new Color(30, 56, 136));
+        lblDescripcion.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+    // Panel de caritas
+        JPanel panelCaritas = new JPanel();
+        panelCaritas.setLayout(new FlowLayout(FlowLayout.CENTER, 8, 5));
+        panelCaritas.setBackground(new Color(203, 230, 255));
+        panelCaritas.setMaximumSize(new Dimension(350, 90));
+        panelCaritas.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        labelsCaritas = new JLabel[5];
+        String[] caritas = {"😊", "😐", "😖", "😫", "🤕"};
+
+        for (int i = 0; i < 5; i++) {
+            final int nivel = i;
+            JLabel lblCarita = new JLabel(
+                "<html><div style='font-size:32px; padding:2px 0;'>" + caritas[i] + "</div></html>"
+            );
+            lblCarita.setFont(new java.awt.Font("Segoe UI Emoji", java.awt.Font.PLAIN, 32));
+            lblCarita.setForeground(new Color(180, 180, 180)); // Color inicial gris
+            lblCarita.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            
+            // Tooltip con descripción del nivel de dolor
+            String[] descripciones = {
+                "Sin dolor - Me siento bien",
+                "Dolor leve - Molestia mínima",
+                "Dolor moderado - Molestia noticeable", 
+                "Dolor fuerte - Dolor constante",
+                "Dolor insoportable - Dolor severo"
+            };
+            lblCarita.setToolTipText(descripciones[i]);
+            
+            // Listeners para interactividad
+            lblCarita.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    seleccionarNivelDolor(nivel);
+                }
+                
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    resaltarCaritasHasta(nivel);
+                }
+                
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    restaurarColoresCaritas();
+                }
+            });
+            
+            labelsCaritas[i] = lblCarita;
+            panelCaritas.add(lblCarita);
+        }
+        // Panel para labels de escala
+        JPanel panelEscala = new JPanel(new GridLayout(1, 5, 0, 0));
+        panelEscala.setBackground(new Color(203, 230, 255));
+        panelEscala.setMaximumSize(new Dimension(350, 30));
+        panelEscala.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        String[] escalas = {"1", "2", "3", "4", "5"};
+        for (String escala : escalas) {
+            JLabel lblEscala = new JLabel(escala, SwingConstants.CENTER);
+            lblEscala.setFont(FuenteUtil.cargarFuente("EpundaSlab-Medium.ttf", 16f));
+            lblEscala.setForeground(new Color(30, 56, 136));
+            panelEscala.add(lblEscala);
+        }
+
+        // Label para mostrar la selección actual
+        JLabel lblSeleccionActual = new JLabel(" ");
+        lblSeleccionActual.setFont(FuenteUtil.cargarFuente("EpundaSlab-Medium.ttf", 16f));
+        lblSeleccionActual.setForeground(new Color(30, 56, 136));
+        lblSeleccionActual.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblSeleccionActual.setName("lblSeleccionActual"); // Para poder referenciarlo después
+
+        // Ensamblar todo
+        panelEncuestaDolor.add(lblTitulo);
+        panelEncuestaDolor.add(Box.createVerticalStrut(10));
+        panelEncuestaDolor.add(lblDescripcion);
+        panelEncuestaDolor.add(Box.createVerticalStrut(15));
+        panelEncuestaDolor.add(panelCaritas);
+        panelEncuestaDolor.add(Box.createVerticalStrut(5));
+        panelEncuestaDolor.add(panelEscala);
+        panelEncuestaDolor.add(Box.createVerticalStrut(10));
+        panelEncuestaDolor.add(lblSeleccionActual);
+
+        return panelEncuestaDolor;
+    }
+
+    private void seleccionarNivelDolor(int nivel) {
+        nivelDolorActual = nivel;
+        actualizarColoresCaritas();
+        mostrarConfirmacion(nivel);
+    }
+
+    private void resaltarCaritasHasta(int nivel) {
+        Color[] colores = {
+            new Color(76, 175, 80),    // Verde
+            new Color(156, 204, 101),  // Verde claro
+            new Color(255, 193, 7),    // Amarillo
+            new Color(255, 152, 0),    // Naranja
+            new Color(244, 67, 54)     // Rojo
+        };
+        
+        for (int i = 0; i < labelsCaritas.length; i++) {
+            if (i <= nivel) {
+                labelsCaritas[i].setForeground(colores[i]);
+            } else {
+                labelsCaritas[i].setForeground(new Color(180, 180, 180)); // Gris
+            }
+        }
+    }
+
+    private void restaurarColoresCaritas() {
+        actualizarColoresCaritas();
+    }
+
+    private void actualizarColoresCaritas() {
+        Color[] colores = {
+            new Color(76, 175, 80),    // Verde
+            new Color(156, 204, 101),  // Verde claro
+            new Color(255, 193, 7),    // Amarillo
+            new Color(255, 152, 0),    // Naranja
+            new Color(244, 67, 54)     // Rojo
+        };
+        
+        for (int i = 0; i < labelsCaritas.length; i++) {
+            if (i <= nivelDolorActual) {
+                labelsCaritas[i].setForeground(colores[i]);
+            } else {
+                labelsCaritas[i].setForeground(new Color(180, 180, 180)); // Gris
+            }
+        }
+    }
+
+    private void mostrarConfirmacion(int nivel) {
+        String[] mensajes = {
+            "¡Excelente! Sin dolor",
+            "Dolor leve seleccionado",
+            "Dolor moderado seleccionado", 
+            "Dolor fuerte seleccionado",
+            "Dolor severo seleccionado - Considera descansar"
+        };
+        
+        // Actualizar el label de selección actual
+        for (Component comp : panelEncuestaDolor.getComponents()) {
+            if (comp.getName() != null && comp.getName().equals("lblSeleccionActual")) {
+                ((JLabel) comp).setText(mensajes[nivel]);
+                break;
+            }
+        }
+        
+        // Aquí puedes agregar lógica para guardar la selección en tu base de datos
+        System.out.println("Nivel de dolor seleccionado: " + (nivel + 1));
+    }
+
     /**
      * @param args the command line arguments
      */
@@ -529,21 +896,25 @@ public class Home extends javax.swing.JFrame {
     private javax.swing.JLabel Closetxt;
     private javax.swing.JLabel EstadiscasGenerales;
     private javax.swing.JLabel Menu;
+    private componentes.RoundedPanel PanelFecha;
+    private componentes.RoundedPanel PanelRacha;
+    private componentes.RoundedPanel panelConsejo;
+    private componentes.RoundedPanel panelEncuestaDolor;
     private javax.swing.JLabel QueDeseas;
     private javax.swing.JLabel Titulo;
     private javax.swing.JLabel Titulo1;
     private javax.swing.JLabel UltimaLeccion;
+    private javax.swing.JLabel fecha;
+    private javax.swing.JLabel icondate;
     private javax.swing.JPanel header;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JLabel notification;
     private javax.swing.JPanel minimizebtn;
     private javax.swing.JLabel minimizetxt;
     private componentes.RoundedPanel roundedPanel1;
     private componentes.RoundedPanel roundedPanel2;
     private componentes.RoundedPanel roundedPanel3;
     private componentes.RoundedPanel roundedPanel4;
-    private componentes.RoundedPanel roundedPanel5;
-
     // End of variables declaration//GEN-END:variables
 }
