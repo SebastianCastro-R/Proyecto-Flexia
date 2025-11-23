@@ -68,6 +68,7 @@ public class SignIn extends javax.swing.JFrame {
         initButtons(); // <-- 👈 añadimos esta llamada
         initFocusOrder(); // <-- Agregar esta línea
         setupKeyboardNavigation(); // <-- Agregar esta línea
+        establecerImagenPorDefecto();
 
         setSize(1440, 1024);
         setLocationRelativeTo(null);
@@ -112,15 +113,11 @@ public class SignIn extends javax.swing.JFrame {
             // Si falla, se usa la fuente por defecto de Swing
         }
 
-        Genre.putClientProperty("JComponent.roundRect", true);
-        Genre.putClientProperty("JComponent.arc", 30);
         PasswordText.putClientProperty("JComponent.roundRect", true);
         PasswordText.putClientProperty("JComponent.arc", 30);
         IDType.putClientProperty("JComponent.roundRect", true);
         IDType.putClientProperty("JComponent.arc", 30);
 
-        // (Opcional) también puedes cambiar color de borde
-        Genre.putClientProperty("JComponent.outline", "borderColor:#B4B4B4");
         PasswordText.putClientProperty("JComponent.outline", "borderColor:#B4B4B4");
         IDType.putClientProperty("JComponent.outline", "borderColor:#B4B4B4");
     }
@@ -182,7 +179,6 @@ public class SignIn extends javax.swing.JFrame {
         focusOrder.add(nameText);
         focusOrder.add(ApellidosText);
         focusOrder.add(DateText);
-        focusOrder.add(Genre);
         focusOrder.add(celText);
         focusOrder.add(CorreoText);
         focusOrder.add(PasswordText);
@@ -412,7 +408,6 @@ public class SignIn extends javax.swing.JFrame {
         PasswordText = new javax.swing.JPasswordField();
         jLabel1 = new javax.swing.JLabel();
         Telefono1 = new javax.swing.JLabel();
-        Genre = new javax.swing.JComboBox<>();
         CorreoText = new componentes.IconTextField();
         ApellidosText = new componentes.IconTextField();
         nameText = new componentes.IconTextField();
@@ -702,37 +697,14 @@ public class SignIn extends javax.swing.JFrame {
         });
         white.add(PasswordText, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 570, 180, 35));
 
+        // En el initComponents(), reemplaza esta parte del jLabel1:
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/Group 5.png"))); // NOI18N
         jLabel1.addMouseListener(new java.awt.event.MouseAdapter() {
-        @Override
-        public void mouseClicked(java.awt.event.MouseEvent evt) {
-            JFileChooser chooser = new JFileChooser();
-            chooser.setFileFilter(new FileNameExtensionFilter("Imágenes", "jpg", "png", "jpeg"));
-
-            int res = chooser.showOpenDialog(null);
-            if (res == JFileChooser.APPROVE_OPTION) {
-                File file = chooser.getSelectedFile();
-
-                try {
-                    // Convertir imagen a bytes
-                    FileInputStream fis = new FileInputStream(file);
-                    imagenSeleccionada = fis.readAllBytes();
-
-                    // Mostrar imagen en jLabel circular
-                    ImageIcon icon = new ImageIcon(imagenSeleccionada);
-                    jLabel1.setIcon(new ImageIcon(redondearImagen(icon.getImage(), 150)));
-
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(null, "Error al cargar imagen");
-                }
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                seleccionarFotoPerfil();
             }
-        }
-
-        private String redondearImagen(java.awt.Image image, int size) {
-            // TODO Auto-generated method stub
-            throw new UnsupportedOperationException("Unimplemented method 'redondearImagen'");
-        }
-    });
+        });
 
         white.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 260, -1, -1));
 
@@ -857,12 +829,10 @@ public class SignIn extends javax.swing.JFrame {
         String contrasena = new String(PasswordText.getPassword()).trim();
         String fechaNacimiento = DateText.getText().trim(); // formato: YYYY-MM-DD
         String telefono = celText.getText().trim();
-        String genero = Genre.getSelectedItem().toString();
 
         // 2️⃣ Validaciones de campos vacíos
         if (tipoId.isEmpty() || numeroId.isEmpty() || nombres.isEmpty() || apellidos.isEmpty() ||
-                correo.isEmpty() || contrasena.isEmpty() || fechaNacimiento.isEmpty() || telefono.isEmpty()
-                || genero.isEmpty()) {
+                correo.isEmpty() || contrasena.isEmpty() || fechaNacimiento.isEmpty() || telefono.isEmpty()) {
             JOptionPane.showMessageDialog(this, "⚠️ Todos los campos son obligatorios.", "Campos vacíos",
                     JOptionPane.WARNING_MESSAGE);
             return;
@@ -905,6 +875,19 @@ public class SignIn extends javax.swing.JFrame {
             return;
         }
 
+        // Validar que se haya seleccionado una foto
+        if (imagenSeleccionada == null || imagenSeleccionada.length == 0) {
+            int opcion = JOptionPane.showConfirmDialog(this,
+                "¿Desea continuar sin foto de perfil?\nPuede agregarla más tarde.",
+                "Sin foto de perfil",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+            
+            if (opcion != JOptionPane.YES_OPTION) {
+                return;
+            }
+        }
+
         // 7️⃣ Mostrar ventana emergente de Términos y Condiciones
         boolean aceptado = mostrarTerminosYCondiciones();
         if (!aceptado) {
@@ -924,7 +907,6 @@ public class SignIn extends javax.swing.JFrame {
                 contrasena, // el DAO la hashea internamente
                 fechaSQL,
                 telefono,
-                genero,
                 false, // esPremium por defecto
                 imagenSeleccionada
         );
@@ -1076,6 +1058,45 @@ public class SignIn extends javax.swing.JFrame {
     private void PasswordTextMousePressed(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_PasswordTextMousePressed
         PasswordText.setText("");
     }// GEN-LAST:event_PasswordTextMousePressed
+        private void seleccionarFotoPerfil() {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setFileFilter(new FileNameExtensionFilter("Imágenes", "jpg", "png", "jpeg", "gif", "bmp"));
+            
+            int res = chooser.showOpenDialog(this);
+            if (res == JFileChooser.APPROVE_OPTION) {
+                File file = chooser.getSelectedFile();
+                
+                try {
+                    // Verificar tamaño del archivo (máximo 5MB)
+                    long fileSize = file.length();
+                    if (fileSize > 5 * 1024 * 1024) {
+                        JOptionPane.showMessageDialog(this, 
+                            "La imagen es demasiado grande. Máximo 5MB permitido.", 
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    
+                    // Convertir imagen a bytes
+                    FileInputStream fis = new FileInputStream(file);
+                    imagenSeleccionada = fis.readAllBytes();
+                    fis.close();
+                    
+                    // Mostrar imagen en jLabel circular (150x150 px)
+                    ImageIcon iconOriginal = new ImageIcon(imagenSeleccionada);
+                    ImageIcon iconRedondeado = redondearImagen(iconOriginal.getImage(), 150);
+                    jLabel1.setIcon(iconRedondeado);
+                    
+                    // Opcional: mostrar mensaje de éxito
+                    jLabel1.setToolTipText("Foto seleccionada: " + file.getName());
+                    
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Error al cargar la imagen: " + e.getMessage(), 
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                    e.printStackTrace();
+                }
+            }
+        }
 
     private boolean mostrarTerminosYCondiciones() {
         // 🧾 Texto HTML con estilo visual y márgenes
@@ -1198,7 +1219,7 @@ public class SignIn extends javax.swing.JFrame {
         return aceptado[0];
     }
 
-    public BufferedImage redondearImagen(Image img, int size) {
+    private ImageIcon redondearImagen(Image img, int size) {
         BufferedImage circleBuffer = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = circleBuffer.createGraphics();
 
@@ -1208,12 +1229,24 @@ public class SignIn extends javax.swing.JFrame {
         Ellipse2D.Double circle = new Ellipse2D.Double(0, 0, size, size);
         g2.setClip(circle);
 
+        // Dibujar la imagen redimensionada dentro del círculo
         g2.drawImage(img.getScaledInstance(size, size, Image.SCALE_SMOOTH), 0, 0, null);
         g2.dispose();
 
-        return circleBuffer;
-    }
+        return new ImageIcon(circleBuffer);
+}
 
+    private void establecerImagenPorDefecto() {
+        try {
+            // Cargar imagen por defecto
+            ImageIcon iconoDefault = new ImageIcon(getClass().getResource("/Images/Group 5.png"));
+            ImageIcon iconoRedondeado = redondearImagen(iconoDefault.getImage(), 150);
+            jLabel1.setIcon(iconoRedondeado);
+            jLabel1.setToolTipText("Haz clic para seleccionar foto de perfil");
+        } catch (Exception e) {
+            System.err.println("Error al cargar imagen por defecto: " + e.getMessage());
+        }
+    }
 
     /**
      * @param args the command line arguments
@@ -1272,7 +1305,6 @@ public class SignIn extends javax.swing.JFrame {
     private javax.swing.JLabel Fnacimiento;
     private javax.swing.JLabel FotoPefil;
     private javax.swing.JLabel TypeIDLabel;
-    private javax.swing.JComboBox<String> Genre;
     private javax.swing.JComboBox<String> IDType;
     private javax.swing.JLabel LabelImagen1;
     private javax.swing.JLabel O;

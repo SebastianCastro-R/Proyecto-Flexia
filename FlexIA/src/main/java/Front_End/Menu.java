@@ -5,7 +5,14 @@
 package Front_End;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+
+import javax.swing.ImageIcon;
+
 import Back_End.SesionUsuario;
+import Database.UsuariosDAO;
 
 /**
  *
@@ -38,6 +45,9 @@ public class Menu extends javax.swing.JPanel {
         } else {
             Bienvenido.setText("Bienvenid@ User!");
         }
+
+        // Cargar foto de perfil
+        cargarFotoPerfil(correoUsuario);
 
         // Guardar correo para uso interno
         this.correoUsuario = correoUsuario != null ? correoUsuario : "";
@@ -495,6 +505,76 @@ public class Menu extends javax.swing.JPanel {
         }
     }
 
+    // Método para cargar la foto de perfil
+    private void cargarFotoPerfil(String correo) {
+        if (correo != null && !correo.isEmpty()) {
+            UsuariosDAO dao = new UsuariosDAO();
+            byte[] fotoBytes = dao.obtenerFotoPerfil(correo);
+            
+            if (fotoBytes != null && fotoBytes.length > 0) {
+                // Convertir bytes a ImageIcon circular
+                ImageIcon imagenCircular = crearImagenCircular(fotoBytes, 210, 200);
+                FotoPerfil.setIcon(imagenCircular);
+            } else {
+                // Foto por defecto
+                try {
+                    ImageIcon iconoDefault = new ImageIcon(getClass().getResource("/Images/Group 5.png"));
+                    if (iconoDefault != null) {
+                        java.awt.Image imagenRedimensionada = iconoDefault.getImage().getScaledInstance(150, 150, java.awt.Image.SCALE_SMOOTH);
+                        ImageIcon imagenCircular = crearImagenCircularDeIcono(new ImageIcon(imagenRedimensionada), 150, 150);
+                        FotoPerfil.setIcon(imagenCircular);
+                        FotoPerfil.revalidate();
+                        FotoPerfil.repaint();
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error al cargar imagen por defecto en menú: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    // Método para crear imagen circular desde bytes
+    private ImageIcon crearImagenCircular(byte[] imageBytes, int width, int height) {
+        try {
+            ImageIcon originalIcon = new ImageIcon(imageBytes);
+            return crearImagenCircularDeIcono(originalIcon, width, height);
+        } catch (Exception e) {
+            System.err.println("Error al crear imagen circular: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // Método para crear imagen circular desde ImageIcon
+    private ImageIcon crearImagenCircularDeIcono(ImageIcon originalIcon, int width, int height) {
+        java.awt.Image imagenOriginal = originalIcon.getImage();
+        java.awt.Image imagenRedimensionada = imagenOriginal.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
+        
+        BufferedImage mask = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = mask.createGraphics();
+        
+        // Aplicar calidad de renderizado
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        
+        // Crear forma circular
+        Ellipse2DCircle forma = new Ellipse2DCircle(0, 0, width, height);
+        g2d.setClip(forma);
+        
+        // Dibujar la imagen
+        g2d.drawImage(imagenRedimensionada, 0, 0, width, height, null);
+        
+        g2d.dispose();
+        
+        return new ImageIcon(mask);
+    }
+    
+    // Clase interna para forma circular
+        static class Ellipse2DCircle extends java.awt.geom.Ellipse2D.Double {
+            public Ellipse2DCircle(double x, double y, double width, double height) {
+                super(x, y, width, height);
+            }
+        }
+
     private void ButtonCerrarSesionActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_ButtonCerrarSesionActionPerformed
         // TODO add your handling code here:
     }// GEN-LAST:event_ButtonCerrarSesionActionPerformed
@@ -660,6 +740,7 @@ public class Menu extends javax.swing.JPanel {
     private javax.swing.JSeparator jSeparator4;
     private javax.swing.JSeparator jSeparator5;
     private componentes.RoundedPanel roundedPanel1;
+    
     private String pantallaActiva;
     private String correoUsuario = "";
     // End of variables declaration//GEN-END:variables

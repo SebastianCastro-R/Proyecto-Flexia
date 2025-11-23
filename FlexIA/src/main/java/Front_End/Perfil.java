@@ -5,7 +5,12 @@
 package Front_End;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.geom.Ellipse2D;
+import java.awt.image.BufferedImage;
 
+import javax.swing.ImageIcon;
 import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
 import javax.swing.Timer;
@@ -13,6 +18,7 @@ import javax.swing.Timer;
 import Back_End.SesionUsuario;
 import Back_End.Usuario;
 import Database.UsuariosDAO;
+import javafx.scene.image.Image;
 
 /**
  *
@@ -38,6 +44,7 @@ public class Perfil extends javax.swing.JFrame {
         initComponents();
         cargarDatosUsuario();
         desactivarCampos();
+        verificarComponentes();
 
         // Configurar layered pane
         layeredPane = getLayeredPane();
@@ -91,7 +98,8 @@ public class Perfil extends javax.swing.JFrame {
         numIDLabel = new javax.swing.JLabel();
         numIDText = new componentes.IconTextField();
         IDType = new javax.swing.JComboBox<>();
-        FotoPefil9 = new javax.swing.JLabel();
+        FotoPerfil = new javax.swing.JLabel();
+        TypeIDLabel = new javax.swing.JLabel();
         ButtonEdit = new javax.swing.JButton();
         roundedPanel2 = new componentes.RoundedPanel();
         TipoPlan = new javax.swing.JLabel();
@@ -110,6 +118,15 @@ public class Perfil extends javax.swing.JFrame {
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         roundedPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        // Agrega estas propiedades para la foto
+        FotoPerfil.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        FotoPerfil.setVerticalAlignment(javax.swing.SwingConstants.CENTER);
+
+        // Y AÑADE ESTA LÍNEA para posicionar la foto en el layout:
+        roundedPanel1.add(FotoPerfil, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 60, 210, 200));
+
+        
 
         nombres.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
         nombres.setText("Nombres");
@@ -258,9 +275,9 @@ public class Perfil extends javax.swing.JFrame {
         });
         roundedPanel1.add(IDType, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 420, 230, 35));
 
-        FotoPefil9.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
-        FotoPefil9.setText("Tipo de Documento");
-        roundedPanel1.add(FotoPefil9, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 380, -1, -1));
+        TypeIDLabel.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
+        TypeIDLabel.setText("Tipo de Documento");
+        roundedPanel1.add(TypeIDLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 380, -1, -1));
 
         ButtonEdit.setBackground(new java.awt.Color(152, 206, 255));
         ButtonEdit.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
@@ -404,6 +421,16 @@ public class Perfil extends javax.swing.JFrame {
         IDType.setEnabled(false);
     }
 
+    // En Perfil.java, agrega este método y llámalo en el constructor después de initComponents()
+    private void verificarComponentes() {
+        System.out.println("FotoPerfil en Perfil es null: " + (FotoPerfil == null));
+        if (FotoPerfil != null) {
+            System.out.println("Ubicación de FotoPerfil: " + FotoPerfil.getLocation());
+            System.out.println("Tamaño de FotoPerfil: " + FotoPerfil.getSize());
+            System.out.println("Es visible: " + FotoPerfil.isVisible());
+        }
+    }
+
 
     private void ExitMouseClicked(java.awt.event.MouseEvent evt) {                                  
         System.exit(0);
@@ -536,6 +563,10 @@ public class Perfil extends javax.swing.JFrame {
             numIDText.setText(u.getNumeroId());
             IDType.setSelectedItem(u.getTipoId());
 
+            // Cargar foto de perfil
+            cargarFotoPerfil(correo);
+
+
             if (u.isEsPremium()) {
                 PlanLabel.setText("Premium");
                 PlanLabel.setForeground(new Color(220, 180, 0)); // Dorado
@@ -550,6 +581,55 @@ public class Perfil extends javax.swing.JFrame {
             // Si tienes más campos, agrégalos
         }
 
+    }
+
+      // Método para cargar foto de perfil (similar al del Menu)
+    private void cargarFotoPerfil(String correo) {
+        if (correo != null && !correo.isEmpty()) {
+            UsuariosDAO dao = new UsuariosDAO();
+            byte[] fotoBytes = dao.obtenerFotoPerfil(correo);
+            
+            if (fotoBytes != null && fotoBytes.length > 0) {
+                ImageIcon imagenCircular = crearImagenCircular(fotoBytes, 210, 200);
+                FotoPerfil.setIcon(imagenCircular);
+                FotoPerfil.setPreferredSize(new java.awt.Dimension(210,200));
+            } else {
+                ImageIcon iconoDefault = new ImageIcon(getClass().getResource("/Images/Group 5.png"));
+                java.awt.Image imagenRedimensionada = iconoDefault.getImage().getScaledInstance(210, 200, java.awt.Image.SCALE_SMOOTH);
+                ImageIcon imagenCircular = crearImagenCircularDeIcono(new ImageIcon(imagenRedimensionada), 210, 200);
+                FotoPerfil.setIcon(imagenCircular);
+            }
+        }
+    }
+
+    // Los mismos métodos crearImagenCircular y crearImagenCircularDeIcono del Menu
+    private ImageIcon crearImagenCircular(byte[] imageBytes, int width, int height) {
+        try {
+            ImageIcon originalIcon = new ImageIcon(imageBytes);
+            return crearImagenCircularDeIcono(originalIcon, width, height);
+        } catch (Exception e) {
+            System.err.println("Error al crear imagen circular: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private ImageIcon crearImagenCircularDeIcono(ImageIcon originalIcon, int width, int height) {
+        java.awt.Image imagenOriginal = originalIcon.getImage();
+        java.awt.Image imagenRedimensionada = imagenOriginal.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
+        
+        BufferedImage mask = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = mask.createGraphics();
+        
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        
+        Ellipse2D.Double forma = new Ellipse2D.Double(0, 0, width, height);
+        g2d.setClip(forma);
+        g2d.drawImage(imagenRedimensionada, 0, 0, width, height, null);
+        
+        g2d.dispose();
+        
+        return new ImageIcon(mask);
     }
 
     private void activarCampos() {
@@ -639,8 +719,8 @@ public class Perfil extends javax.swing.JFrame {
     private javax.swing.JLabel Fnacimiento;
     private javax.swing.JLabel TipoPlan;
     private javax.swing.JLabel PlanLabel;
-    private javax.swing.JLabel FotoPefil;
-    private javax.swing.JLabel FotoPefil9;
+    private javax.swing.JLabel FotoPerfil;
+    private javax.swing.JLabel TypeIDLabel;
     private javax.swing.JComboBox<String> IDType;
     private javax.swing.JLabel Menu;
     private javax.swing.JPasswordField PasswordText;

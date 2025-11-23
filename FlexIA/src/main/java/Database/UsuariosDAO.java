@@ -30,10 +30,9 @@ public class UsuariosDAO {
             String contrasenaPlano,
             java.sql.Date fechaNacimiento,
             String telefono,
-            String genero,
             boolean esPremium,
             byte[] fotoPerfil) {
-        String sql = "INSERT INTO usuarios (tipo_id, numero_id, nombres, apellidos, correo_electronico, contrasena, fecha_nacimiento, telefono, genero, es_premium) "
+        String sql = "INSERT INTO usuarios (tipo_id, numero_id, nombres, apellidos, correo_electronico, contrasena, fecha_nacimiento, telefono, es_premium, foto_perfil) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         // Generamos el hash con coste 12 (puedes ajustar)
         String hashed = BCrypt.hashpw(contrasenaPlano, BCrypt.gensalt(12));
@@ -50,7 +49,13 @@ public class UsuariosDAO {
             ps.setDate(7, fechaNacimiento);
             ps.setString(8, telefono);
             ps.setBoolean(9, esPremium);
-            ps.setBytes(10, fotoPerfil);
+            
+                // Manejar la foto de perfil (puede ser null)
+            if (fotoPerfil != null && fotoPerfil.length > 0) {
+                ps.setBytes(10, fotoPerfil);
+            } else {
+                ps.setNull(10, java.sql.Types.BLOB);
+            }
 
             int filas = ps.executeUpdate();
             return filas > 0;
@@ -189,6 +194,25 @@ public class UsuariosDAO {
             System.out.println("Error actualizando usuario: " + e.getMessage());
             return false;
         }
+    }
+
+        // Agrega este método en UsuariosDAO.java
+    public byte[] obtenerFotoPerfil(String correo) {
+        String sql = "SELECT foto_perfil FROM usuarios WHERE correo_electronico = ?";
+        
+        try (Connection conn = Conexion.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setString(1, correo);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBytes("foto_perfil");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ Error al obtener foto de perfil: " + e.getMessage());
+        }
+        return null;
     }
 
 }

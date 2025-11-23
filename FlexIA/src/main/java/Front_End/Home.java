@@ -10,13 +10,19 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.BorderFactory;
@@ -24,11 +30,15 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.border.Border;
 
 import com.formdev.flatlaf.FlatLightLaf;
 
 import Back_End.FuenteUtil;
+import Back_End.SesionUsuario;
+import Database.Conexion;
+import Database.RachaDAO;
 
 import java.awt.Cursor;
 
@@ -55,6 +65,7 @@ public class Home extends javax.swing.JFrame {
 
         initComponents();
         colocarFechaActual();
+        registrarActividadDiaria();
         configurarNavegacionTecladoHome();
 
         menuPanel = new Menu("Home");
@@ -230,7 +241,7 @@ public class Home extends javax.swing.JFrame {
         PanelFecha.setPreferredSize(new java.awt.Dimension(235, 40));
 
         fecha.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
-        fecha.setText("noviemre 22 del 2025");
+        fecha.setText(" 22 del 2025");
 
         icondate.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/datelack.png"))); // NOI18N
 
@@ -519,6 +530,19 @@ public class Home extends javax.swing.JFrame {
         PanelRacha.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         PanelRacha.setPreferredSize(new Dimension(380, 100));
 
+        // Hacer el panel clickeable
+        PanelRacha.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // Obtener datos del usuario logueado
+        SesionUsuario sesion = SesionUsuario.getInstancia();
+        int idUsuario = obtenerIdUsuario(sesion.getCorreoUsuario());
+
+        // Obtener datos de racha
+        RachaDAO rachaDAO = new RachaDAO();
+        List<Boolean> semanaActividad = rachaDAO.obtenerUltimaSemanaActividad(idUsuario);
+        int rachaActual = rachaDAO.obtenerRachaActual(idUsuario);
+        boolean yaRegistroHoy = rachaDAO.yaRegistroHoy(idUsuario);
+
         // Panel de días
         JPanel panelDias = new JPanel(new GridLayout(2, 7, 8, 8));
         panelDias.setBackground(new Color(203, 230, 255));
@@ -537,23 +561,104 @@ public class Home extends javax.swing.JFrame {
 
         // Segunda fila: checks o círculos
         for (int i = 0; i < 7; i++) {
-            JPanel circuloDia = new JPanel();
-            circuloDia.setLayout(new BorderLayout());
-            circuloDia.setPreferredSize(new Dimension(35, 35));
-            circuloDia.setBackground(new Color(152, 206, 255));
-            circuloDia.setBorder(BorderFactory.createLineBorder(new Color(30, 56, 136), 2));
+                JPanel circuloDia = new JPanel();
+                circuloDia.setLayout(new BorderLayout());
+                circuloDia.setPreferredSize(new Dimension(35, 35));
+                
+                boolean realizoActividad = i < semanaActividad.size() ? semanaActividad.get(i) : false;
+                
+                if (realizoActividad) {
+                    circuloDia.setBackground(new Color(152, 206, 255)); // Azul claro - realizado
+                    JLabel check = new JLabel("✓", SwingConstants.CENTER);
+                    check.setFont(new java.awt.Font("Poppins", java.awt.Font.BOLD, 16));
+                    check.setForeground(new Color(30, 56, 136));
+                    circuloDia.add(check, BorderLayout.CENTER);
+                } else {
+                    circuloDia.setBackground(Color.WHITE); // Blanco - no realizado
+                    circuloDia.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+                }
+                
+                panelDias.add(circuloDia);
+            }
 
-            JLabel check = new JLabel("✓", SwingConstants.CENTER);
-            check.setFont(new java.awt.Font("Poppins", java.awt.Font.BOLD, 16));
-            check.setForeground(new Color(30, 56, 136));
-            
-            circuloDia.add(check, BorderLayout.CENTER);
-            panelDias.add(circuloDia);
-        }
+        // Panel inferior: mensaje motivacional
+        JPanel panelInferior = new JPanel(new BorderLayout());
+        panelInferior.setBackground(new Color(203, 230, 255));
+        panelInferior.setMaximumSize(new Dimension(330, 40));
+
+        String mensajeMotivacional = obtenerMensajeMotivacional(rachaActual, yaRegistroHoy);
+        JLabel lblMensaje = new JLabel(mensajeMotivacional, SwingConstants.CENTER);
+        lblMensaje.setFont(FuenteUtil.cargarFuente("EpundaSlab-Medium.ttf", 12f));
+        lblMensaje.setForeground(new Color(30, 56, 136));
+
+        panelInferior.add(lblMensaje, BorderLayout.CENTER);
+
+        // Agregar listener para abrir calendario al hacer clic
+        PanelRacha.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                abrirCalendarioRacha(idUsuario);
+            }
+        });
 
         PanelRacha.add(panelDias);
         PanelRacha.add(Box.createVerticalStrut(10));
+        PanelRacha.add(panelInferior);
         return PanelRacha;
+    }
+
+    private void abrirCalendarioRacha(int idUsuario) {
+        Back_End.CalendarioRacha calendario = new Back_End.CalendarioRacha(this, idUsuario);
+        calendario.setVisible(true);
+    }
+
+    private void registrarActividadDiaria() {
+    SesionUsuario sesion = SesionUsuario.getInstancia();
+        if (sesion.estaLogueado()) {
+            int idUsuario = obtenerIdUsuario(sesion.getCorreoUsuario());
+            RachaDAO rachaDAO = new RachaDAO();
+            
+            if (!rachaDAO.yaRegistroHoy(idUsuario)) {
+                rachaDAO.registrarActividadHoy(idUsuario);
+            }
+        }
+    }
+
+    private int obtenerIdUsuario(String correo) {
+        // Método para obtener el ID del usuario basado en el correo
+        // Puedes implementar esto según tu estructura de datos
+        String sql = "SELECT id_usuario FROM usuarios WHERE correo_electronico = ?";
+        
+        try (Connection conn = Conexion.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, correo);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("id_usuario");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener ID usuario: " + e.getMessage());
+        }
+        
+        return -1; // O maneja el error apropiadamente
+    }
+
+
+    private String obtenerMensajeMotivacional(int racha, boolean yaRegistroHoy) {
+        if (racha == 0) {
+            return "¡Comienza tu racha hoy!";
+        } else if (racha < 3) {
+            return "¡Buen comienzo! Sigue así";
+        } else if (racha < 7) {
+            return "¡Vas por buen camino!";
+        } else if (racha < 14) {
+            return "¡Excelente compromiso!";
+        } else if (racha < 30) {
+            return "¡Eres una máquina!";
+        } else {
+            return "¡Leyenda viviente!";
+        }
     }
 
     private JPanel crearPanelConsejo() {
