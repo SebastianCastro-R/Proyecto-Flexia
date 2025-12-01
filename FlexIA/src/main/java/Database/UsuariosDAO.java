@@ -175,7 +175,7 @@ public class UsuariosDAO {
     }
     
     public boolean actualizarUsuario(Usuario u) {
-        String sql = "UPDATE usuarios SET nombres=?, apellidos=?, telefono=?, fecha_nacimiento=?, num_documento=?, tipo_documento=?, password=? WHERE correo=?";
+        String sql = "UPDATE usuarios SET nombres=?, apellidos=?, telefono=?, fecha_nacimiento=?, numero_id=?, tipo_id=? WHERE correo_electronico=?";
 
         try (Connection conn = conexion.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -186,12 +186,16 @@ public class UsuariosDAO {
             ps.setDate(4, u.getFechaNacimiento());
             ps.setString(5, u.getNumeroId());
             ps.setString(6, u.getTipoId());
-            ps.setString(7, u.getCorreo());
+            ps.setString(7, u.getCorreo()); // WHERE condition
 
-            return ps.executeUpdate() > 0;
+            int filasActualizadas = ps.executeUpdate();
+            System.out.println("✅ Filas actualizadas: " + filasActualizadas);
+            
+            return filasActualizadas > 0;
 
         } catch (Exception e) {
-            System.out.println("Error actualizando usuario: " + e.getMessage());
+            System.err.println("❌ Error actualizando usuario: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }

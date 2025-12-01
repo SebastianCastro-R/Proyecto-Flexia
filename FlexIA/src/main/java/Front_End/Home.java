@@ -21,8 +21,8 @@ import java.util.Locale;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.BorderFactory;
@@ -30,7 +30,6 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.border.Border;
 
 import com.formdev.flatlaf.FlatLightLaf;
@@ -275,7 +274,22 @@ public class Home extends javax.swing.JFrame {
         roundedPanel1.add(notification, new org.netbeans.lib.awtextra.AbsoluteConstraints(361, 23, -1, -1));
 
         JPanel panelRacha = crearPanelRacha();
-        roundedPanel1.add(panelRacha, new org.netbeans.lib.awtextra.AbsoluteConstraints(36, 125, -1, -1));
+        JPanel panelImagenes = crearPanelImagenesRacha();
+
+        // Crear un JLayeredPane para superposición
+        JLayeredPane layeredPane = new JLayeredPane();
+        layeredPane.setPreferredSize(new Dimension(380, 120));
+        layeredPane.setBounds(36, 125, 400, 300);
+
+        // Agregar el panel de racha en la capa DEFAULT
+        panelRacha.setBounds(0, 0, 380, 100);
+        layeredPane.add(panelRacha, JLayeredPane.DEFAULT_LAYER);
+
+        // Agregar el panel de imágenes en una capa superior
+        panelImagenes.setBounds(250, -5, 150, 280); // Ajusta estas coordenadas
+        layeredPane.add(panelImagenes, JLayeredPane.PALETTE_LAYER);
+
+        roundedPanel1.add(layeredPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(36, 125, 400, 300));
 
         JPanel panelEncuesta = crearPanelEncuestaDolor();
         roundedPanel1.add(panelEncuesta, new org.netbeans.lib.awtextra.AbsoluteConstraints(36, 255, 370, 220));
@@ -459,10 +473,6 @@ public class Home extends javax.swing.JFrame {
         this.setLocation(x - xmouse, y - ymouse);
     }// GEN-LAST:event_headerMouseDragged
 
-    private void ExitMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ExitMouseClicked
-        System.exit(0);
-    }// GEN-LAST:event_ExitMouseClicked
-
     private void ClosetxtMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ClosetxtMouseClicked
         System.exit(0);
     }// GEN-LAST:event_ClosetxtMouseClicked
@@ -524,6 +534,7 @@ public class Home extends javax.swing.JFrame {
     }
 
     private JPanel crearPanelRacha() {
+        // Primero creamos el panel de racha normal (sin imágenes)
         PanelRacha = new componentes.RoundedPanel();
         PanelRacha.setBackground(new Color(203, 230, 255));
         PanelRacha.setLayout(new BoxLayout(PanelRacha, BoxLayout.Y_AXIS));
@@ -543,11 +554,12 @@ public class Home extends javax.swing.JFrame {
         int rachaActual = rachaDAO.obtenerRachaActual(idUsuario);
         boolean yaRegistroHoy = rachaDAO.yaRegistroHoy(idUsuario);
 
-        // Panel de días
+        // Panel de días - MOVEMOS TODO MÁS A LA IZQUIERDA
         JPanel panelDias = new JPanel(new GridLayout(2, 7, 8, 8));
         panelDias.setBackground(new Color(203, 230, 255));
-        panelDias.setMaximumSize(new Dimension(250, 80));
+        panelDias.setMaximumSize(new Dimension(235, 80)); // Reducimos el ancho máximo
         panelDias.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+        panelDias.setAlignmentX(Component.LEFT_ALIGNMENT); // Alineamos a la izquierda
 
         String[] dias = {"L", "M", "M", "J", "V", "S", "D"};
 
@@ -559,35 +571,36 @@ public class Home extends javax.swing.JFrame {
             panelDias.add(lblDia);
         }
 
-        // Segunda fila: checks o círculos
+        // Segunda fila: checks o círculos - REDUCIMOS TAMAÑO PARA QUE QUEPAN MÁS A LA IZQUIERDA
         for (int i = 0; i < 7; i++) {
-                JPanel circuloDia = new JPanel();
-                circuloDia.setLayout(new BorderLayout());
-                circuloDia.setPreferredSize(new Dimension(35, 35));
-                
-                boolean realizoActividad = i < semanaActividad.size() ? semanaActividad.get(i) : false;
-                
-                if (realizoActividad) {
-                    circuloDia.setBackground(new Color(152, 206, 255)); // Azul claro - realizado
-                    JLabel check = new JLabel("✓", SwingConstants.CENTER);
-                    check.setFont(new java.awt.Font("Poppins", java.awt.Font.BOLD, 16));
-                    check.setForeground(new Color(30, 56, 136));
-                    circuloDia.add(check, BorderLayout.CENTER);
-                } else {
-                    circuloDia.setBackground(Color.WHITE); // Blanco - no realizado
-                    circuloDia.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
-                }
-                
-                panelDias.add(circuloDia);
+            JPanel circuloDia = new JPanel();
+            circuloDia.setLayout(new BorderLayout());
+            circuloDia.setPreferredSize(new Dimension(25, 25)); // Círculos más pequeños
+            
+            boolean realizoActividad = i < semanaActividad.size() ? semanaActividad.get(i) : false;
+            
+            if (realizoActividad) {
+                circuloDia.setBackground(new Color(152, 206, 255));
+                JLabel check = new JLabel("✓", SwingConstants.CENTER);
+                check.setFont(new java.awt.Font("Poppins", java.awt.Font.BOLD, 14));
+                check.setForeground(new Color(30, 56, 136));
+                circuloDia.add(check, BorderLayout.CENTER);
+            } else {
+                circuloDia.setBackground(Color.WHITE);
+                circuloDia.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
             }
+            
+            panelDias.add(circuloDia);
+        }
 
-        // Panel inferior: mensaje motivacional
+        // Panel inferior: mensaje motivacional - TAMBIÉN MÁS A LA IZQUIERDA
         JPanel panelInferior = new JPanel(new BorderLayout());
         panelInferior.setBackground(new Color(203, 230, 255));
-        panelInferior.setMaximumSize(new Dimension(330, 40));
+        panelInferior.setMaximumSize(new Dimension(250, 40)); // Reducimos ancho
+        panelInferior.setAlignmentX(Component.LEFT_ALIGNMENT); // Alineamos a la izquierda
 
         String mensajeMotivacional = obtenerMensajeMotivacional(rachaActual, yaRegistroHoy);
-        JLabel lblMensaje = new JLabel(mensajeMotivacional, SwingConstants.CENTER);
+        JLabel lblMensaje = new JLabel(mensajeMotivacional, SwingConstants.LEFT); // Alineamos texto a la izquierda
         lblMensaje.setFont(FuenteUtil.cargarFuente("EpundaSlab-Medium.ttf", 12f));
         lblMensaje.setForeground(new Color(30, 56, 136));
 
@@ -600,10 +613,87 @@ public class Home extends javax.swing.JFrame {
             }
         });
 
+        // Agregamos los componentes alineados a la izquierda
         PanelRacha.add(panelDias);
         PanelRacha.add(Box.createVerticalStrut(10));
         PanelRacha.add(panelInferior);
+
         return PanelRacha;
+    }
+    // Método para crear el panel de imágenes superpuesto con contador
+    // Versión con coordenadas exactas usando JLayeredPane
+    private JPanel crearPanelImagenesRacha() {
+        SesionUsuario sesion = SesionUsuario.getInstancia();
+        int idUsuario = obtenerIdUsuario(sesion.getCorreoUsuario());
+        RachaDAO rachaDAO = new RachaDAO();
+        int rachaSeguida = rachaDAO.obtenerRachaSeguida(idUsuario);
+        
+        JPanel panelImagenes = new JPanel();
+        panelImagenes.setOpaque(false);
+        panelImagenes.setLayout(new BoxLayout(panelImagenes, BoxLayout.Y_AXIS));
+        panelImagenes.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        try {
+            ImageIcon iconoRacha = new ImageIcon(getClass().getResource("/Images/Racha.png"));
+            
+            // Usar JLayeredPane para coordenadas exactas
+            JLayeredPane layeredPane = new JLayeredPane();
+            layeredPane.setPreferredSize(new Dimension(
+                iconoRacha.getIconWidth(), 
+                iconoRacha.getIconHeight()
+            ));
+            layeredPane.setOpaque(false);
+            
+            // Imagen de fondo
+            JLabel lblRacha = new JLabel(iconoRacha);
+            lblRacha.setBounds(0, 0, iconoRacha.getIconWidth(), iconoRacha.getIconHeight());
+            layeredPane.add(lblRacha, JLayeredPane.DEFAULT_LAYER);
+            
+
+            // Contador con borde usando HTML/CSS
+            String htmlContador = "<html><div style='"
+                    + "color: #fafafa;"  // Color del texto (blanco)
+                    + "text-shadow: "
+                    + "-1px -1px 1 #000, "   // Sombra superior izquierda (negro)
+                    + "1px -1px 1 #000, "    // Sombra superior derecha
+                    + "-1px 1px 0 #000, "    // Sombra inferior izquierda
+                    + "1px 1px 0 #000, "     // Sombra inferior derecha
+                    + "0 0 3px #000;"        // Sombra difuminada extra
+                    + "font-family: EpundaSlab, sans-serif;"
+                    + "font-weight: bold;"
+                    + "font-size: 20pt;"
+                    + "'>" + rachaSeguida + "</div></html>";
+
+            JLabel lblContador = new JLabel(htmlContador, SwingConstants.CENTER);
+            lblContador.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 20f));
+            
+            // ===== COORDENADAS EXACTAS =====
+            Dimension contadorSize = lblContador.getPreferredSize();
+            int posX = 14;  // ← Cambia este valor para izquierda/derecha
+            int posY = 10;  // ← Cambia este valor para arriba/abajo
+            // ================================
+            
+            lblContador.setBounds(posX, posY, contadorSize.width, contadorSize.height);
+            layeredPane.add(lblContador, JLayeredPane.PALETTE_LAYER);
+            
+            panelImagenes.add(layeredPane);
+            panelImagenes.add(Box.createRigidArea(new Dimension(0, 0)));
+            
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+            
+            JLabel lblContador = new JLabel(String.valueOf(rachaSeguida));
+            lblContador.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 16f));
+            lblContador.setForeground(Color.RED);
+            
+            JLabel lblMascota = new JLabel("🐾");
+            lblMascota.setFont(new java.awt.Font("Segoe UI Emoji", java.awt.Font.PLAIN, 20));
+            
+            panelImagenes.add(lblContador);
+            panelImagenes.add(lblMascota);
+        }
+
+        return panelImagenes;
     }
 
     private void abrirCalendarioRacha(int idUsuario) {

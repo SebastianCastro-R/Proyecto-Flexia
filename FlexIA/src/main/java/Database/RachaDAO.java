@@ -148,4 +148,42 @@ public class RachaDAO {
         
         return false;
     }
+
+    public int obtenerRachaSeguida(int idUsuario) {
+        String sql = "WITH dias_actividad AS (" +
+                    "    SELECT fecha, realizo " +
+                    "    FROM racha_usuario " +
+                    "    WHERE id_usuario = ? " +
+                    "    ORDER BY fecha DESC" +
+                    ") " +
+                    "SELECT COUNT(*) as racha " +
+                    "FROM (" +
+                    "    SELECT fecha, " +
+                    "           fecha - ROW_NUMBER() OVER (ORDER BY fecha DESC) * INTERVAL '1 day' as grupo_continuo " +
+                    "    FROM dias_actividad " +
+                    "    WHERE realizo = true" +
+                    ") t " +
+                    "WHERE grupo_continuo = (" +
+                    "    SELECT fecha - ROW_NUMBER() OVER (ORDER BY fecha DESC) * INTERVAL '1 day' as grupo_actual " +
+                    "    FROM dias_actividad " +
+                    "    WHERE realizo = true " +
+                    "    ORDER BY fecha DESC " +
+                    "    LIMIT 1" +
+                    ")";
+        
+        try (Connection conn = Conexion.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, idUsuario);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("racha");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener racha seguida: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }

@@ -18,7 +18,6 @@ import javax.swing.Timer;
 import Back_End.SesionUsuario;
 import Back_End.Usuario;
 import Database.UsuariosDAO;
-import javafx.scene.image.Image;
 
 /**
  *
@@ -643,32 +642,102 @@ public class Perfil extends javax.swing.JFrame {
         IDType.setEnabled(true);
     }
 
+// Modifica el método guardarCambios() en Perfil.java
     private void guardarCambios() {
-        Usuario u = new Usuario();
-        u.setNombres(nameText.getText());
-        u.setApellidos(ApellidosText.getText());
-        u.setCorreo(CorreoText.getText());
-        u.setTelefono(celText.getText());
-        u.setNumeroId(numIDText.getText());
-        u.setTipoId(IDType.getSelectedItem().toString());
-
-        // ← FECHA DE NACIMIENTO (conversión)
         try {
-            String fechaStr = DateText.getText();
-            java.sql.Date fechaSQL = java.sql.Date.valueOf(fechaStr); 
-            u.setFechaNacimiento(fechaSQL);
+            // Obtener el usuario actual de la sesión
+            SesionUsuario sesion = SesionUsuario.getInstancia();
+            String correoActual = sesion.getCorreoUsuario();
+            
+            // Crear objeto usuario con los datos actualizados
+            Usuario u = new Usuario();
+            u.setNombres(nameText.getText());
+            u.setApellidos(ApellidosText.getText());
+            u.setCorreo(CorreoText.getText());
+            u.setTelefono(celText.getText());
+            u.setNumeroId(numIDText.getText());
+            u.setTipoId(IDType.getSelectedItem().toString());
+
+            // Manejar fecha de nacimiento
+            try {
+                String fechaStr = DateText.getText();
+                // Si la fecha está en formato dd/mm/aaaa, convertir a aaaa-mm-dd
+                if (fechaStr.contains("/")) {
+                    String[] partes = fechaStr.split("/");
+                    if (partes.length == 3) {
+                        fechaStr = partes[2] + "-" + partes[1] + "-" + partes[0];
+                    }
+                }
+                java.sql.Date fechaSQL = java.sql.Date.valueOf(fechaStr); 
+                u.setFechaNacimiento(fechaSQL);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Formato de fecha incorrecto. Use yyyy-MM-dd o dd/MM/yyyy");
+                return;
+            }
+
+            // Verificar que el correo no esté vacío
+            if (u.getCorreo() == null || u.getCorreo().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "El correo electrónico no puede estar vacío");
+                return;
+            }
+
+            UsuariosDAO dao = new UsuariosDAO();
+            boolean actualizado = dao.actualizarUsuario(u);
+
+            // Verificar si se quiere cambiar la contraseña
+            String nuevaContrasena = new String(PasswordText.getPassword());
+            boolean contrasenaModificada = !nuevaContrasena.isEmpty() && !nuevaContrasena.equals("jPasswordField1");
+            
+            if (contrasenaModificada) {
+                // Pedir contraseña actual para verificar
+                String contrasenaActual = JOptionPane.showInputDialog(this,
+                    "Para cambiar la contraseña, ingresa tu contraseña actual:",
+                    "Verificación de Contraseña",
+                    JOptionPane.QUESTION_MESSAGE);
+                
+                if (contrasenaActual != null && !contrasenaActual.trim().isEmpty()) {
+                    // Verificar contraseña actual
+                    if (dao.verificarUsuario(correoActual, contrasenaActual)) {
+                        // Contraseña actual correcta, cambiar la contraseña
+                        boolean contrasenaActualizada = dao.actualizarContrasena(u.getCorreo(), nuevaContrasena);
+                        if (contrasenaActualizada) {
+                            JOptionPane.showMessageDialog(this, "Contraseña actualizada con éxito");
+                            // Limpiar el campo de contraseña después de guardar
+                            PasswordText.setText("jPasswordField1");
+                            PasswordText.setEchoChar((char)0);
+                        } else {
+                            JOptionPane.showMessageDialog(this, 
+                                "Error al actualizar la contraseña, pero los demás datos se guardaron.",
+                                "Advertencia", 
+                                JOptionPane.WARNING_MESSAGE);
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(this,
+                            "❌ Contraseña actual incorrecta. La contraseña no se cambiará.",
+                            "Error de Verificación",
+                            JOptionPane.ERROR_MESSAGE);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                        "Verificación cancelada. La contraseña no se cambiará.",
+                        "Verificación Cancelada",
+                        JOptionPane.WARNING_MESSAGE);
+                }
+            }
+
+            if (actualizado) {
+                JOptionPane.showMessageDialog(this, "Datos actualizados con éxito");
+                // Actualizar la sesión si el correo cambió
+                if (!correoActual.equals(u.getCorreo())) {
+                    sesion.iniciarSesion(u.getCorreo(), u.getNombres());
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Error al actualizar los datos. Verifique la información.");
+            }
+
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Formato de fecha incorrecto (use yyyy-MM-dd)");
-            return;
-        }
-
-        UsuariosDAO dao = new UsuariosDAO();
-        boolean actualizado = dao.actualizarUsuario(u);
-
-        if (actualizado) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Datos actualizados con éxito");
-        } else {
-            javax.swing.JOptionPane.showMessageDialog(this, "Error al actualizar");
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

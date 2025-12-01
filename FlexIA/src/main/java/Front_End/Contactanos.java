@@ -218,7 +218,14 @@ public class Contactanos extends javax.swing.JFrame {
                 MensajeTxtActionPerformed(evt);
             }
         });
-        fondo.add(MensajeTxt, new org.netbeans.lib.awtextra.AbsoluteConstraints(760, 590, 365, 224));
+
+        scrollMensaje = new javax.swing.JScrollPane();
+        scrollMensaje.setViewportView(MensajeTxt);
+        scrollMensaje.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+        scrollMensaje.setBackground(new Color(255, 255, 255));
+        scrollMensaje.setPreferredSize(new java.awt.Dimension(365, 224));
+
+        fondo.add(scrollMensaje, new org.netbeans.lib.awtextra.AbsoluteConstraints(760, 590, 365, 224));
 
         ButtonEnviar.setBackground(new java.awt.Color(152, 206, 255));
         ButtonEnviar.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
@@ -572,8 +579,8 @@ public class Contactanos extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private componentes.IconTextField Asunto;
     private javax.swing.JButton ButtonEnviar;
-    private javax.swing.JLabel Exit;
     private componentes.IconTextField MensajeTxt;
+    private javax.swing.JScrollPane scrollMensaje;
     private javax.swing.JLabel Menu;
     private javax.swing.JLabel Titulo;
     private javax.swing.JLabel jLabel1;
