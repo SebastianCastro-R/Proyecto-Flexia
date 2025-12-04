@@ -50,6 +50,21 @@ public class Perfil extends javax.swing.JFrame {
         desactivarCampos();
         verificarComponentes();
 
+
+        // Configurar listener de Premium
+        SesionUsuario sesion = SesionUsuario.getInstancia();
+        sesion.agregarPremiumListener(esPremium -> {
+            if (esPremium) {
+                PlanLabel.setText("Premium");
+                PlanLabel.setForeground(new Color(220, 180, 0)); // Dorado
+                ButtonPremium.setText("Ver beneficios");
+            } else {
+                PlanLabel.setText("Gratuito");
+                PlanLabel.setForeground(new Color(30, 56, 136)); // Azul
+                ButtonPremium.setText("Hazte Premium");
+            }
+        });
+
         // Configurar layered pane
         layeredPane = getLayeredPane();
 
@@ -495,7 +510,30 @@ public class Perfil extends javax.swing.JFrame {
     }                                        
 
     private void ButtonPremiumActionPerformed(java.awt.event.ActionEvent evt) {                                             
-        abrirStripeCheckout();
+        SesionUsuario sesion = SesionUsuario.getInstancia();
+                if (!sesion.estaLogueado()) {
+                    JOptionPane.showMessageDialog(this, "Debe iniciar sesión para adquirir Premium.",
+                            "Acceso denegado", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                Usuario usuario = sesion.getUsuarioActual();
+                if (usuario == null) {
+                    JOptionPane.showMessageDialog(this, "No se encontró información del usuario en la sesión.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (usuario.isEsPremium()) {
+                    JOptionPane.showMessageDialog(this, "Ya eres un usuario Premium. ¡Disfruta de tus beneficios!",
+                            "Información", JOptionPane.INFORMATION_MESSAGE);
+                    return;
+                }
+
+                // Abrir ventana de pago
+                VentanaPagoPremium ventanaPago = new VentanaPagoPremium(sesion);
+                ventanaPago.setVisible(true);
+            
     }                                            
 
     private void ButtonEditActionPerformed(java.awt.event.ActionEvent evt) {                                              
@@ -748,46 +786,17 @@ public class Perfil extends javax.swing.JFrame {
 
 
 
-    private void abrirStripeCheckout() {
+    // Método que llama a la base de datos y actualiza la sesión
+    public void actualizarPremiumUsuario(int idUsuario) {
+        UsuariosDAO dao = new UsuariosDAO();
+        boolean exito = dao.actualizarPremium(idUsuario, true);
 
-        SesionUsuario sesion = SesionUsuario.getInstancia();
-
-        // Verificar sesión
-        if (!sesion.estaLogueado()) {
-            JOptionPane.showMessageDialog(this, 
-                    "Debe iniciar sesión para adquirir Premium.",
-                    "Acceso denegado",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
+        if (exito) {
+            SesionUsuario.getInstancia().setUsuarioPremium(true);
+        } else {
+            JOptionPane.showMessageDialog(this, "Error al actualizar el estado Premium",
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
-
-        // Obtener usuario de la sesión
-        Usuario usuario = sesion.getUsuarioActual();
-
-        if (usuario == null) {
-            JOptionPane.showMessageDialog(this, 
-                    "No se encontró información del usuario en la sesión.",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        int idUsuario = usuario.getIdUsuario();
-
-        // Verificar si ya es Premium
-        if (usuario.isEsPremium()) {
-            JOptionPane.showMessageDialog(this, 
-                    "Ya eres un usuario Premium 😊",
-                    "Información",
-                    JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-
-        // -------------------------
-        // Aquí llamas a Stripe o a tu ventana de pago
-        // -------------------------
-        VentanaPagoPremium ventanaPago = new VentanaPagoPremium(idUsuario, sesion);
-        ventanaPago.setVisible(true);
     }
 
 

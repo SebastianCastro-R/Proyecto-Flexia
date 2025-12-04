@@ -54,6 +54,7 @@ public class StripeLocalServer {
 
             String respuesta;
             if (ok) {
+                pagoExitoso(idUsuario);
                 respuesta = "<h1>✔ Pago Exitoso</h1>"
                         + "<p>Tu cuenta ahora es <b>Premium</b>.</p>"
                         + "<script>setTimeout(()=>{ window.close(); }, 2500);</script>";
@@ -92,4 +93,16 @@ public class StripeLocalServer {
         server.start();
         System.out.println("Servidor Stripe en ejecución → http://localhost:4242/");
     }
+
+    public void pagoExitoso(int idUsuario) {
+        UsuariosDAO dao = new UsuariosDAO();
+        boolean exito = dao.actualizarPremium(idUsuario, true); // actualizar en BD
+        if (exito) {
+            SesionUsuario sesion = SesionUsuario.getInstancia();
+            if (sesion.getUsuarioActual() != null && sesion.getUsuarioActual().getIdUsuario() == idUsuario) {
+                sesion.setUsuarioPremium(true); // Notifica a todos los listeners
+            }
+        }
+    }
+
 }

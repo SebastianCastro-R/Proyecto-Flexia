@@ -15,10 +15,11 @@ public class VentanaPagoPremium extends JFrame {
     private int idUsuario;
     private SesionUsuario sesion;
 
-    public VentanaPagoPremium(int idUsuario, SesionUsuario sesion) {
-        this.idUsuario = idUsuario;
+    public VentanaPagoPremium(SesionUsuario sesion) {
+        
         this.sesion = sesion;
-
+        this.idUsuario = sesion.getUsuarioActual().getIdUsuario();
+        
         setTitle("Suscripción Premium");
         setSize(450, 330);
         setLocationRelativeTo(null);
@@ -43,7 +44,7 @@ public class VentanaPagoPremium extends JFrame {
                 + "✔ Acceso ilimitado\n"
                 + "✔ Funciones avanzadas\n"
                 + "✔ Experiencia sin restricciones\n\n"
-                + "Precio: $10 USD"
+                + "Precio: $5 USD"
         );
         texto.setEditable(false);
         texto.setFont(new Font("Arial", Font.PLAIN, 16));

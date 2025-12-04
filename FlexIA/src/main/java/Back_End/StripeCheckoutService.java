@@ -23,7 +23,7 @@ public class StripeCheckoutService {
                 .setCancelUrl("http://localhost:4242/premium/cancelado")
                 .addLineItem(
                         SessionCreateParams.LineItem.builder()
-                            .setPrice("price_1SWA81Rv7Hl7GkW3y2Qf2qQU")   // ⚠️ <-- tu PRICE real de Stripe
+                            .setPrice("price_1SWA81Rv7Hl7GkW3y2Qf2qQU")   // ID del precio de Stripe para la suscripción premium
                             .setQuantity(1L)
                             .build()
                 )

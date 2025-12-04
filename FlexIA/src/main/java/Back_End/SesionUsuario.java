@@ -1,11 +1,17 @@
 package Back_End;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
 public class SesionUsuario {
     private static SesionUsuario instancia;
     private String correoUsuario;
     private String nombreUsuario;
     private Usuario usuarioActual;
 
+    private List<Consumer<Boolean>> premiumListeners = new ArrayList<>();
+    
     private SesionUsuario() {}
     
     public static SesionUsuario getInstancia() {
@@ -50,5 +56,23 @@ public class SesionUsuario {
     
     public Usuario getUsuarioActual() {
         return usuarioActual;
+    }
+
+    public void setUsuarioPremium(boolean esPremium) {
+        if (usuarioActual != null) {
+            usuarioActual.setEsPremium(esPremium);
+            // notificar a todos los listeners
+            for (Consumer<Boolean> listener : premiumListeners) {
+                listener.accept(esPremium);
+            }
+        }
+    }
+
+    public void agregarPremiumListener(Consumer<Boolean> listener) {
+        premiumListeners.add(listener);
+    }
+
+    public void removerPremiumListener(Consumer<Boolean> listener) {
+        premiumListeners.remove(listener);
     }
 }
