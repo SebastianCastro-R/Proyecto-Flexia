@@ -140,7 +140,7 @@ public class VentanaPagoPremium1 extends javax.swing.JFrame {
             }
         });
     }
-
+    private StripeLocalServer server;
     private void procesarPago() {
         try {
             // Crear servicio Stripe
@@ -149,9 +149,11 @@ public class VentanaPagoPremium1 extends javax.swing.JFrame {
             // Generar sesión de pago para el usuario
             String checkoutUrl = checkout.crearSesionPago(idUsuario);
 
-            // Iniciar servidor local para recibir callback de Stripe
-            StripeLocalServer server = new StripeLocalServer(new UsuariosDAO(), sesion);
-            server.iniciarServidor();
+            // Solo iniciar el servidor si aún no está iniciado
+            if (server == null) {
+                server = new StripeLocalServer(new UsuariosDAO(), sesion);
+                server.iniciarServidor();
+            }
 
             // Abrir navegador con la sesión de Stripe
             Desktop.getDesktop().browse(new URI(checkoutUrl));
