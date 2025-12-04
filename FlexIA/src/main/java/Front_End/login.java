@@ -7,6 +7,7 @@ package Front_End;
 import Back_End.FuenteUtil;
 import Back_End.RecuperarContrasena;
 import Back_End.SesionUsuario;
+import Back_End.Usuario;
 import Database.Conexion;
 import Database.UsuariosDAO;
 
@@ -455,15 +456,14 @@ public class login extends javax.swing.JFrame {
 
                 if (dao.autenticarUsuarioPorCorreo(correo, contrasena)) {
                     // ✅ LOGIN EXITOSO - OBTENER DATOS DEL USUARIO Y GUARDAR SESIÓN
-                    String nombreUsuario = obtenerNombreUsuarioDesdeBD(correo);
+                    Usuario usuarioCompleto = dao.obtenerUsuarioPorCorreo(correo);
 
-                    if (nombreUsuario != null) {
+                    if (usuarioCompleto != null) {
                         // Guardar en sesión
-                        SesionUsuario.getInstancia().iniciarSesion(correo, nombreUsuario);
-
+                        SesionUsuario.getInstancia().iniciarSesion(usuarioCompleto);
                         JOptionPane.showMessageDialog(
                                 null,
-                                "✅ Inicio de sesión exitoso.\nBienvenid@ " + nombreUsuario,
+                                "✅ Inicio de sesión exitoso.\nBienvenid@ " + usuarioCompleto.getNombres(),
                                 "Bienvenido",
                                 JOptionPane.INFORMATION_MESSAGE);
                         // ✅ Verificar si el usuario ya respondió encuesta

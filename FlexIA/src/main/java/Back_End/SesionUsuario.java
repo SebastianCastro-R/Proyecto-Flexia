@@ -4,7 +4,8 @@ public class SesionUsuario {
     private static SesionUsuario instancia;
     private String correoUsuario;
     private String nombreUsuario;
-    
+    private Usuario usuarioActual;
+
     private SesionUsuario() {}
     
     public static SesionUsuario getInstancia() {
@@ -19,9 +20,16 @@ public class SesionUsuario {
         this.nombreUsuario = nombre;
     }
     
+    public void iniciarSesion(Usuario usuario) {
+        this.usuarioActual = usuario;
+        this.correoUsuario = usuario.getCorreo();
+        this.nombreUsuario = usuario.getNombres();
+    }
+
     public void cerrarSesion() {
         this.correoUsuario = null;
         this.nombreUsuario = null;
+        this.usuarioActual = null;
     }
     
     public String getCorreoUsuario() {
@@ -34,5 +42,13 @@ public class SesionUsuario {
     
     public boolean estaLogueado() {
         return correoUsuario != null && !correoUsuario.isEmpty();
+    }
+
+    public void setUsuarioActual(Usuario usuario) {
+        this.usuarioActual = usuario;
+    }
+    
+    public Usuario getUsuarioActual() {
+        return usuarioActual;
     }
 }

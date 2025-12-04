@@ -219,4 +219,22 @@ public class UsuariosDAO {
         return null;
     }
 
+    public boolean actualizarPremium(int idUsuario, boolean premium) {
+        String sql = "UPDATE usuarios SET es_premium = ? WHERE id_usuario = ?";
+
+        try (Connection conn = Conexion.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setBoolean(1, premium);
+            stmt.setInt(2, idUsuario);
+
+            return stmt.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
 }
