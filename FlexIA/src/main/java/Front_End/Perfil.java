@@ -531,7 +531,7 @@ public class Perfil extends javax.swing.JFrame {
                 }
 
                 // Abrir ventana de pago
-                VentanaPagoPremium ventanaPago = new VentanaPagoPremium(sesion);
+                VentanaPagoPremium1 ventanaPago = new VentanaPagoPremium1(sesion, this);
                 ventanaPago.setVisible(true);
             
     }                                            
