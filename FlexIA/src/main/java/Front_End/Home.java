@@ -36,6 +36,7 @@ import com.formdev.flatlaf.FlatLightLaf;
 
 import Back_End.FuenteUtil;
 import Back_End.SesionUsuario;
+import Back_End.Ads.AdManager;
 import Database.Conexion;
 import Database.RachaDAO;
 
@@ -66,6 +67,10 @@ public class Home extends javax.swing.JFrame {
         colocarFechaActual();
         registrarActividadDiaria();
         configurarNavegacionTecladoHome();
+
+        // INICIALIZAR GESTOR DE ANUNCIOS
+        Back_End.Ads.AdManager adManager = Back_End.Ads.AdManager.getInstance();
+        adManager.registerWindow("home", this);
 
         menuPanel = new Menu("Home");
         menuPanel.setBounds(menuX, 0, menuWidth, getHeight());

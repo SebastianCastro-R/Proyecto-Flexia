@@ -34,6 +34,10 @@ public class Contactanos extends javax.swing.JFrame {
         initComponents();
         configurarNavegacionTecladoContactanos();
 
+        // INICIALIZAR GESTOR DE ANUNCIOS
+        Back_End.Ads.AdManager adManager = Back_End.Ads.AdManager.getInstance();
+        adManager.registerWindow("contactanos", this);
+        
         // Obtener el correo del usuario logueado desde la sesión
         String correoUsuario = SesionUsuario.getInstancia().getCorreoUsuario();
 

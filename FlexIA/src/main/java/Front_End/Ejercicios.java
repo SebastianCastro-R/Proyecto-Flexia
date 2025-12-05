@@ -41,6 +41,10 @@ public class Ejercicios extends javax.swing.JFrame {
         // Configurar layered pane
         layeredPane = getLayeredPane();
 
+        // INICIALIZAR GESTOR DE ANUNCIOS
+        Back_End.Ads.AdManager adManager = Back_End.Ads.AdManager.getInstance();
+        adManager.registerWindow("ejercicios", this);
+
         // Crear glass pane para bloquear interacciones
         glassPane = new JPanel();
         glassPane.setOpaque(false);
