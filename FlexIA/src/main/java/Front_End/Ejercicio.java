@@ -18,20 +18,23 @@ public class Ejercicio extends javax.swing.JFrame {
 
     private Process pythonProcess;
     private JLabel cameraLabel;
-    private JLabel checkLabel;
     private int xmouse, ymouse;
-    private String tituloEjercicio; // Nuevo campo
-    private Socket socket; // Agregar esta variable
+    private String tituloEjercicio;
+    private Socket socket;
+    private boolean ejercicioCompletado = false;
+    private int repeticionesFaltantes = 12; // Contador de repeticiones
+    private int ejercicioActual = 1; // Número del ejercicio actual
 
-    // Constructor por defecto (mantener para compatibilidad)
-    public Ejercicio() {
-        this("Ejercicio Predeterminado"); // Llamar al nuevo constructor
-    }
-
-    // Nuevo constructor con parámetros
+    // Constructor
     public Ejercicio(String tituloEjercicio) {
         this.tituloEjercicio = tituloEjercicio;
         initComponents();
+
+        // Determinar el número de ejercicio actual basado en el título
+        determinarEjercicioActual(tituloEjercicio);
+
+        // Inicializar textos según el ejercicio
+        actualizarTextosEjercicio(tituloEjercicio);
 
         // Agregar WindowListener para cerrar recursos al cerrar la ventana
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -42,15 +45,172 @@ public class Ejercicio extends javax.swing.JFrame {
         });
 
         startCameraStream(tituloEjercicio);
-
-        // Actualizar título de la ventana con el nombre del ejercicio
-        if (tituloEjercicio != null && !tituloEjercicio.equals("Ejercicio Predeterminado")) {
-            titlelbl.setText("EJERCICIO - " + tituloEjercicio);
-        }
-
         setSize(905, 680);
         setResizable(false);
         setLocationRelativeTo(null);
+    }
+
+    // Método para determinar el número de ejercicio actual
+    private void determinarEjercicioActual(String tipoEjercicio) {
+        if (tipoEjercicio == null)
+            return;
+
+        String ejercicioLower = tipoEjercicio.toLowerCase().trim();
+
+        if (ejercicioLower.contains("ejercicio #1") || ejercicioLower.contains("abrir")
+                || ejercicioLower.contains("mano abierta")) {
+            ejercicioActual = 1;
+        } else if (ejercicioLower.contains("ejercicio #2") || ejercicioLower.contains("puño")
+                || ejercicioLower.contains("cerrado")) {
+            ejercicioActual = 2;
+        } else if (ejercicioLower.contains("ejercicio #3") || ejercicioLower.contains("garra")) {
+            ejercicioActual = 3;
+        } else if (ejercicioLower.contains("ejercicio #4") || ejercicioLower.contains("separados")) {
+            ejercicioActual = 4;
+        } else if (ejercicioLower.contains("ejercicio #5") || ejercicioLower.contains("pulgar a índice")
+                || ejercicioLower.contains("pulgar indice")) {
+            ejercicioActual = 5;
+        } else if (ejercicioLower.contains("ejercicio #6") || ejercicioLower.contains("pulgar a meñique")
+                || ejercicioLower.contains("pulgar menique")) {
+            ejercicioActual = 6;
+        } else if (ejercicioLower.contains("ejercicio #7") || ejercicioLower.contains("ok sign")
+                || ejercicioLower.contains("ok")) {
+            ejercicioActual = 7;
+        } else if (ejercicioLower.contains("ejercicio #8") || ejercicioLower.contains("extensión lateral")
+                || ejercicioLower.contains("lateral")) {
+            ejercicioActual = 8;
+        } else if (ejercicioLower.contains("ejercicio #9") || ejercicioLower.contains("flexión de muñeca")
+                || ejercicioLower.contains("flexion muneca")) {
+            ejercicioActual = 9;
+        } else if (ejercicioLower.contains("ejercicio #10") || ejercicioLower.contains("extensión de muñeca")
+                || ejercicioLower.contains("extension muneca")) {
+            ejercicioActual = 10;
+        } else if (ejercicioLower.contains("ejercicio #11") || ejercicioLower.contains("dedos en pinza")
+                || ejercicioLower.contains("pinza")) {
+            ejercicioActual = 11;
+        } else if (ejercicioLower.contains("ejercicio #12") || ejercicioLower.contains("paz y amor")
+                || ejercicioLower.contains("paz")) {
+            ejercicioActual = 12;
+        }
+    }
+
+    // Método para obtener el nombre del ejercicio basado en el número
+    private String obtenerNombreEjercicio(int numeroEjercicio) {
+        switch (numeroEjercicio) {
+            case 1:
+                return "Mano abierta";
+            case 2:
+                return "Puño cerrado";
+            case 3:
+                return "Garra";
+            case 4:
+                return "Dedos separados";
+            case 5:
+                return "Pulgar a índice";
+            case 6:
+                return "Pulgar a meñique";
+            case 7:
+                return "OK Sign";
+            case 8:
+                return "Extensión lateral";
+            case 9:
+                return "Flexión de muñeca";
+            case 10:
+                return "Extensión de muñeca";
+            case 11:
+                return "Dedos en pinza";
+            case 12:
+                return "Paz y amor";
+            default:
+                return "Mano abierta";
+        }
+    }
+
+    // Método para navegar al ejercicio anterior
+    private void navegarEjercicioAnterior() {
+        cerrarRecursos();
+        this.dispose();
+
+        int ejercicioAnterior = ejercicioActual - 1;
+        if (ejercicioAnterior < 1)
+            ejercicioAnterior = 12; // Circular: si es menor que 1, va al último
+
+        String nombreEjercicioAnterior = obtenerNombreEjercicio(ejercicioAnterior);
+
+        // Abrir ventana de instrucciones del ejercicio anterior
+        Instrucciones instrucciones = new Instrucciones(nombreEjercicioAnterior);
+        instrucciones.setVisible(true);
+        instrucciones.setLocationRelativeTo(null);
+    }
+
+    // Método para navegar al ejercicio siguiente
+    private void navegarEjercicioSiguiente() {
+        cerrarRecursos();
+        this.dispose();
+
+        int ejercicioSiguiente = ejercicioActual + 1;
+        if (ejercicioSiguiente > 12)
+            ejercicioSiguiente = 1; // Circular: si es mayor que 12, va al primero
+
+        String nombreEjercicioSiguiente = obtenerNombreEjercicio(ejercicioSiguiente);
+
+        // Abrir ventana de instrucciones del ejercicio siguiente
+        Instrucciones instrucciones = new Instrucciones(nombreEjercicioSiguiente);
+        instrucciones.setVisible(true);
+        instrucciones.setLocationRelativeTo(null);
+    }
+
+    // Método para volver a las instrucciones
+    private void volverAInstrucciones() {
+        cerrarRecursos();
+        this.dispose();
+
+        // Volver a las instrucciones del ejercicio actual
+        Instrucciones instrucciones = new Instrucciones(tituloEjercicio);
+        instrucciones.setVisible(true);
+        instrucciones.setLocationRelativeTo(null);
+    }
+
+    // Método para actualizar textos según el ejercicio
+    private void actualizarTextosEjercicio(String tipoEjercicio) {
+        if (tipoEjercicio == null)
+            return;
+
+        String ejercicioLower = tipoEjercicio.toLowerCase().trim();
+
+        // Actualizar título con formato "EJERCICIO X/12"
+        tituloEjercicioLabel.setText("EJERCICIO " + ejercicioActual + "/12");
+
+        // Determinar categoría y descripción según el tipo de ejercicio
+        if (ejercicioLower.contains("ejercicio #1") || ejercicioLower.contains("abrir")
+                || ejercicioLower.contains("mano abierta")) {
+            categoriaLabel.setText("Extensión");
+            descripcionLabel.setText("Extiende los dedos completamente");
+            repeticionesFaltantes = 12;
+        } else if (ejercicioLower.contains("ejercicio #2") || ejercicioLower.contains("puño")
+                || ejercicioLower.contains("cerrado")) {
+            categoriaLabel.setText("Flexión");
+            descripcionLabel.setText("Cierra la mano formando un puño firme");
+            repeticionesFaltantes = 12;
+        } else if (ejercicioLower.contains("ejercicio #3") || ejercicioLower.contains("garra")) {
+            categoriaLabel.setText("Coordinación");
+            descripcionLabel.setText("Forma una garra con los dedos flexionados");
+            repeticionesFaltantes = 12;
+        } else {
+            // Valores por defecto
+            categoriaLabel.setText("Ejercicio");
+            descripcionLabel.setText("Realiza el movimiento indicado");
+            repeticionesFaltantes = 12;
+        }
+
+        // Actualizar mensaje de repeticiones
+        actualizarMensajeRepeticiones();
+    }
+
+    // Método para actualizar el mensaje de repeticiones
+    private void actualizarMensajeRepeticiones() {
+        mensajeRepeticionesLabel.setText("<html><div style='text-align:center;'>Lo estás haciendo bien!<br>Te faltan "
+                + repeticionesFaltantes + " repeticiones</div></html>");
     }
 
     private void startCameraStream(String tipoEjercicio) {
@@ -59,7 +219,9 @@ public class Ejercicio extends javax.swing.JFrame {
                 System.out.println("Iniciando script de Python...");
                 String scriptPython = determinarScriptPython(tipoEjercicio);
 
-                ProcessBuilder pb = new ProcessBuilder("python", scriptPython);
+                ProcessBuilder pb = new ProcessBuilder(
+                        "python",
+                        "Back-End/ejercicios.py");
                 pb.redirectErrorStream(true);
                 pythonProcess = pb.start();
 
@@ -75,13 +237,17 @@ public class Ejercicio extends javax.swing.JFrame {
                     }
                 }).start();
 
-                socket = null; // Usar la variable de instancia
+                socket = null;
                 int intentos = 0;
                 while (socket == null && intentos < 10) {
                     try {
                         Thread.sleep(1000);
-                        socket = new Socket("localhost", 9999); // Asignar a la variable de instancia
+                        socket = new Socket("localhost", 9999);
                         System.out.println("Conectado al servidor Python.");
+
+                        String mensajeEjercicio = "EJERCICIO:" + scriptPython;
+                        socket.getOutputStream().write(mensajeEjercicio.getBytes());
+                        System.out.println("Ejercicio enviado a Python: " + scriptPython);
                     } catch (IOException e) {
                         intentos++;
                         System.out.println("Intentando conectar con Python... (" + intentos + ")");
@@ -120,13 +286,13 @@ public class Ejercicio extends javax.swing.JFrame {
                         if (mensaje.equals("STATUS:OK")) {
                             SwingUtilities.invokeLater(() -> {
                                 ejercicioCompletado = true;
-                                mostrarCheck();
+                                repeticionesFaltantes = Math.max(0, repeticionesFaltantes - 1);
+                                actualizarMensajeRepeticiones();
                             });
                             System.out.println("Ejercicio completado (STATUS:OK)");
                         } else if (mensaje.equals("STATUS:RESET")) {
                             SwingUtilities.invokeLater(() -> {
                                 ejercicioCompletado = false;
-                                ocultarCheck();
                             });
                             System.out.println("Ejercicio no completado (STATUS:RESET)");
                         }
@@ -148,9 +314,7 @@ public class Ejercicio extends javax.swing.JFrame {
 
                 input.close();
                 socket.close();
-
                 cerrarProcesoPython();
-
                 System.out.println("Conexión y proceso Python cerrados correctamente.");
 
             } catch (Exception e) {
@@ -164,7 +328,6 @@ public class Ejercicio extends javax.swing.JFrame {
     private void cerrarRecursos() {
         System.out.println("🔴 Cerrando recursos...");
 
-        // Cerrar socket
         if (socket != null && !socket.isClosed()) {
             try {
                 socket.close();
@@ -174,7 +337,6 @@ public class Ejercicio extends javax.swing.JFrame {
             }
         }
 
-        // Cerrar proceso Python
         cerrarProcesoPython();
     }
 
@@ -183,7 +345,6 @@ public class Ejercicio extends javax.swing.JFrame {
             System.out.println("🔴 Cerrando proceso Python...");
             pythonProcess.destroy();
             try {
-                // Esperar a que el proceso termine
                 if (pythonProcess.waitFor(3, TimeUnit.SECONDS)) {
                     System.out.println("✅ Proceso Python cerrado correctamente");
                 } else {
@@ -197,84 +358,58 @@ public class Ejercicio extends javax.swing.JFrame {
         }
     }
 
-    // Agrega esta variable como campo de la clase
-    private boolean ejercicioCompletado = false;
-
-    private void startCameraStream() {
-        startCameraStream("Ejercicio Predeterminado"); // Llamar al método con parámetro
-    }
-
-    // Modifica el método startCameraStream()
     private String determinarScriptPython(String tipoEjercicio) {
-        // Mapear títulos de ejercicio a scripts Python específicos
-        switch (tipoEjercicio.toLowerCase()) {
-            case "ejercicio #1":
-                return "Back-End/ejercicio1.py"; // ❌ CAMBIAR: ejercicio1.py -> ejercicio2.py
-            case "ejercicio #2":
-                return "Back-End/ejercicio2.py";
-            case "garra":
-                return "Back-End/ejercicio2.py"; // ❌ CAMBIAR: ejercicio2.py -> ejercicio1.py
-            case "dedos separados":
-                return "Back-End/ejercicio3.py";
-            case "pulgar a índice":
-                return "Back-End/ejercicio4.py";
-            case "pulgar a meñique":
-                return "Back-End/ejercicio5.py";
-            case "ok sign":
-                return "Back-End/ejercicio6.py";
-            case "extensión lateral":
-                return "Back-End/ejercicio7.py";
-            case "flexión de muñeca":
-                return "Back-End/ejercicio8.py";
-            case "extensión de muñeca":
-                return "Back-End/ejercicio9.py";
-            case "toques":
-                return "Back-End/ejercicio10.py";
-            case "dedos en pinzas":
-                return "Back-End/ejercicio11.py";
-            case "paz y amor":
-                return "Back-End/ejercicio12.py";
-            default:
-                return "Back-End/leccionCamara.py"; // Script por defecto
+        if (tipoEjercicio == null)
+            return "ejercicio1";
+
+        String ejercicioLower = tipoEjercicio.toLowerCase().trim();
+
+        if (ejercicioLower.contains("ejercicio #1") || ejercicioLower.contains("abrir")
+                || ejercicioLower.contains("mano abierta")) {
+            return "ejercicio1";
+        } else if (ejercicioLower.contains("ejercicio #2") || ejercicioLower.contains("puño")
+                || ejercicioLower.contains("cerrado")) {
+            return "ejercicio2";
+        } else if (ejercicioLower.contains("ejercicio #3") || ejercicioLower.contains("garra")) {
+            return "ejercicio3";
+        } else if (ejercicioLower.contains("ejercicio #4") || ejercicioLower.contains("separados")) {
+            return "ejercicio4";
+        } else if (ejercicioLower.contains("ejercicio #5") || ejercicioLower.contains("pulgar a índice")
+                || ejercicioLower.contains("pulgar indice")) {
+            return "ejercicio5";
+        } else if (ejercicioLower.contains("ejercicio #6") || ejercicioLower.contains("pulgar a meñique")
+                || ejercicioLower.contains("pulgar menique")) {
+            return "ejercicio6";
+        } else if (ejercicioLower.contains("ejercicio #7") || ejercicioLower.contains("ok sign")
+                || ejercicioLower.contains("ok")) {
+            return "ejercicio7";
+        } else if (ejercicioLower.contains("ejercicio #8") || ejercicioLower.contains("extensión lateral")
+                || ejercicioLower.contains("lateral")) {
+            return "ejercicio8";
+        } else if (ejercicioLower.contains("ejercicio #9") || ejercicioLower.contains("flexión de muñeca")
+                || ejercicioLower.contains("flexion muneca")) {
+            return "ejercicio9";
+        } else if (ejercicioLower.contains("ejercicio #10") || ejercicioLower.contains("extensión de muñeca")
+                || ejercicioLower.contains("extension muneca")) {
+            return "ejercicio10";
+        } else if (ejercicioLower.contains("ejercicio #11") || ejercicioLower.contains("dedos en pinza")
+                || ejercicioLower.contains("pinza")) {
+            return "ejercicio11";
+        } else if (ejercicioLower.contains("ejercicio #12") || ejercicioLower.contains("paz y amor")
+                || ejercicioLower.contains("paz")) {
+            return "ejercicio12";
         }
-    }
 
-    // Agrega estos métodos para mostrar/ocultar el check
-    // Agrega estos métodos para mostrar/ocultar el check
-    private void mostrarCheck() {
-        try {
-            ImageIcon checkIcon = new ImageIcon(getClass().getResource("/Images/check.png"));
-            Image img = checkIcon.getImage().getScaledInstance(120, 120, Image.SCALE_SMOOTH); // Tamaño aumentado
-            checkLabel.setIcon(new ImageIcon(img));
-            checkLabel.setVisible(true);
-
-            // Forzar repintado del panel
-            checkLabel.revalidate();
-            checkLabel.repaint();
-        } catch (Exception ex) {
-            System.out.println("No se pudo cargar el ícono del check: " + ex.getMessage());
-        }
-    }
-
-    private void ocultarCheck() {
-        checkLabel.setIcon(null);
-        checkLabel.setVisible(false);
-
-        // Forzar repintado del panel
-        checkLabel.revalidate();
-        checkLabel.repaint();
+        return "ejercicio1";
     }
 
     @SuppressWarnings("unchecked")
     private void initComponents() {
 
-        checkLabel = new JLabel();
-        checkLabel.setVisible(false); // Inicialmente oculto
-        checkLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        checkLabel.setPreferredSize(new Dimension(100, 100));
-
         jPanel1 = new javax.swing.JPanel();
         header = new javax.swing.JPanel();
+        volverBtn = new javax.swing.JPanel(); // NUEVO: Botón volver en header
+        volverTxt = new javax.swing.JLabel(); // NUEVO: Label para la flecha
         titlelbl = new javax.swing.JLabel();
         minimizebtn = new javax.swing.JPanel();
         minimizetxt = new javax.swing.JLabel();
@@ -284,11 +419,12 @@ public class Ejercicio extends javax.swing.JFrame {
         ButtonAnterior = new javax.swing.JButton();
         roundedPanel1 = new RoundedPanel();
 
-        // NUEVO: Panel para el check en la derecha
-        JPanel panelDerecho = new JPanel();
-        panelDerecho.setLayout(new BorderLayout());
-        panelDerecho.setBackground(new Color(245, 245, 250));
-        panelDerecho.setPreferredSize(new Dimension(300, 540));
+        // NUEVOS COMPONENTES PARA LA INFORMACIÓN DEL EJERCICIO
+        tituloEjercicioLabel = new javax.swing.JLabel();
+        categoriaLabel = new javax.swing.JLabel();
+        descripcionLabel = new javax.swing.JLabel();
+        intentaEjercicioLabel = new javax.swing.JLabel();
+        mensajeRepeticionesLabel = new javax.swing.JLabel();
 
         cameraLabel = new JLabel("Cámara cargando...");
         cameraLabel.setOpaque(true);
@@ -301,201 +437,238 @@ public class Ejercicio extends javax.swing.JFrame {
         jPanel1.setBackground(new java.awt.Color(250, 250, 250));
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        // HEADER (código existente se mantiene igual)
+        // HEADER - CORREGIDO
         header.setBackground(new java.awt.Color(30, 56, 136));
-        header.setPreferredSize(new java.awt.Dimension(680, 57));
-        header.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
-            public void mouseDragged(java.awt.event.MouseEvent evt) {
-                headerMouseDragged(evt);
-            }
-        });
-        header.addMouseListener(new java.awt.event.MouseAdapter() {
+        header.setPreferredSize(new java.awt.Dimension(905, 40)); // Cambiado a 905 para coincidir con el ancho de la
+                                                                  // ventana
+        header.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout()); // Usar AbsoluteLayout para el header también
+
+        // NUEVO: Botón Volver en header (parte izquierda) - CORREGIDO
+        volverBtn.setBackground(new java.awt.Color(30, 56, 136));
+        volverBtn.setLayout(new BorderLayout());
+
+        volverTxt.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        // SOLUCIÓN: Usar texto en lugar de icono que no existe
+        volverTxt.setText("←");
+        volverTxt.setFont(new Font("Arial", Font.BOLD, 20));
+        volverTxt.setForeground(new Color(250, 250, 250));
+        volverTxt.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        volverTxt.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                headerMouseClicked(evt);
-            }
-
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                headerMousePressed(evt);
-            }
-        });
-
-        titlelbl.setBackground(new java.awt.Color(250, 250, 250));
-        titlelbl.setFont(new java.awt.Font("Epunda Slab Light", 1, 36)); // NOI18N
-        titlelbl.setText("FLEX-IA");
-
-        Closebtn.setBackground(new java.awt.Color(30, 56, 136));
-
-        Closetxt.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        Closetxt.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/cerrar.png"))); // NOI18N
-        Closetxt.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                ClosetxtMouseClicked(evt);
+                volverTxtMouseClicked(evt);
             }
 
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                ClosetxtMouseEntered(evt);
+                volverTxt.setForeground(new Color(200, 200, 200));
             }
 
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                ClosetxtMouseExited(evt);
+                volverTxt.setForeground(new Color(250, 250, 250));
             }
         });
 
-        javax.swing.GroupLayout ClosebtnLayout = new javax.swing.GroupLayout(Closebtn);
-        Closebtn.setLayout(ClosebtnLayout);
-        ClosebtnLayout.setHorizontalGroup(
-                ClosebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(Closetxt, javax.swing.GroupLayout.DEFAULT_SIZE, 60, Short.MAX_VALUE));
-        ClosebtnLayout.setVerticalGroup(
-                ClosebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(ClosebtnLayout.createSequentialGroup()
-                                .addComponent(Closetxt, javax.swing.GroupLayout.DEFAULT_SIZE,
-                                        javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addContainerGap()));
+        volverBtn.add(volverTxt, BorderLayout.CENTER);
+        header.add(volverBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 0, 40, 40));
 
+        // Título FLEX-IA - CORREGIDO
+        titlelbl.setBackground(new java.awt.Color(250, 250, 250));
+        titlelbl.setFont(new java.awt.Font("Epunda Slab Light", 1, 24)); // Reducido el tamaño para que quepa
+        titlelbl.setForeground(new Color(250, 250, 250));
+        titlelbl.setText("FLEX-IA");
+        header.add(titlelbl, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 5, 150, 30));
+
+        // Botón Minimizar - CORREGIDO
         minimizebtn.setBackground(new java.awt.Color(30, 56, 136));
+        minimizebtn.setLayout(new BorderLayout());
 
         minimizetxt.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         minimizetxt.setText("-");
+        minimizetxt.setFont(new Font("Arial", Font.BOLD, 20));
+        minimizetxt.setForeground(new Color(250, 250, 250));
+        minimizetxt.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
         minimizetxt.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 minimizetxtMouseClicked(evt);
             }
 
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                minimizetxtMouseEntered(evt);
+                minimizebtn.setBackground(Color.decode("#2e4ca9"));
             }
 
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                minimizetxtMouseExited(evt);
+                minimizebtn.setBackground(new Color(30, 56, 136));
             }
         });
 
-        javax.swing.GroupLayout minimizebtnLayout = new javax.swing.GroupLayout(minimizebtn);
-        minimizebtn.setLayout(minimizebtnLayout);
-        minimizebtnLayout.setHorizontalGroup(
-                minimizebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, minimizebtnLayout.createSequentialGroup()
-                                .addGap(0, 0, Short.MAX_VALUE)
-                                .addComponent(minimizetxt, javax.swing.GroupLayout.PREFERRED_SIZE, 60,
-                                        javax.swing.GroupLayout.PREFERRED_SIZE)));
-        minimizebtnLayout.setVerticalGroup(
-                minimizebtnLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(minimizetxt, javax.swing.GroupLayout.PREFERRED_SIZE, 46,
-                                javax.swing.GroupLayout.PREFERRED_SIZE));
+        minimizebtn.add(minimizetxt, BorderLayout.CENTER);
+        header.add(minimizebtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(805, 0, 40, 40));
 
-        javax.swing.GroupLayout headerLayout = new javax.swing.GroupLayout(header);
-        header.setLayout(headerLayout);
-        headerLayout.setHorizontalGroup(
-                headerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(headerLayout.createSequentialGroup()
-                                .addGap(23, 23, 23)
-                                .addComponent(titlelbl, javax.swing.GroupLayout.PREFERRED_SIZE, 166,
-                                        javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 590,
-                                        Short.MAX_VALUE)
-                                .addComponent(minimizebtn, javax.swing.GroupLayout.PREFERRED_SIZE,
-                                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(Closebtn, javax.swing.GroupLayout.PREFERRED_SIZE,
-                                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)));
-        headerLayout.setVerticalGroup(
-                headerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(titlelbl, javax.swing.GroupLayout.DEFAULT_SIZE,
-                                javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(headerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addComponent(minimizebtn, javax.swing.GroupLayout.Alignment.LEADING,
-                                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
-                                        Short.MAX_VALUE)
-                                .addComponent(Closebtn, javax.swing.GroupLayout.Alignment.LEADING,
-                                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
-                                        Short.MAX_VALUE)));
-        header.add(Closebtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(860, 0, 40, 40));
+        // Botón Cerrar - CORREGIDO
+        Closebtn.setBackground(new java.awt.Color(30, 56, 136));
+        Closebtn.setLayout(new BorderLayout());
 
+        Closetxt.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        Closetxt.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/cerrar.png")));
+        Closetxt.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+
+        Closetxt.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                ClosetxtMouseClicked(evt);
+            }
+
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                Closebtn.setBackground(Color.red);
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                Closebtn.setBackground(new Color(30, 56, 136));
+            }
+        });
+
+        Closebtn.add(Closetxt, BorderLayout.CENTER);
+        header.add(Closebtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(845, 0, 40, 40));
+
+        // Agregar header al panel principal
         jPanel1.add(header, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 905, 40));
 
-        // BOTONES
+        // ... (el resto del código se mantiene igual)
+        // BOTONES (eliminamos ButtonVolver ya que ahora está en el header)
         ButtonSiguiente.setBackground(new java.awt.Color(152, 206, 255));
-        ButtonSiguiente.setFont(new java.awt.Font("Epunda Slab", 0, 20));
+        ButtonSiguiente.setFont(new java.awt.Font("Epunda Slab", 0, 18));
         ButtonSiguiente.setText("Siguiente");
+        ButtonSiguiente.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ButtonSiguienteActionPerformed(evt);
+            }
+        });
         jPanel1.add(ButtonSiguiente, new org.netbeans.lib.awtextra.AbsoluteConstraints(730, 610, 120, 40));
 
         ButtonAnterior.setBackground(new java.awt.Color(152, 206, 255));
-        ButtonAnterior.setFont(new java.awt.Font("Epunda Slab", 0, 20));
+        ButtonAnterior.setFont(new java.awt.Font("Epunda Slab", 0, 18));
         ButtonAnterior.setText("Anterior");
+        ButtonAnterior.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ButtonAnteriorActionPerformed(evt);
+            }
+        });
         jPanel1.add(ButtonAnterior, new org.netbeans.lib.awtextra.AbsoluteConstraints(580, 610, 120, 40));
 
-        // PANEL CÁMARA (solo la cámara, sin el check)
+        // PANEL CÁMARA
         roundedPanel1.setLayout(new BorderLayout());
         roundedPanel1.add(cameraLabel, BorderLayout.CENTER);
         jPanel1.add(roundedPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 60, 530, 540));
 
-        // NUEVO: Panel derecho con el check
-        // Configurar el checkLabel para que esté centrado en el panel derecho
-        checkLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        checkLabel.setVerticalAlignment(SwingConstants.CENTER);
-
-        // Crear un panel contenedor para el check con márgenes
-        JPanel checkContainer = new JPanel(new BorderLayout());
-        checkContainer.setBackground(new Color(245, 245, 250));
-        checkContainer.add(checkLabel, BorderLayout.CENTER);
-        checkContainer.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        panelDerecho.add(checkContainer, BorderLayout.CENTER);
-
-        // Agregar el panel derecho a la interfaz
+        // ===== PANEL DERECHO CON INFORMACIÓN DEL EJERCICIO =====
+        JPanel panelDerecho = new JPanel();
+        panelDerecho.setLayout(null);
+        panelDerecho.setBackground(new Color(245, 245, 250));
         jPanel1.add(panelDerecho, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 60, 325, 540));
+
+        // Título del ejercicio
+        tituloEjercicioLabel.setFont(new java.awt.Font("Epunda Slab", Font.BOLD, 24));
+        tituloEjercicioLabel.setForeground(new java.awt.Color(30, 56, 136));
+        tituloEjercicioLabel.setText("EJERCICIO 1/12");
+        tituloEjercicioLabel.setBounds(0, 20, 325, 30);
+        tituloEjercicioLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        panelDerecho.add(tituloEjercicioLabel);
+
+        // Categoría
+        categoriaLabel.setFont(new java.awt.Font("Epunda Slab", Font.BOLD, 18));
+        categoriaLabel.setForeground(new java.awt.Color(100, 100, 100));
+        categoriaLabel.setText("Categoría: Extensión");
+        categoriaLabel.setBounds(0, 60, 325, 25);
+        categoriaLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        panelDerecho.add(categoriaLabel);
+
+        // Descripción
+        descripcionLabel.setFont(new java.awt.Font("Epunda Slab", Font.PLAIN, 16));
+        descripcionLabel.setForeground(new java.awt.Color(80, 80, 80));
+        descripcionLabel.setText("Extiende los dedos completamente");
+        descripcionLabel.setBounds(0, 90, 325, 25);
+        descripcionLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        panelDerecho.add(descripcionLabel);
+
+        // "Intenta el ejercicio..."
+        intentaEjercicioLabel.setFont(new java.awt.Font("Epunda Slab", Font.ITALIC, 16));
+        intentaEjercicioLabel.setForeground(new java.awt.Color(30, 56, 136));
+        intentaEjercicioLabel.setText("Intenta el ejercicio...");
+        intentaEjercicioLabel.setBounds(0, 120, 325, 25);
+        intentaEjercicioLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        panelDerecho.add(intentaEjercicioLabel);
+
+        // ===== BURBUJA DE TEXTO =====
+        ImageIcon iconoBurbuja = new javax.swing.ImageIcon(getClass().getResource("/Images/cuadroTexto.png"));
+        Image imagenBurbujaEscalada = iconoBurbuja.getImage().getScaledInstance(205, 205, Image.SCALE_SMOOTH);
+        ImageIcon iconoBurbujaEscalada = new ImageIcon(imagenBurbujaEscalada);
+
+        JLabel lblBurbuja = new JLabel(iconoBurbujaEscalada);
+
+        // Centramos horizontalmente en panel de 325 px
+        int xBurbuja = (325 - 205) / 2;
+        int yBurbuja = 150; // posición vertical
+        lblBurbuja.setBounds(xBurbuja, yBurbuja, 205, 205);
+        lblBurbuja.setLayout(null);
+
+        // ===== Texto dentro de la burbuja =====
+        mensajeRepeticionesLabel = new JLabel();
+        mensajeRepeticionesLabel.setFont(new Font("Epunda Slab Regular", Font.PLAIN, 16));
+        mensajeRepeticionesLabel.setForeground(Color.BLACK);
+        mensajeRepeticionesLabel.setText(
+                "<html><div style='text-align:center;'>Lo estás haciendo bien!<br>Te faltan 5 repeticiones</div></html>");
+        mensajeRepeticionesLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        // centramos dentro de la burbuja
+        mensajeRepeticionesLabel.setBounds(0, 50, 205, 90);
+        lblBurbuja.add(mensajeRepeticionesLabel);
+
+        panelDerecho.add(lblBurbuja);
+
+        // ===== Imagen de carpianin MÁS GRANDE (debajo de la burbuja) =====
+        ImageIcon iconoManoOriginal = new ImageIcon(getClass().getResource("/Images/carpianin.png"));
+        // Aumentamos el tamaño para que ocupe más espacio
+        Image imagenManoEscalada = iconoManoOriginal.getImage().getScaledInstance(250, 250, Image.SCALE_SMOOTH);
+        ImageIcon iconoManoEscalada = new ImageIcon(imagenManoEscalada);
+
+        JLabel lblMano = new JLabel(iconoManoEscalada);
+        int xMano = (325 - 250) / 2;
+        int yMano = yBurbuja + 180; // ligeramente debajo de la burbuja
+        lblMano.setBounds(xMano, yMano, 250, 250);
+        panelDerecho.add(lblMano);
 
         getContentPane().add(jPanel1);
         pack();
     }
+
+    // NUEVOS MÉTODOS PARA LOS BOTONES
+    private void ButtonAnteriorActionPerformed(java.awt.event.ActionEvent evt) {
+        navegarEjercicioAnterior();
+    }
+
+    private void ButtonSiguienteActionPerformed(java.awt.event.ActionEvent evt) {
+        navegarEjercicioSiguiente();
+    }
+
+    private void volverTxtMouseClicked(java.awt.event.MouseEvent evt) {
+        volverAInstrucciones();
+    }
+
+
+    // ELIMINAMOS ButtonVolverActionPerformed ya que el botón volver fue removido
 
     private void ClosetxtMouseClicked(java.awt.event.MouseEvent evt) {
         cerrarRecursos();
         this.dispose();
     }
 
-    private void ClosetxtMouseEntered(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ClosetxtMouseEntered
-        Closebtn.setBackground(Color.red);
-        Closetxt.setForeground(new Color(250, 250, 250));
-    }// GEN-LAST:event_ClosetxtMouseEntered
-
-    private void ClosetxtMouseExited(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ClosetxtMouseExited
-        Closebtn.setBackground(new Color(30, 56, 136));
-        Closetxt.setForeground(new Color(250, 250, 250));
-    }// GEN-LAST:event_ClosetxtMouseExited
-
-    private void minimizetxtMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_minimizetxtMouseClicked
+    private void minimizetxtMouseClicked(java.awt.event.MouseEvent evt) {
         this.setState(JFrame.ICONIFIED);
-    }// GEN-LAST:event_minimizetxtMouseClicked
-
-    private void minimizetxtMouseEntered(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_minimizetxtMouseEntered
-        minimizebtn.setBackground(Color.decode("#2e4ca9"));
-    }// GEN-LAST:event_minimizetxtMouseEntered
-
-    private void minimizetxtMouseExited(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_minimizetxtMouseExited
-        minimizebtn.setBackground(new Color(30, 56, 136));
-        minimizetxt.setForeground(new Color(250, 250, 250));
-    }// GEN-LAST:event_minimizetxtMouseExited
-
-    private void headerMouseDragged(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_headerMouseDragged
-        int x = evt.getXOnScreen();
-        int y = evt.getYOnScreen();
-        this.setLocation(x - xmouse, y - ymouse);
-    }// GEN-LAST:event_headerMouseDragged
-
-    private void headerMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_headerMouseClicked
-        // TODO add your handling code here:
-    }// GEN-LAST:event_headerMouseClicked
-
-    private void headerMousePressed(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_headerMousePressed
-        xmouse = evt.getX();
-        ymouse = evt.getY();
-    }// GEN-LAST:event_headerMousePressed
+    }
 
     public static void main(String args[]) {
         FlatLightLaf.setup();
-        Ejercicio ventana = new Ejercicio();
+        Ejercicio ventana = new Ejercicio("Mano abierta");
         ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         ventana.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
@@ -506,7 +679,7 @@ public class Ejercicio extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(() -> ventana.setVisible(true));
     }
 
-    // Variables
+    // Variables declaration
     private javax.swing.JButton ButtonAnterior;
     private javax.swing.JButton ButtonSiguiente;
     private javax.swing.JPanel Closebtn;
@@ -517,4 +690,13 @@ public class Ejercicio extends javax.swing.JFrame {
     private javax.swing.JLabel minimizetxt;
     private javax.swing.JLabel titlelbl;
     private componentes.RoundedPanel roundedPanel1;
+    private javax.swing.JPanel volverBtn; // NUEVO
+    private javax.swing.JLabel volverTxt; // NUEVO
+
+    // Nuevas variables para los componentes de información del ejercicio
+    private javax.swing.JLabel tituloEjercicioLabel;
+    private javax.swing.JLabel categoriaLabel;
+    private javax.swing.JLabel descripcionLabel;
+    private javax.swing.JLabel intentaEjercicioLabel;
+    private javax.swing.JLabel mensajeRepeticionesLabel;
 }

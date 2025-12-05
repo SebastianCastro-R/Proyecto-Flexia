@@ -28,7 +28,52 @@ public class Instrucciones extends javax.swing.JFrame {
     private javax.swing.border.Border bordeConFoco = javax.swing.BorderFactory.createLineBorder(new Color(0, 102, 204),
             2);
 
-    // Constructor modificado
+    // Constructor simplificado - SOLO recibe el nombre del ejercicio
+    public Instrucciones(String nombreEjercicio) {
+        this.tituloEjercicio = nombreEjercicio;
+        
+        // Determinar los datos del ejercicio basado en el nombre
+        determinarDatosEjercicio(nombreEjercicio);
+        
+        initComponents();
+        configurarNavegacionTecladoInstrucciones();
+        personalizarInterfaz();
+    }
+
+    // Método para determinar los datos del ejercicio basado en el nombre
+    private void determinarDatosEjercicio(String nombreEjercicio) {
+        if (nombreEjercicio == null) {
+            // Valores por defecto
+            this.descripcionEjercicio = "Ejercicio de rehabilitación de mano";
+            this.archivo = "/videos/ejercicio1.mp4"; // Ruta por defecto
+            this.instruccionesAdicionales = obtenerInstruccionesPorDefecto();
+            return;
+        }
+
+        String ejercicioLower = nombreEjercicio.toLowerCase().trim();
+
+        // Mapeo de ejercicios con sus descripciones y archivos
+        if (ejercicioLower.contains("mano abierta") || ejercicioLower.contains("abrir")) {
+            this.descripcionEjercicio = "Extiende completamente todos los dedos de la mano, manteniendo la palma plana.";
+            this.archivo = "/videos/ejercicio1.mp4";
+            this.instruccionesAdicionales = "• Comience con la mano relajada\n• Extienda lentamente todos los dedos\n• Mantenga la posición por 3 segundos\n• Relaje y repita";
+        } else if (ejercicioLower.contains("puño") || ejercicioLower.contains("cerrado")) {
+            this.descripcionEjercicio = "Cierra la mano formando un puño firme, con el pulgar por fuera de los dedos.";
+            this.archivo = "/videos/ejercicio2.mp4";
+            this.instruccionesAdicionales = "• Comience con la mano abierta\n• Cierre los dedos lentamente formando un puño\n• Apriete suavemente\n• Mantenga 3 segundos y relaje";
+        } else if (ejercicioLower.contains("garra")) {
+            this.descripcionEjercicio = "Forma una garra flexionando las articulaciones medias de los dedos.";
+            this.archivo = "/videos/ejercicio3.mp4";
+            this.instruccionesAdicionales = "• Mantenga la palma extendida\n• Flexione solo las articulaciones medias\n• Forme una 'garra' con los dedos\n• Mantenga y relaje";
+        } else {
+            // Valores por defecto para otros ejercicios
+            this.descripcionEjercicio = "Ejercicio de rehabilitación para mejorar la movilidad de la mano.";
+            this.archivo = "/videos/ejercicio1.mp4";
+            this.instruccionesAdicionales = obtenerInstruccionesPorDefecto();
+        }
+    }
+
+    // Constructor anterior (mantener para compatibilidad)
     public Instrucciones(String tituloEjercicio, String descripcionEjercicio, String archivo,
             String instruccionesAdicionales) {
         this.tituloEjercicio = tituloEjercicio;
@@ -143,7 +188,9 @@ public class Instrucciones extends javax.swing.JFrame {
         jPanel1.add(panelContenido, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 1440, 600));
     }
 
-    // Agregar después del constructor
+    // ... (los métodos configurarNavegacionTecladoInstrucciones, configurarAccionTecladoInstrucciones, 
+    // configurarAtajosTeclado y configurarInformacionEjercicio se mantienen igual)
+
     private void configurarNavegacionTecladoInstrucciones() {
         // Hacer elementos interactivos enfocables
         Exit.setFocusable(true);
@@ -387,7 +434,7 @@ public class Instrucciones extends javax.swing.JFrame {
                 "• Respire profundamente durante la ejecución del movimiento.";
     }
 
-    // ... (el resto de tu código existente se mantiene igual)
+    // ... (el resto del código initComponents se mantiene igual)
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -533,23 +580,26 @@ public class Instrucciones extends javax.swing.JFrame {
     private void ButtonVolverMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ButtonVolverMouseClicked
         // Cerrar la ventana actual
         this.setVisible(false);
-
-        // Abrir la ventana de Ejercicios
+        
+        // Abrir la ventana de Ejercicios (lista de ejercicios)
         Ejercicios ejercicios = new Ejercicios();
         ejercicios.setVisible(true);
         ejercicios.setLocationRelativeTo(null); // Centrar en pantalla
-
-        // Opcional: cerrar completamente esta ventana
-        // this.dispose();
+        
+        // Cerrar completamente esta ventana
+        this.dispose();
     }// GEN-LAST:event_ButtonVolverMouseClicked
 
     private void ButtonEjercicioMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ButtonEjercicioMouseClicked
+        // Cerrar la ventana actual
+        this.setVisible(false);
+        
         // Pasar el título del ejercicio actual a la ventana de Ejercicio
         Ejercicio ejercicio = new Ejercicio(this.tituloEjercicio);
         ejercicio.setVisible(true);
         ejercicio.setLocationRelativeTo(null); // Centrar en pantalla
-
-        // Cerrar ventana actual
+        
+        // Cerrar completamente esta ventana
         this.dispose();
     }// GEN-LAST:event_ButtonEjercicioMouseClicked
 
