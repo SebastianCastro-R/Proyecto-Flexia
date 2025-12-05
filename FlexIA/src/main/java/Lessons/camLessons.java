@@ -22,11 +22,12 @@ public class camLessons extends javax.swing.JFrame {
     /**
      * Creates new form camLessons
      */
-    public camLessons() {
-        checkLabel = new JLabel();  // ✅ crear el JLabel ANTES
-        initComponents();           // ahora ya existe y no será null
+    public camLessons(String ejercicioPython) {
+        checkLabel = new JLabel(); // crear antes del init
+        initComponents();
         initStyles();
-        startCameraStream();
+
+        startCameraStream(ejercicioPython); // 🔹 ahora carga el script del ejercicio
 
         setSize(905, 680);
         setResizable(false);
@@ -36,6 +37,9 @@ public class camLessons extends javax.swing.JFrame {
         checkLabel.setPreferredSize(new Dimension(100, 100));
     }
 
+    public camLessons() {
+        //TODO Auto-generated constructor stub
+    }
 
     private void initStyles() {
         Closetxt.setFont(FuenteUtil.cargarFuente("EpundaSlab-ExtraBold.ttf", 30f));
@@ -47,16 +51,16 @@ public class camLessons extends javax.swing.JFrame {
 
     }
 
-    private void startCameraStream() {
+    private void startCameraStream(String scriptPython) {
         new Thread(() -> {
             try {
-                // 1️⃣ Iniciar el servidor Python automáticamente
-                System.out.println("Iniciando script de Python...");
-                ProcessBuilder pb = new ProcessBuilder("python", "Back-End/leccionCamara.py");
+                // 1️⃣ Iniciar el servidor Python del ejercicio seleccionado
+                System.out.println("Iniciando script de Python: " + scriptPython);
+                ProcessBuilder pb = new ProcessBuilder("python", "Back-End/" + scriptPython);
                 pb.redirectErrorStream(true);
                 pythonProcess = pb.start();
 
-                // Mostrar salida de Python en consola Java
+                // Mostrar salida del script Python en consola Java
                 new Thread(() -> {
                     try (BufferedReader reader = new BufferedReader(
                             new InputStreamReader(pythonProcess.getInputStream()))) {
@@ -69,7 +73,7 @@ public class camLessons extends javax.swing.JFrame {
                     }
                 }).start();
 
-                // 2️⃣ Intentar conexión con reintentos
+                // 2️⃣ Intentar conexión al servidor Python
                 Socket socket = null;
                 int intentos = 0;
                 while (socket == null && intentos < 10) {
@@ -86,8 +90,7 @@ public class camLessons extends javax.swing.JFrame {
                 if (socket == null) {
                     System.out.println("No se pudo conectar con Python después de varios intentos.");
                     pythonProcess.destroyForcibly();
-                    SwingUtilities
-                            .invokeLater(() -> cameraLabel.setText("No se pudo conectar con el servidor Python"));
+                    SwingUtilities.invokeLater(() -> cameraLabel.setText("No se pudo conectar con el servidor Python"));
                     return;
                 }
 
@@ -97,7 +100,7 @@ public class camLessons extends javax.swing.JFrame {
                 while (true) {
                     int size;
                     try {
-                        size = input.readInt(); // lee el tamaño del paquete
+                        size = input.readInt(); // leer tamaño del paquete
                     } catch (EOFException e) {
                         System.out.println("Conexión cerrada por Python.");
                         break;
@@ -109,10 +112,9 @@ public class camLessons extends javax.swing.JFrame {
                     byte[] data = new byte[size];
                     input.readFully(data);
 
-                    // 🧩 Si el mensaje es STATUS:OK → mostrar check
+                    // 🧩 STATUS OK → mostrar check
                     String mensaje = new String(data);
                     if (mensaje.startsWith("STATUS:OK")) {
-                        System.out.println("Ejercicio completado (STATUS:OK)");
                         SwingUtilities.invokeLater(() -> {
                             try {
                                 ImageIcon checkIcon = new ImageIcon(getClass().getResource("/Images/check.png"));
@@ -125,7 +127,7 @@ public class camLessons extends javax.swing.JFrame {
                         continue;
                     }
 
-                    // 🧩 Si no es texto, asumimos que es un frame JPEG
+                    // 🧩 Si no es texto, asumimos frame JPEG
                     try {
                         Image image = javax.imageio.ImageIO.read(new ByteArrayInputStream(data));
                         if (image != null) {
@@ -139,7 +141,7 @@ public class camLessons extends javax.swing.JFrame {
                     }
                 }
 
-                // 4️⃣ Cerrar todo correctamente
+                // 4️⃣ Cerrar recursos
                 input.close();
                 socket.close();
 
@@ -299,32 +301,29 @@ public class camLessons extends javax.swing.JFrame {
         javax.swing.GroupLayout bgLayout = new javax.swing.GroupLayout(bg);
         bg.setLayout(bgLayout);
         bgLayout.setHorizontalGroup(
-            bgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addComponent(header, javax.swing.GroupLayout.DEFAULT_SIZE,
-                        javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(bgLayout.createSequentialGroup()
-                    .addGap(30)
-                    .addComponent(cameraLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 533,
-                            javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(30)
-                    .addComponent(checkLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 100,
-                            javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(30, Short.MAX_VALUE))
-        );
+                bgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(header, javax.swing.GroupLayout.DEFAULT_SIZE,
+                                javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(bgLayout.createSequentialGroup()
+                                .addGap(30)
+                                .addComponent(cameraLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 533,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(30)
+                                .addComponent(checkLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 100,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap(30, Short.MAX_VALUE)));
         bgLayout.setVerticalGroup(
-            bgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(bgLayout.createSequentialGroup()
-                    .addComponent(header, javax.swing.GroupLayout.PREFERRED_SIZE, 40,
-                            javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(20)
-                    .addGroup(bgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(cameraLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 569,
-                                javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(checkLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 100,
-                                javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGap(0, 51, Short.MAX_VALUE))
-        );
-
+                bgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(bgLayout.createSequentialGroup()
+                                .addComponent(header, javax.swing.GroupLayout.PREFERRED_SIZE, 40,
+                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(20)
+                                .addGroup(bgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(cameraLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 569,
+                                                javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(checkLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 100,
+                                                javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(0, 51, Short.MAX_VALUE)));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
