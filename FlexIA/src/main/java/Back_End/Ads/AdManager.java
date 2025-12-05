@@ -66,7 +66,7 @@ public class AdManager {
                 this.isPremiumUser = esPremium;
                 if (esPremium) {
                     stopAllAds();
-                    System.out.println("✅ Usuario premium - Anuncios desactivados");
+                    System.out.println("Usuario premium - Anuncios desactivados");
                 }
             };
             
