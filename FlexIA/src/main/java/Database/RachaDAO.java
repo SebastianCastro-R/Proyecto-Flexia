@@ -150,26 +150,36 @@ public class RachaDAO {
     }
 
     public int obtenerRachaSeguida(int idUsuario) {
-        String sql = "WITH dias_actividad AS (" +
-                    "    SELECT fecha, realizo " +
-                    "    FROM racha_usuario " +
-                    "    WHERE id_usuario = ? " +
-                    "    ORDER BY fecha DESC" +
-                    ") " +
-                    "SELECT COUNT(*) as racha " +
-                    "FROM (" +
-                    "    SELECT fecha, " +
-                    "           fecha - ROW_NUMBER() OVER (ORDER BY fecha DESC) * INTERVAL '1 day' as grupo_continuo " +
-                    "    FROM dias_actividad " +
-                    "    WHERE realizo = true" +
-                    ") t " +
-                    "WHERE grupo_continuo = (" +
-                    "    SELECT fecha - ROW_NUMBER() OVER (ORDER BY fecha DESC) * INTERVAL '1 day' as grupo_actual " +
-                    "    FROM dias_actividad " +
-                    "    WHERE realizo = true " +
-                    "    ORDER BY fecha DESC " +
-                    "    LIMIT 1" +
-                    ")";
+        // SQL CORREGIDO para calcular la racha de días consecutivos.
+        // Utiliza la técnica de la diferencia de fila (ROW_NUMBER()) para encontrar grupos de días seguidos.
+        String sql = "WITH actividad_ordenada AS (" +
+                     "    SELECT fecha" +
+                     "    FROM racha_usuario" +
+                     "    WHERE id_usuario = ? AND realizo = true" +
+                     "    ORDER BY fecha ASC" +
+                     ")," +
+                     "grupos_racha AS (" +
+                     "    SELECT " +
+                     "        fecha," +
+                     "        fecha - ROW_NUMBER() OVER (ORDER BY fecha) * INTERVAL '1 day' AS grupo_id" +
+                     "    FROM " +
+                     "        actividad_ordenada" +
+                     ")," +
+                     "racha_actual AS (" +
+                     "    SELECT " +
+                     "        grupo_id" +
+                     "    FROM " +
+                     "        grupos_racha" +
+                     "    ORDER BY " +
+                     "        fecha DESC" +
+                     "    LIMIT 1" +
+                     ")" +
+                     "SELECT " +
+                     "    COUNT(*) AS racha" +
+                     " FROM " +
+                     "    grupos_racha" +
+                     " WHERE " +
+                     "    grupo_id = (SELECT grupo_id FROM racha_actual)";
         
         try (Connection conn = Conexion.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -186,4 +196,5 @@ public class RachaDAO {
         }
         return 0;
     }
+    
 }

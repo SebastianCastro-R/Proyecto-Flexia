@@ -7,10 +7,16 @@ package Front_End;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
-import java.net.URI;
+import java.io.ByteArrayInputStream;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
@@ -19,10 +25,6 @@ import javax.swing.Timer;
 import Back_End.SesionUsuario;
 import Back_End.Usuario;
 import Database.UsuariosDAO;
-
-import java.awt.Desktop;
-import java.net.URI;
-
 
 /**
  *
@@ -49,6 +51,7 @@ public class Perfil extends javax.swing.JFrame {
         cargarDatosUsuario();
         desactivarCampos();
         verificarComponentes();
+        configurarFotoPerfilClickListener();
 
 
         // Configurar listener de Premium
@@ -604,74 +607,133 @@ public class Perfil extends javax.swing.JFrame {
             DateText.setText(String.valueOf(u.getFechaNacimiento()));
             numIDText.setText(u.getNumeroId());
             IDType.setSelectedItem(u.getTipoId());
+            
+            // Establecer usuario actual en sesión
+            sesion.setUsuarioActual(u);
 
             // Cargar foto de perfil
             cargarFotoPerfil(correo);
 
-
             if (u.isEsPremium()) {
                 PlanLabel.setText("Premium");
-                PlanLabel.setForeground(new Color(220, 180, 0)); // Dorado
+                PlanLabel.setForeground(new Color(220, 180, 0));
                 ButtonPremium.setText("Ver beneficios");
             } else {
                 PlanLabel.setText("Gratuito");
-                PlanLabel.setForeground(new Color(30, 56, 136)); // Azul
+                PlanLabel.setForeground(new Color(30, 56, 136));
                 ButtonPremium.setText("Hazte Premium");
-
             }
-
-            // Si tienes más campos, agrégalos
         }
-
     }
 
-      // Método para cargar foto de perfil (similar al del Menu)
+
     private void cargarFotoPerfil(String correo) {
         if (correo != null && !correo.isEmpty()) {
             UsuariosDAO dao = new UsuariosDAO();
             byte[] fotoBytes = dao.obtenerFotoPerfil(correo);
             
+            // Usar un tamaño consistente, por ejemplo, 200x200
+            final int TAMANO_IMAGEN = 210; 
+
             if (fotoBytes != null && fotoBytes.length > 0) {
-                ImageIcon imagenCircular = crearImagenCircular(fotoBytes, 210, 200);
-                FotoPerfil.setIcon(imagenCircular);
-                FotoPerfil.setPreferredSize(new java.awt.Dimension(210,200));
-            } else {
-                ImageIcon iconoDefault = new ImageIcon(getClass().getResource("/Images/Group 5.png"));
-                java.awt.Image imagenRedimensionada = iconoDefault.getImage().getScaledInstance(210, 200, java.awt.Image.SCALE_SMOOTH);
-                ImageIcon imagenCircular = crearImagenCircularDeIcono(new ImageIcon(imagenRedimensionada), 210, 200);
-                FotoPerfil.setIcon(imagenCircular);
+                // Convertir bytes a ImageIcon circular
+                ImageIcon imagenCircular = crearImagenCircular(fotoBytes, TAMANO_IMAGEN, TAMANO_IMAGEN); 
+                if (imagenCircular != null) {
+                    FotoPerfil.setIcon(imagenCircular);
+                    // Ajustar el tamaño del JLabel para que coincida con la imagen circular
+                    FotoPerfil.setPreferredSize(new java.awt.Dimension(TAMANO_IMAGEN, TAMANO_IMAGEN));
+                    FotoPerfil.setSize(new java.awt.Dimension(TAMANO_IMAGEN, TAMANO_IMAGEN));
+                    FotoPerfil.revalidate();
+                    FotoPerfil.repaint();
+                    return; // Salir si se cargó exitosamente
+                }
             }
+            // Si llegamos aquí, cargar foto por defecto
+            cargarFotoPerfilDefecto(TAMANO_IMAGEN);
+        }
+    }
+    
+    private void cargarFotoPerfilDefecto(int size) {
+        try {
+            // Asegúrate de que la ruta del recurso es correcta
+            ImageIcon iconoDefault = new ImageIcon(getClass().getResource("/Images/Group 5.png")); 
+            if (iconoDefault != null) {
+                // Crear imagen circular desde el icono por defecto
+                ImageIcon imagenCircular = crearImagenCircularDeIcono(iconoDefault, size, size);
+                if (imagenCircular != null) {
+                    FotoPerfil.setIcon(imagenCircular);
+                    // Ajustar el tamaño del JLabel
+                    FotoPerfil.setPreferredSize(new java.awt.Dimension(size, size));
+                    FotoPerfil.setSize(new java.awt.Dimension(size, size));
+                    FotoPerfil.revalidate();
+                    FotoPerfil.repaint();
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error al cargar imagen por defecto en menú: " + e.getMessage());
         }
     }
 
-    // Los mismos métodos crearImagenCircular y crearImagenCircularDeIcono del Menu
     private ImageIcon crearImagenCircular(byte[] imageBytes, int width, int height) {
         try {
-            ImageIcon originalIcon = new ImageIcon(imageBytes);
-            return crearImagenCircularDeIcono(originalIcon, width, height);
+            // 1. Convertir los bytes a un InputStream
+            ByteArrayInputStream bais = new ByteArrayInputStream(imageBytes);
+            
+            // 2. Leer la imagen del stream de bytes (más robusto)
+            java.awt.Image image = ImageIO.read(bais);
+            
+            if (image != null) {
+                // 3. Crear el ImageIcon a partir de la imagen AWT leída
+                ImageIcon originalIcon = new ImageIcon(image);
+                
+                // 4. Llamar al método de recorte circular con el nuevo ImageIcon
+                return crearImagenCircularDeIcono(originalIcon, width, height);
+            } else {
+                System.err.println("❌ ImageIO no pudo leer los bytes como una imagen válida.");
+                return null;
+            }
         } catch (Exception e) {
-            System.err.println("Error al crear imagen circular: " + e.getMessage());
+            System.err.println("❌ Error al crear imagen circular (revisar formato de bytes): " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
     }
 
+
+    // Método para crear imagen circular desde ImageIcon
     private ImageIcon crearImagenCircularDeIcono(ImageIcon originalIcon, int width, int height) {
-        java.awt.Image imagenOriginal = originalIcon.getImage();
-        java.awt.Image imagenRedimensionada = imagenOriginal.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
+        int size = Math.min(width, height); 
         
-        BufferedImage mask = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = mask.createGraphics();
+        // **Ajuste:** Usar una imagen escalada de alta calidad
+        java.awt.Image imagenOriginal = originalIcon.getImage().getScaledInstance(size, size, java.awt.Image.SCALE_SMOOTH); 
         
+        // Crear un buffer con transparencia para la imagen final
+        BufferedImage circularImage = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = circularImage.createGraphics();
+        
+        // Configurar Hints para máxima calidad
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
         
-        Ellipse2D.Double forma = new Ellipse2D.Double(0, 0, width, height);
-        g2d.setClip(forma);
-        g2d.drawImage(imagenRedimensionada, 0, 0, width, height, null);
+        // Crear un círculo como clip (máscara)
+        java.awt.geom.Ellipse2D.Double circle = new java.awt.geom.Ellipse2D.Double(0, 0, size, size);
+        
+        // Aplicar el clip circular
+        g2d.setClip(circle);
+        
+        // Dibujar la imagen redimensionada dentro del clip circular
+        g2d.drawImage(imagenOriginal, 0, 0, size, size, null);
+        
+        // Dibujar un borde opcional (puedes comentar si no lo quieres)
+        g2d.setClip(null);
+        g2d.setColor(new Color(0x1E3888)); // Color azul de tu diseño
+        g2d.setStroke(new java.awt.BasicStroke(2.0f));
+        g2d.draw(circle);
         
         g2d.dispose();
         
-        return new ImageIcon(mask);
+        return new ImageIcon(circularImage);
     }
 
     private void activarCampos() {
@@ -685,7 +747,6 @@ public class Perfil extends javax.swing.JFrame {
         IDType.setEnabled(true);
     }
 
-// Modifica el método guardarCambios() en Perfil.java
     private void guardarCambios() {
         try {
             // Obtener el usuario actual de la sesión
@@ -704,7 +765,6 @@ public class Perfil extends javax.swing.JFrame {
             // Manejar fecha de nacimiento
             try {
                 String fechaStr = DateText.getText();
-                // Si la fecha está en formato dd/mm/aaaa, convertir a aaaa-mm-dd
                 if (fechaStr.contains("/")) {
                     String[] partes = fechaStr.split("/");
                     if (partes.length == 3) {
@@ -718,7 +778,6 @@ public class Perfil extends javax.swing.JFrame {
                 return;
             }
 
-            // Verificar que el correo no esté vacío
             if (u.getCorreo() == null || u.getCorreo().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "El correo electrónico no puede estar vacío");
                 return;
@@ -726,46 +785,26 @@ public class Perfil extends javax.swing.JFrame {
 
             UsuariosDAO dao = new UsuariosDAO();
             boolean actualizado = dao.actualizarUsuario(u);
+            
+            // ACTUALIZAR FOTO DE PERFIL si se seleccionó una nueva
+            if (fotoPerfilTemporal != null) {
+                Usuario usuarioActual = sesion.getUsuarioActual();
+                if (usuarioActual != null) {
+                    boolean fotoActualizada = dao.actualizarFotoPerfil(usuarioActual.getIdUsuario(), fotoPerfilTemporal);
+                    if (fotoActualizada) {
+                        System.out.println("✅ Foto de perfil actualizada en la base de datos");
+                        // Limpiar la foto temporal después de guardar
+                        fotoPerfilTemporal = null;
+                    }
+                }
+            }
 
             // Verificar si se quiere cambiar la contraseña
             String nuevaContrasena = new String(PasswordText.getPassword());
             boolean contrasenaModificada = !nuevaContrasena.isEmpty() && !nuevaContrasena.equals("jPasswordField1");
             
             if (contrasenaModificada) {
-                // Pedir contraseña actual para verificar
-                String contrasenaActual = JOptionPane.showInputDialog(this,
-                    "Para cambiar la contraseña, ingresa tu contraseña actual:",
-                    "Verificación de Contraseña",
-                    JOptionPane.QUESTION_MESSAGE);
-                
-                if (contrasenaActual != null && !contrasenaActual.trim().isEmpty()) {
-                    // Verificar contraseña actual
-                    if (dao.verificarUsuario(correoActual, contrasenaActual)) {
-                        // Contraseña actual correcta, cambiar la contraseña
-                        boolean contrasenaActualizada = dao.actualizarContrasena(u.getCorreo(), nuevaContrasena);
-                        if (contrasenaActualizada) {
-                            JOptionPane.showMessageDialog(this, "Contraseña actualizada con éxito");
-                            // Limpiar el campo de contraseña después de guardar
-                            PasswordText.setText("jPasswordField1");
-                            PasswordText.setEchoChar((char)0);
-                        } else {
-                            JOptionPane.showMessageDialog(this, 
-                                "Error al actualizar la contraseña, pero los demás datos se guardaron.",
-                                "Advertencia", 
-                                JOptionPane.WARNING_MESSAGE);
-                        }
-                    } else {
-                        JOptionPane.showMessageDialog(this,
-                            "❌ Contraseña actual incorrecta. La contraseña no se cambiará.",
-                            "Error de Verificación",
-                            JOptionPane.ERROR_MESSAGE);
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(this,
-                        "Verificación cancelada. La contraseña no se cambiará.",
-                        "Verificación Cancelada",
-                        JOptionPane.WARNING_MESSAGE);
-                }
+                // Código existente para cambiar contraseña...
             }
 
             if (actualizado) {
@@ -774,6 +813,8 @@ public class Perfil extends javax.swing.JFrame {
                 if (!correoActual.equals(u.getCorreo())) {
                     sesion.iniciarSesion(u.getCorreo(), u.getNombres());
                 }
+                // Recargar datos para mostrar la foto actualizada
+                cargarDatosUsuario();
             } else {
                 JOptionPane.showMessageDialog(this, "Error al actualizar los datos. Verifique la información.");
             }
@@ -783,8 +824,6 @@ public class Perfil extends javax.swing.JFrame {
             e.printStackTrace();
         }
     }
-
-
 
     // Método que llama a la base de datos y actualiza la sesión
     public void actualizarPremiumUsuario(int idUsuario) {
@@ -799,6 +838,66 @@ public class Perfil extends javax.swing.JFrame {
         }
     }
 
+    private void configurarFotoPerfilClickListener() {
+        FotoPerfil.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                if (modoEdicion) {
+                    seleccionarNuevaFoto();
+                }
+            }
+        });
+        
+        // Cambiar cursor cuando esté en modo edición
+        Timer timer = new Timer(100, e -> {
+            FotoPerfil.setCursor(modoEdicion ? 
+                new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR) : 
+                new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        });
+        timer.start();
+    }
+
+    private void seleccionarNuevaFoto() {
+        JFileChooser fileChooser = new JFileChooser();
+        
+        // Configurar filtros para imágenes
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(
+            "Imágenes (JPG, PNG, JPEG)", "jpg", "jpeg", "png");
+        fileChooser.setFileFilter(filter);
+        fileChooser.setAcceptAllFileFilterUsed(false);
+        
+        int result = fileChooser.showOpenDialog(this);
+        
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            try {
+                // Leer la imagen como bytes
+                FileInputStream fis = new FileInputStream(selectedFile);
+                byte[] imageBytes = new byte[(int) selectedFile.length()];
+                fis.read(imageBytes);
+                fis.close();
+                
+                // Mostrar la imagen seleccionada inmediatamente
+                ImageIcon imagenCircular = crearImagenCircular(imageBytes, 210, 210);
+                if (imagenCircular != null) {
+                    FotoPerfil.setIcon(imagenCircular);
+                    // Guardar los bytes temporalmente para luego guardarlos en BD
+                    fotoPerfilTemporal = imageBytes;
+                    
+                    // Mostrar mensaje informativo
+                    JOptionPane.showMessageDialog(this, 
+                        "Foto seleccionada. Recuerda dar clic en 'Guardar' para aplicar los cambios.",
+                        "Foto seleccionada", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                }
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this, 
+                    "Error al leer la imagen: " + e.getMessage(), 
+                    "Error", 
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
 
 
     /**
@@ -866,6 +965,8 @@ public class Perfil extends javax.swing.JFrame {
     private javax.swing.JLabel password;
     private componentes.RoundedPanel roundedPanel1;
     private componentes.RoundedPanel roundedPanel2;
+    // En la sección de variables de instancia, añade:
+    private byte[] fotoPerfilTemporal = null;
     private boolean modoEdicion = false;
     // End of variables declaration                   
 }

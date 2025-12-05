@@ -21,8 +21,6 @@ import Database.UsuariosDAO;
 public class Menu extends javax.swing.JPanel {
 
     private Runnable onCloseCallback;
-    private javax.swing.JButton[] botonesMenu;
-    private int indiceBotonActivo = 0;
 
     /**
      * Creates new form Menu
@@ -349,7 +347,7 @@ public class Menu extends javax.swing.JPanel {
                                                 .addGap(107, 107, 107)
                                                 .addComponent(ButtonCerrarSesion))
                                         .addGroup(roundedPanel1Layout.createSequentialGroup()
-                                                .addGap(129, 129, 129)
+                                                .addGap(80, 80, 80)
                                                 .addComponent(FotoPerfil)))
                                 .addContainerGap(82, Short.MAX_VALUE)));
         roundedPanel1Layout.setVerticalGroup(
@@ -358,7 +356,7 @@ public class Menu extends javax.swing.JPanel {
                                 roundedPanel1Layout.createSequentialGroup()
                                         .addGap(16, 16, 16)
                                         .addComponent(Close)
-                                        .addGap(120, 120, 120)
+                                        .addGap(100, 100, 100)
                                         .addComponent(FotoPerfil)
                                         .addGap(33, 33, 33)
                                         .addComponent(Bienvenido)
@@ -511,32 +509,52 @@ public class Menu extends javax.swing.JPanel {
             UsuariosDAO dao = new UsuariosDAO();
             byte[] fotoBytes = dao.obtenerFotoPerfil(correo);
             
+            // Usar un tamaño consistente, por ejemplo, 200x200
+            final int TAMANO_IMAGEN = 200; 
+
             if (fotoBytes != null && fotoBytes.length > 0) {
                 // Convertir bytes a ImageIcon circular
-                ImageIcon imagenCircular = crearImagenCircular(fotoBytes, 210, 200);
-                FotoPerfil.setIcon(imagenCircular);
-            } else {
-                // Foto por defecto
-                try {
-                    ImageIcon iconoDefault = new ImageIcon(getClass().getResource("/Images/Group 5.png"));
-                    if (iconoDefault != null) {
-                        java.awt.Image imagenRedimensionada = iconoDefault.getImage().getScaledInstance(150, 150, java.awt.Image.SCALE_SMOOTH);
-                        ImageIcon imagenCircular = crearImagenCircularDeIcono(new ImageIcon(imagenRedimensionada), 150, 150);
-                        FotoPerfil.setIcon(imagenCircular);
-                        FotoPerfil.revalidate();
-                        FotoPerfil.repaint();
-                    }
-                } catch (Exception e) {
-                    System.err.println("Error al cargar imagen por defecto en menú: " + e.getMessage());
+                ImageIcon imagenCircular = crearImagenCircular(fotoBytes, TAMANO_IMAGEN, TAMANO_IMAGEN); 
+                if (imagenCircular != null) {
+                    FotoPerfil.setIcon(imagenCircular);
+                    // Ajustar el tamaño del JLabel para que coincida con la imagen circular
+                    FotoPerfil.setPreferredSize(new java.awt.Dimension(TAMANO_IMAGEN, TAMANO_IMAGEN));
+                    FotoPerfil.setSize(new java.awt.Dimension(TAMANO_IMAGEN, TAMANO_IMAGEN));
+                    FotoPerfil.revalidate();
+                    FotoPerfil.repaint();
+                    return; // Salir si se cargó exitosamente
                 }
             }
+            // Si llegamos aquí, cargar foto por defecto
+            cargarFotoPerfilDefecto(TAMANO_IMAGEN);
+        }
+    }
+    
+    private void cargarFotoPerfilDefecto(int size) {
+        try {
+            // Asegúrate de que la ruta del recurso es correcta
+            ImageIcon iconoDefault = new ImageIcon(getClass().getResource("/Images/Group 5.png")); 
+            if (iconoDefault != null) {
+                // Crear imagen circular desde el icono por defecto
+                ImageIcon imagenCircular = crearImagenCircularDeIcono(iconoDefault, size, size);
+                if (imagenCircular != null) {
+                    FotoPerfil.setIcon(imagenCircular);
+                    // Ajustar el tamaño del JLabel
+                    FotoPerfil.setPreferredSize(new java.awt.Dimension(size, size));
+                    FotoPerfil.setSize(new java.awt.Dimension(size, size));
+                    FotoPerfil.revalidate();
+                    FotoPerfil.repaint();
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error al cargar imagen por defecto en menú: " + e.getMessage());
         }
     }
 
-    // Método para crear imagen circular desde bytes
     private ImageIcon crearImagenCircular(byte[] imageBytes, int width, int height) {
         try {
             ImageIcon originalIcon = new ImageIcon(imageBytes);
+            // *** CORRECCIÓN: Ahora se creará la imagen circular ***
             return crearImagenCircularDeIcono(originalIcon, width, height);
         } catch (Exception e) {
             System.err.println("Error al crear imagen circular: " + e.getMessage());
@@ -546,34 +564,38 @@ public class Menu extends javax.swing.JPanel {
 
     // Método para crear imagen circular desde ImageIcon
     private ImageIcon crearImagenCircularDeIcono(ImageIcon originalIcon, int width, int height) {
+        int size = Math.min(width, height); // Forzar que sea un cuadrado para un círculo
+        
         java.awt.Image imagenOriginal = originalIcon.getImage();
-        java.awt.Image imagenRedimensionada = imagenOriginal.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
         
-        BufferedImage mask = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = mask.createGraphics();
+        // Crear un buffer con transparencia para la imagen final
+        BufferedImage circularImage = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = circularImage.createGraphics();
         
-        // Aplicar calidad de renderizado
+        // Configurar Hints para máxima calidad
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
         
-        // Crear forma circular
-        Ellipse2DCircle forma = new Ellipse2DCircle(0, 0, width, height);
-        g2d.setClip(forma);
+        // Crear un círculo como clip (máscara)
+        java.awt.geom.Ellipse2D.Double circle = new java.awt.geom.Ellipse2D.Double(0, 0, size, size);
         
-        // Dibujar la imagen
-        g2d.drawImage(imagenRedimensionada, 0, 0, width, height, null);
+        // Aplicar el clip circular
+        g2d.setClip(circle);
+        
+        // Dibujar la imagen redimensionada dentro del clip circular
+        g2d.drawImage(imagenOriginal, 0, 0, size, size, null);
+        
+        // Dibujar un borde opcional (puedes comentar si no lo quieres)
+        g2d.setClip(null);
+        g2d.setColor(new Color(0x1E3888)); // Color azul de tu diseño
+        g2d.setStroke(new java.awt.BasicStroke(2.0f));
+        g2d.draw(circle);
         
         g2d.dispose();
         
-        return new ImageIcon(mask);
+        return new ImageIcon(circularImage);
     }
-    
-    // Clase interna para forma circular
-        static class Ellipse2DCircle extends java.awt.geom.Ellipse2D.Double {
-            public Ellipse2DCircle(double x, double y, double width, double height) {
-                super(x, y, width, height);
-            }
-        }
 
     private void ButtonCerrarSesionActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_ButtonCerrarSesionActionPerformed
         // TODO add your handling code here:
@@ -723,6 +745,7 @@ public class Menu extends javax.swing.JPanel {
     private void ContactanosActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_ContactanosActionPerformed
         // TODO add your handling code here:
     }// GEN-LAST:event_ContactanosActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel Bienvenido;

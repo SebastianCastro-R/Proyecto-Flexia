@@ -205,14 +205,22 @@ public class UsuariosDAO {
         String sql = "SELECT foto_perfil FROM usuarios WHERE correo_electronico = ?";
         
         try (Connection conn = Conexion.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            ps.setString(1, correo);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getBytes("foto_perfil");
-                }
-            }
+                    PreparedStatement ps = conn.prepareStatement(sql)) {
+                    
+                    ps.setString(1, correo);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            byte[] fotoBytes = rs.getBytes("foto_perfil");
+                            // *** AÑADIR ESTA LÍNEA DE DEPURACIÓN ***
+                            if (fotoBytes != null) {
+                                System.out.println("✅ Bytes de la foto de perfil cargados. Tamaño: " + fotoBytes.length + " bytes.");
+                            } else {
+                                System.out.println("⚠️ Bytes de la foto de perfil son NULL.");
+                            }
+                            // ***************************************
+                            return fotoBytes;
+                        }
+                    }
         } catch (SQLException e) {
             System.err.println("❌ Error al obtener foto de perfil: " + e.getMessage());
         }
@@ -231,6 +239,25 @@ public class UsuariosDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean actualizarFotoPerfil(int idUsuario, byte[] fotoPerfil) {
+        String sql = "UPDATE usuarios SET foto_perfil = ? WHERE id_usuario = ?";
+
+        try (Connection conn = Conexion.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setBytes(1, fotoPerfil);
+            ps.setInt(2, idUsuario);
+
+            int filasAfectadas = ps.executeUpdate();
+            return filasAfectadas > 0;
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error al actualizar la foto de perfil: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
