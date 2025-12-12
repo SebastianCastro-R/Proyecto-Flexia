@@ -12,6 +12,11 @@ package Front_End;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.*;
+
+import Back_End.SesionUsuario;
+import Back_End.Usuario;
+import Database.VideosDAO;
+
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
@@ -20,6 +25,16 @@ import javafx.scene.web.WebView;
 
 public class Instrucciones extends javax.swing.JFrame {
 
+    static {
+        // Evita que JavaFX termine cuando se cierran todas las ventanas con JFXPanel.
+        // Esto es clave para poder reabrir Instrucciones y que el video vuelva a cargar.
+        try {
+            Platform.setImplicitExit(false);
+        } catch (Exception e) {
+            // ignorar
+        }
+    }
+
     private String tituloEjercicio;
     private String descripcionEjercicio;
     private String archivo;
@@ -27,14 +42,21 @@ public class Instrucciones extends javax.swing.JFrame {
     private javax.swing.border.Border bordeSinFoco = javax.swing.BorderFactory.createEmptyBorder(2, 2, 2, 2);
     private javax.swing.border.Border bordeConFoco = javax.swing.BorderFactory.createLineBorder(new Color(0, 102, 204),
             2);
+    private int idEjercicio;
+    private int idUsuario;
+    private int idVideo;
 
-    // Constructor simplificado - SOLO recibe el nombre del ejercicio
-    public Instrucciones(String nombreEjercicio) {
+    // Constructor simplificado - recibe el nombre del ejercicio + usuario
+    public Instrucciones(String nombreEjercicio, int idUsuario) {
         this.tituloEjercicio = nombreEjercicio;
-        
+        this.idUsuario = (idUsuario > 0) ? idUsuario : getIdUsuarioSesionOrDefault();
+
         // Determinar los datos del ejercicio basado en el nombre
         determinarDatosEjercicio(nombreEjercicio);
-        
+
+        // Intentar resolver el idVideo por título (para poder guardar progreso)
+        this.idVideo = obtenerIdVideoPorTitulo(nombreEjercicio);
+
         initComponents();
         configurarNavegacionTecladoInstrucciones();
         personalizarInterfaz();
@@ -47,42 +69,143 @@ public class Instrucciones extends javax.swing.JFrame {
             this.descripcionEjercicio = "Ejercicio de rehabilitación de mano";
             this.archivo = "/videos/ejercicio1.mp4"; // Ruta por defecto
             this.instruccionesAdicionales = obtenerInstruccionesPorDefecto();
+            this.idEjercicio = 1; // ✅ ID por defecto
             return;
         }
 
         String ejercicioLower = nombreEjercicio.toLowerCase().trim();
 
-        // Mapeo de ejercicios con sus descripciones y archivos
+        // Mapeo de ejercicios con sus descripciones, archivos y IDs
         if (ejercicioLower.contains("mano abierta") || ejercicioLower.contains("abrir")) {
             this.descripcionEjercicio = "Extiende completamente todos los dedos de la mano, manteniendo la palma plana.";
             this.archivo = "/videos/ejercicio1.mp4";
             this.instruccionesAdicionales = "• Comience con la mano relajada\n• Extienda lentamente todos los dedos\n• Mantenga la posición por 3 segundos\n• Relaje y repita";
+            this.idEjercicio = 1; // ✅ ID del ejercicio
         } else if (ejercicioLower.contains("puño") || ejercicioLower.contains("cerrado")) {
             this.descripcionEjercicio = "Cierra la mano formando un puño firme, con el pulgar por fuera de los dedos.";
             this.archivo = "/videos/ejercicio2.mp4";
             this.instruccionesAdicionales = "• Comience con la mano abierta\n• Cierre los dedos lentamente formando un puño\n• Apriete suavemente\n• Mantenga 3 segundos y relaje";
+            this.idEjercicio = 2; // ✅ ID del ejercicio
         } else if (ejercicioLower.contains("garra")) {
             this.descripcionEjercicio = "Forma una garra flexionando las articulaciones medias de los dedos.";
             this.archivo = "/videos/ejercicio3.mp4";
             this.instruccionesAdicionales = "• Mantenga la palma extendida\n• Flexione solo las articulaciones medias\n• Forme una 'garra' con los dedos\n• Mantenga y relaje";
+            this.idEjercicio = 3; // ✅ ID del ejercicio
+        } else if (ejercicioLower.contains("separados")) {
+            // Agrega más casos según necesites...
+            this.idEjercicio = 4;
         } else {
             // Valores por defecto para otros ejercicios
             this.descripcionEjercicio = "Ejercicio de rehabilitación para mejorar la movilidad de la mano.";
             this.archivo = "/videos/ejercicio1.mp4";
             this.instruccionesAdicionales = obtenerInstruccionesPorDefecto();
+            this.idEjercicio = obtenerIdEjercicio(nombreEjercicio); // ✅ Usa el método para determinar ID
         }
+    }
+
+    // Constructor completo (recomendado) desde el menú de ejercicios
+    public Instrucciones(String tituloEjercicio, String descripcionEjercicio, String archivo,
+            String instruccionesAdicionales, int idVideo, int idUsuario) {
+        this.tituloEjercicio = tituloEjercicio;
+        this.descripcionEjercicio = descripcionEjercicio;
+        this.archivo = archivo;
+        this.instruccionesAdicionales = instruccionesAdicionales;
+        this.idUsuario = (idUsuario > 0) ? idUsuario : getIdUsuarioSesionOrDefault();
+        this.idEjercicio = obtenerIdEjercicio(tituloEjercicio);
+        this.idVideo = idVideo;
+
+        initComponents();
+        configurarNavegacionTecladoInstrucciones();
+        personalizarInterfaz();
     }
 
     // Constructor anterior (mantener para compatibilidad)
     public Instrucciones(String tituloEjercicio, String descripcionEjercicio, String archivo,
             String instruccionesAdicionales) {
-        this.tituloEjercicio = tituloEjercicio;
-        this.descripcionEjercicio = descripcionEjercicio;
-        this.archivo = archivo;
-        this.instruccionesAdicionales = instruccionesAdicionales;
-        initComponents();
-        configurarNavegacionTecladoInstrucciones();
-        personalizarInterfaz();
+        this(tituloEjercicio, descripcionEjercicio, archivo, instruccionesAdicionales,
+                obtenerIdVideoPorTituloStatic(tituloEjercicio), getIdUsuarioSesionOrDefault());
+    }
+
+    // Constructor para compatibilidad (sin ID de usuario)
+    public Instrucciones(String nombreEjercicio) {
+        this(nombreEjercicio, getIdUsuarioSesionOrDefault());
+    }
+
+    private static int getIdUsuarioSesionOrDefault() {
+        try {
+            Usuario u = SesionUsuario.getInstancia().getUsuarioActual();
+            if (u != null && u.getIdUsuario() > 0) {
+                return u.getIdUsuario();
+            }
+        } catch (Exception e) {
+            // ignorar
+        }
+        return 1;
+    }
+
+    private int obtenerIdVideoPorTitulo(String titulo) {
+        try {
+            VideosDAO dao = new VideosDAO();
+            VideosDAO.Video v = dao.obtenerVideoPorTitulo(titulo);
+            return (v != null) ? v.getIdVideo() : -1;
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    private static int obtenerIdVideoPorTituloStatic(String titulo) {
+        try {
+            VideosDAO dao = new VideosDAO();
+            VideosDAO.Video v = dao.obtenerVideoPorTitulo(titulo);
+            return (v != null) ? v.getIdVideo() : -1;
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    private int obtenerIdEjercicio(String nombreEjercicio) {
+        if (nombreEjercicio == null)
+            return 1;
+
+        String ejercicioLower = nombreEjercicio.toLowerCase().trim();
+
+        if (ejercicioLower.contains("ejercicio #1") || ejercicioLower.contains("abrir")
+                || ejercicioLower.contains("mano abierta")) {
+            return 1;
+        } else if (ejercicioLower.contains("ejercicio #2") || ejercicioLower.contains("puño")
+                || ejercicioLower.contains("cerrado")) {
+            return 2;
+        } else if (ejercicioLower.contains("ejercicio #3") || ejercicioLower.contains("garra")) {
+            return 3;
+        } else if (ejercicioLower.contains("ejercicio #4") || ejercicioLower.contains("separados")) {
+            return 4;
+        } else if (ejercicioLower.contains("ejercicio #5") || ejercicioLower.contains("pulgar a índice")
+                || ejercicioLower.contains("pulgar indice")) {
+            return 5;
+        } else if (ejercicioLower.contains("ejercicio #6") || ejercicioLower.contains("pulgar a meñique")
+                || ejercicioLower.contains("pulgar menique")) {
+            return 6;
+        } else if (ejercicioLower.contains("ejercicio #7") || ejercicioLower.contains("ok sign")
+                || ejercicioLower.contains("ok")) {
+            return 7;
+        } else if (ejercicioLower.contains("ejercicio #8") || ejercicioLower.contains("extensión lateral")
+                || ejercicioLower.contains("lateral")) {
+            return 8;
+        } else if (ejercicioLower.contains("ejercicio #9") || ejercicioLower.contains("flexión de muñeca")
+                || ejercicioLower.contains("flexion muneca")) {
+            return 9;
+        } else if (ejercicioLower.contains("ejercicio #10") || ejercicioLower.contains("extensión de muñeca")
+                || ejercicioLower.contains("extension muneca")) {
+            return 10;
+        } else if (ejercicioLower.contains("ejercicio #11") || ejercicioLower.contains("dedos en pinza")
+                || ejercicioLower.contains("pinza")) {
+            return 11;
+        } else if (ejercicioLower.contains("ejercicio #12") || ejercicioLower.contains("paz y amor")
+                || ejercicioLower.contains("paz")) {
+            return 12;
+        }
+
+        return 1; // Por defecto
     }
 
     private void personalizarInterfaz() {
@@ -188,7 +311,8 @@ public class Instrucciones extends javax.swing.JFrame {
         jPanel1.add(panelContenido, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 1440, 600));
     }
 
-    // ... (los métodos configurarNavegacionTecladoInstrucciones, configurarAccionTecladoInstrucciones, 
+    // ... (los métodos configurarNavegacionTecladoInstrucciones,
+    // configurarAccionTecladoInstrucciones,
     // configurarAtajosTeclado y configurarInformacionEjercicio se mantienen igual)
 
     private void configurarNavegacionTecladoInstrucciones() {
@@ -580,12 +704,12 @@ public class Instrucciones extends javax.swing.JFrame {
     private void ButtonVolverMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ButtonVolverMouseClicked
         // Cerrar la ventana actual
         this.setVisible(false);
-        
+
         // Abrir la ventana de Ejercicios (lista de ejercicios)
         Ejercicios ejercicios = new Ejercicios();
         ejercicios.setVisible(true);
         ejercicios.setLocationRelativeTo(null); // Centrar en pantalla
-        
+
         // Cerrar completamente esta ventana
         this.dispose();
     }// GEN-LAST:event_ButtonVolverMouseClicked
@@ -593,12 +717,12 @@ public class Instrucciones extends javax.swing.JFrame {
     private void ButtonEjercicioMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ButtonEjercicioMouseClicked
         // Cerrar la ventana actual
         this.setVisible(false);
-        
-        // Pasar el título del ejercicio actual a la ventana de Ejercicio
-        Ejercicio ejercicio = new Ejercicio(this.tituloEjercicio);
+
+        // Pasar usuario + video para poder guardar progreso al completar repeticiones
+        Ejercicio ejercicio = new Ejercicio(this.tituloEjercicio, this.idVideo, this.idUsuario);
         ejercicio.setVisible(true);
         ejercicio.setLocationRelativeTo(null); // Centrar en pantalla
-        
+
         // Cerrar completamente esta ventana
         this.dispose();
     }// GEN-LAST:event_ButtonEjercicioMouseClicked

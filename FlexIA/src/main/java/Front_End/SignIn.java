@@ -54,6 +54,9 @@ public class SignIn extends javax.swing.JFrame {
     private java.util.List<Component> focusOrder;
     private int currentFocusIndex = 0;
 
+    // Evita doble envío (doble click / Enter + click / listeners duplicados)
+    private boolean registroEnProceso = false;
+
     /**
      * Creates new form SignIn
      */
@@ -568,7 +571,7 @@ public class SignIn extends javax.swing.JFrame {
         Dialog.setLabelFor(jLabel5);
         blue.add(Dialog, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 230, -1, 175));
 
-        Carpianin.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/Mascota.png"))); // NOI18N
+        Carpianin.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/Carpianin.png"))); // NOI18N
         blue.add(Carpianin, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 390, -1, 184));
 
         ButtonLogIn1.setBackground(new java.awt.Color(250, 250, 250));
@@ -625,11 +628,6 @@ public class SignIn extends javax.swing.JFrame {
 
             public void mouseExited(java.awt.event.MouseEvent evt) {
                 ButtonSignInMouseExited(evt);
-            }
-        });
-        ButtonSignIn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ButtonSignInActionPerformed(evt);
             }
         });
         ButtonSignIn.addActionListener(new java.awt.event.ActionListener() {
@@ -820,123 +818,138 @@ public class SignIn extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void ButtonSignInActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_ButtonSignInActionPerformed
-        // 1️⃣ Capturar los datos del formulario
-        String tipoId = IDType.getSelectedItem().toString();
-        String numeroId = numIDText.getText().trim();
-        String nombres = nameText.getText().trim();
-        String apellidos = ApellidosText.getText().trim();
-        String correo = CorreoText.getText().trim();
-        String contrasena = new String(PasswordText.getPassword()).trim();
-        String fechaNacimiento = DateText.getText().trim(); // formato: YYYY-MM-DD
-        String telefono = celText.getText().trim();
-
-        // 2️⃣ Validaciones de campos vacíos
-        if (tipoId.isEmpty() || numeroId.isEmpty() || nombres.isEmpty() || apellidos.isEmpty() ||
-                correo.isEmpty() || contrasena.isEmpty() || fechaNacimiento.isEmpty() || telefono.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "⚠️ Todos los campos son obligatorios.", "Campos vacíos",
-                    JOptionPane.WARNING_MESSAGE);
+        if (registroEnProceso) {
             return;
         }
+        registroEnProceso = true;
+        ButtonSignIn.setEnabled(false);
 
-        // 3️⃣ Validar campos numéricos
-        if (!numeroId.matches("\\d+")) {
-            JOptionPane.showMessageDialog(this, "⚠️ El número de identificación debe contener solo números.",
-                    "Error de formato", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        if (!telefono.matches("\\d+")) {
-            JOptionPane.showMessageDialog(this, "⚠️ El número de teléfono debe contener solo números.",
-                    "Error de formato", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // 4️⃣ Validar formato de correo
-        if (!correo.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
-            JOptionPane.showMessageDialog(this, "⚠️ Ingresa un correo electrónico válido.", "Error de formato",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // 5️⃣ Validar longitud de contraseña
-        if (contrasena.length() < 6) {
-            JOptionPane.showMessageDialog(this, "⚠️ La contraseña debe tener al menos 6 caracteres.",
-                    "Contraseña débil", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        // 6️⃣ Validar formato de fecha
-        java.sql.Date fechaSQL;
+        boolean exito = false;
         try {
-            fechaSQL = java.sql.Date.valueOf(fechaNacimiento);
-        } catch (IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(this, "⚠️ La fecha debe tener el formato YYYY-MM-DD.", "Error de formato",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+            // 1️⃣ Capturar los datos del formulario
+            String tipoId = IDType.getSelectedItem().toString();
+            String numeroId = numIDText.getText().trim();
+            String nombres = nameText.getText().trim();
+            String apellidos = ApellidosText.getText().trim();
+            String correo = CorreoText.getText().trim();
+            String contrasena = new String(PasswordText.getPassword()).trim();
+            String fechaNacimiento = DateText.getText().trim(); // formato: YYYY-MM-DD
+            String telefono = celText.getText().trim();
 
-        // Validar que se haya seleccionado una foto
-        if (imagenSeleccionada == null || imagenSeleccionada.length == 0) {
-            int opcion = JOptionPane.showConfirmDialog(this,
-                "¿Desea continuar sin foto de perfil?\nPuede agregarla más tarde.",
-                "Sin foto de perfil",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE);
-            
-            if (opcion != JOptionPane.YES_OPTION) {
+            // 2️⃣ Validaciones de campos vacíos
+            if (tipoId.isEmpty() || numeroId.isEmpty() || nombres.isEmpty() || apellidos.isEmpty() ||
+                    correo.isEmpty() || contrasena.isEmpty() || fechaNacimiento.isEmpty() || telefono.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "⚠️ Todos los campos son obligatorios.", "Campos vacíos",
+                        JOptionPane.WARNING_MESSAGE);
                 return;
             }
-        }
 
-        // 7️⃣ Mostrar ventana emergente de Términos y Condiciones
-        boolean aceptado = mostrarTerminosYCondiciones();
-        if (!aceptado) {
-            JOptionPane.showMessageDialog(this, "Debe aceptar los Términos y Condiciones para continuar.",
-                    "Registro cancelado", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        // 8️⃣ Registrar usuario solo si aceptó los términos
-        UsuariosDAO dao = new UsuariosDAO();
-        boolean exito = dao.registrarUsuario(
-                tipoId,
-                numeroId,
-                nombres,
-                apellidos,
-                correo,
-                contrasena, // el DAO la hashea internamente
-                fechaSQL,
-                telefono,
-                false, // esPremium por defecto
-                imagenSeleccionada
-        );
-
-        if (exito) {
-            JOptionPane.showMessageDialog(this, "✅ Registro exitoso. ¡Bienvenido/a a FLEX-IA!");
-
-            // Enviar correo de confirmación
-            try {
-                String asunto = "🎉 ¡Bienvenido a FLEX-IA!";
-                String rutaPlantilla = "src/main/resources/templates/plantilla_bienvenida.html";
-                String cuerpoHTML = CorreoService.cargarPlantilla(rutaPlantilla, nombres, apellidos);
-
-                // Llamada al servicio de correo
-                new Thread(() -> {
-                    CorreoService.enviarCorreo(correo, asunto, cuerpoHTML);
-                }).start();
-
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this,
-                        "⚠️ El registro fue exitoso, pero no se pudo enviar el correo de confirmación.\n"
-                                + "Error: " + e.getMessage(),
-                        "Advertencia", JOptionPane.WARNING_MESSAGE);
+            // 3️⃣ Validar campos numéricos
+            if (!numeroId.matches("\\d+")) {
+                JOptionPane.showMessageDialog(this, "⚠️ El número de identificación debe contener solo números.",
+                        "Error de formato", JOptionPane.ERROR_MESSAGE);
+                return;
             }
 
-            new login().setVisible(true);
-            this.dispose();
-        } else {
-            JOptionPane.showMessageDialog(this, "❌ Error al registrar el usuario. Intente nuevamente.", "Error",
-                    JOptionPane.ERROR_MESSAGE);
+            if (!telefono.matches("\\d+")) {
+                JOptionPane.showMessageDialog(this, "⚠️ El número de teléfono debe contener solo números.",
+                        "Error de formato", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // 4️⃣ Validar formato de correo
+            if (!correo.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+                JOptionPane.showMessageDialog(this, "⚠️ Ingresa un correo electrónico válido.", "Error de formato",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // 5️⃣ Validar longitud de contraseña
+            if (contrasena.length() < 6) {
+                JOptionPane.showMessageDialog(this, "⚠️ La contraseña debe tener al menos 6 caracteres.",
+                        "Contraseña débil", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // 6️⃣ Validar formato de fecha
+            java.sql.Date fechaSQL;
+            try {
+                fechaSQL = java.sql.Date.valueOf(fechaNacimiento);
+            } catch (IllegalArgumentException e) {
+                JOptionPane.showMessageDialog(this, "⚠️ La fecha debe tener el formato YYYY-MM-DD.", "Error de formato",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Validar que se haya seleccionado una foto
+            if (imagenSeleccionada == null || imagenSeleccionada.length == 0) {
+                int opcion = JOptionPane.showConfirmDialog(this,
+                        "¿Desea continuar sin foto de perfil?\nPuede agregarla más tarde.",
+                        "Sin foto de perfil",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE);
+
+                if (opcion != JOptionPane.YES_OPTION) {
+                    return;
+                }
+            }
+
+            // 7️⃣ Mostrar ventana emergente de Términos y Condiciones
+            boolean aceptado = mostrarTerminosYCondiciones();
+            if (!aceptado) {
+                JOptionPane.showMessageDialog(this, "Debe aceptar los Términos y Condiciones para continuar.",
+                        "Registro cancelado", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // 8️⃣ Registrar usuario solo si aceptó los términos
+            UsuariosDAO dao = new UsuariosDAO();
+            exito = dao.registrarUsuario(
+                    tipoId,
+                    numeroId,
+                    nombres,
+                    apellidos,
+                    correo,
+                    contrasena, // el DAO la hashea internamente
+                    fechaSQL,
+                    telefono,
+                    false, // esPremium por defecto
+                    imagenSeleccionada
+            );
+
+            if (exito) {
+                JOptionPane.showMessageDialog(this, "✅ Registro exitoso. ¡Bienvenido/a a FLEX-IA!");
+
+                // Enviar correo de confirmación
+                try {
+                    String asunto = "🎉 ¡Bienvenido a FLEX-IA!";
+                    String rutaPlantilla = "src/main/resources/templates/plantilla_bienvenida.html";
+                    String cuerpoHTML = CorreoService.cargarPlantilla(rutaPlantilla, nombres, apellidos);
+
+                    // Llamada al servicio de correo
+                    new Thread(() -> {
+                        CorreoService.enviarCorreo(correo, asunto, cuerpoHTML);
+                    }).start();
+
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(this,
+                            "⚠️ El registro fue exitoso, pero no se pudo enviar el correo de confirmación.\n"
+                                    + "Error: " + e.getMessage(),
+                            "Advertencia", JOptionPane.WARNING_MESSAGE);
+                }
+
+                new login().setVisible(true);
+                this.dispose();
+            } else {
+                JOptionPane.showMessageDialog(this, "❌ Error al registrar el usuario. Intente nuevamente.", "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+
+        } finally {
+            if (!exito) {
+                registroEnProceso = false;
+                ButtonSignIn.setEnabled(true);
+            }
         }
 
     }// GEN-LAST:event_ButtonSignInActionPerformed
