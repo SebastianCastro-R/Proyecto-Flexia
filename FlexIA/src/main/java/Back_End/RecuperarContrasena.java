@@ -1,6 +1,11 @@
 package Back_End;
 
 import java.awt.*;
+import java.awt.BorderLayout;
+
+import javax.swing.JPanel;
+
+import componentes.LoginTitleBar;
 
 /**
  *
@@ -16,8 +21,10 @@ public class RecuperarContrasena extends javax.swing.JFrame {
      */
     public RecuperarContrasena(String correoUsuario) {
         this.correoUsuario = correoUsuario;
+        setUndecorated(true);
         initComponents();
         setupAccessibility();
+        instalarBarraSuperior();
         // Mostrar el correo en el campo de texto
         MailText.setText(correoUsuario);
     }
@@ -145,6 +152,17 @@ public class RecuperarContrasena extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>
+
+    private void instalarBarraSuperior() {
+        // Reemplazar el content pane por uno con BorderLayout, sin tocar posiciones internas del panel
+        JPanel root = new JPanel(new BorderLayout());
+        LoginTitleBar titleBar = new LoginTitleBar(this, "FLEX-IA", this::dispose);
+        root.add(titleBar, BorderLayout.NORTH);
+        root.add(jPanel1, BorderLayout.CENTER);
+        setContentPane(root);
+        pack();
+        setLocationRelativeTo(null);
+    }
 
     private void setupAccessibility() {
         // Hacer que todos los componentes interactivos sean focusables

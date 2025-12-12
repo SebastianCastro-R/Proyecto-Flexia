@@ -39,6 +39,10 @@ public class Instrucciones extends javax.swing.JFrame {
     private String descripcionEjercicio;
     private String archivo;
     private String instruccionesAdicionales;
+
+    // Para mover la ventana (barra superior)
+    int xmouse, ymouse;
+
     private javax.swing.border.Border bordeSinFoco = javax.swing.BorderFactory.createEmptyBorder(2, 2, 2, 2);
     private javax.swing.border.Border bordeConFoco = javax.swing.BorderFactory.createLineBorder(new Color(0, 102, 204),
             2);
@@ -584,20 +588,71 @@ public class Instrucciones extends javax.swing.JFrame {
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jPanel2.setBackground(new java.awt.Color(30, 56, 136));
+        jPanel2.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                jPanel2MousePressed(evt);
+            }
+        });
+        jPanel2.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(java.awt.event.MouseEvent evt) {
+                jPanel2MouseDragged(evt);
+            }
+        });
         jPanel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         Titulo.setFont(new java.awt.Font("Epunda Slab ExtraBold", 0, 24)); // NOI18N
         Titulo.setForeground(new java.awt.Color(255, 255, 255));
         jPanel2.add(Titulo, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 0, -1, 40));
 
-        Exit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/exit.png"))); // NOI18N
+        // Botón minimizar (estilo login)
+        minimizebtn = new javax.swing.JPanel();
+        minimizetxt = new javax.swing.JLabel();
+        minimizebtn.setBackground(new java.awt.Color(30, 56, 136));
+        minimizebtn.setLayout(new java.awt.BorderLayout());
+        minimizetxt.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        minimizetxt.setText("-");
+        minimizetxt.setFont(new java.awt.Font("Epunda Slab ExtraBold", 0, 30));
+        minimizetxt.setForeground(new java.awt.Color(250, 250, 250));
+        minimizetxt.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        minimizetxt.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                minimizetxtMouseClicked(evt);
+            }
+
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                minimizetxtMouseEntered(evt);
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                minimizetxtMouseExited(evt);
+            }
+        });
+        minimizebtn.add(minimizetxt, java.awt.BorderLayout.CENTER);
+        jPanel2.add(minimizebtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(1312, 0, 60, 40));
+
+        // Botón cerrar (reutiliza Exit como label)
+        Closebtn = new javax.swing.JPanel();
+        Closebtn.setBackground(new java.awt.Color(30, 56, 136));
+        Closebtn.setLayout(new java.awt.BorderLayout());
+
+        Exit.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        Exit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/cerrar.png"))); // NOI18N
         Exit.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         Exit.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 ExitMouseClicked(evt);
             }
+
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                ExitMouseEntered(evt);
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                ExitMouseExited(evt);
+            }
         });
-        jPanel2.add(Exit, new org.netbeans.lib.awtextra.AbsoluteConstraints(1410, 0, 30, 40));
+        Closebtn.add(Exit, java.awt.BorderLayout.CENTER);
+        jPanel2.add(Closebtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(1380, 0, 60, 40));
 
         jPanel1.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1440, 40));
 
@@ -727,6 +782,37 @@ public class Instrucciones extends javax.swing.JFrame {
         this.dispose();
     }// GEN-LAST:event_ButtonEjercicioMouseClicked
 
+    private void jPanel2MousePressed(java.awt.event.MouseEvent evt) {
+        xmouse = evt.getX();
+        ymouse = evt.getY();
+    }
+
+    private void jPanel2MouseDragged(java.awt.event.MouseEvent evt) {
+        int x = evt.getXOnScreen();
+        int y = evt.getYOnScreen();
+        this.setLocation(x - xmouse, y - ymouse);
+    }
+
+    private void ExitMouseEntered(java.awt.event.MouseEvent evt) {
+        Closebtn.setBackground(java.awt.Color.red);
+    }
+
+    private void ExitMouseExited(java.awt.event.MouseEvent evt) {
+        Closebtn.setBackground(new java.awt.Color(30, 56, 136));
+    }
+
+    private void minimizetxtMouseEntered(java.awt.event.MouseEvent evt) {
+        minimizebtn.setBackground(java.awt.Color.decode("#2e4ca9"));
+    }
+
+    private void minimizetxtMouseExited(java.awt.event.MouseEvent evt) {
+        minimizebtn.setBackground(new java.awt.Color(30, 56, 136));
+    }
+
+    private void minimizetxtMouseClicked(java.awt.event.MouseEvent evt) {
+        this.setState(javax.swing.JFrame.ICONIFIED);
+    }
+
     private void ExitMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ExitMouseClicked
         // Confirmar antes de salir
         int confirmacion = JOptionPane.showConfirmDialog(
@@ -745,6 +831,9 @@ public class Instrucciones extends javax.swing.JFrame {
     private javax.swing.JButton ButtonEjercicio;
     private javax.swing.JButton ButtonVolver;
     private javax.swing.JLabel Exit;
+    private javax.swing.JPanel Closebtn;
+    private javax.swing.JPanel minimizebtn;
+    private javax.swing.JLabel minimizetxt;
     private javax.swing.JLabel Titulo;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
