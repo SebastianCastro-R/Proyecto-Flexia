@@ -2,7 +2,12 @@ package Back_End;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.BorderLayout;
+
+import javax.swing.JPanel;
 import javax.swing.JOptionPane;
+
+import componentes.LoginTitleBar;
 
 import Database.UsuariosDAO;
 
@@ -13,8 +18,10 @@ public class NuevaContrasena extends javax.swing.JFrame {
     public NuevaContrasena(String correoUsuario) {
         this.correoUsuario = correoUsuario;
         this.usuariosDAO = new UsuariosDAO();
+        setUndecorated(true);
         initComponents();
         setupAccessibility();
+        instalarBarraSuperior();
         setLocationRelativeTo(null);
     }
 
@@ -98,6 +105,15 @@ public class NuevaContrasena extends javax.swing.JFrame {
                         .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE,
                                 javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 
+        pack();
+    }
+
+    private void instalarBarraSuperior() {
+        JPanel root = new JPanel(new BorderLayout());
+        LoginTitleBar titleBar = new LoginTitleBar(this, "FLEX-IA", this::dispose);
+        root.add(titleBar, BorderLayout.NORTH);
+        root.add(jPanel1, BorderLayout.CENTER);
+        setContentPane(root);
         pack();
     }
 

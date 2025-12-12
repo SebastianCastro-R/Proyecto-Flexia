@@ -10,6 +10,8 @@ import java.awt.event.ActionEvent;
 import java.net.URI;
 import javax.swing.*;
 
+import componentes.LoginTitleBar;
+
 public class VentanaPagoPremium extends JFrame {
 
     private int idUsuario;
@@ -21,6 +23,7 @@ public class VentanaPagoPremium extends JFrame {
         this.idUsuario = sesion.getUsuarioActual().getIdUsuario();
         
         setTitle("Suscripción Premium");
+        setUndecorated(true);
         setSize(450, 330);
         setLocationRelativeTo(null);
         setResizable(false);
@@ -31,13 +34,21 @@ public class VentanaPagoPremium extends JFrame {
 
     private void initUI() {
         JPanel panel = new JPanel();
-        panel.setLayout(null);
+        panel.setLayout(new BorderLayout());
         panel.setBackground(Color.WHITE);
+
+        // Barra superior estilo login
+        LoginTitleBar titleBar = new LoginTitleBar(this, "FLEX-IA", this::dispose);
+        panel.add(titleBar, BorderLayout.NORTH);
+
+        JPanel content = new JPanel();
+        content.setLayout(null);
+        content.setBackground(Color.WHITE);
 
         JLabel lblTitulo = new JLabel("Suscripción Premium", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 22));
         lblTitulo.setBounds(50, 20, 340, 40);
-        panel.add(lblTitulo);
+        content.add(lblTitulo);
 
         JTextArea texto = new JTextArea(
                 "Con Premium obtienes:\n\n"
@@ -50,7 +61,7 @@ public class VentanaPagoPremium extends JFrame {
         texto.setFont(new Font("Arial", Font.PLAIN, 16));
         texto.setBackground(Color.WHITE);
         texto.setBounds(70, 70, 300, 150);
-        panel.add(texto);
+        content.add(texto);
 
         JButton btnComprar = new JButton("Comprar Premium");
         btnComprar.setFont(new Font("Arial", Font.BOLD, 16));
@@ -58,8 +69,9 @@ public class VentanaPagoPremium extends JFrame {
 
         btnComprar.addActionListener((ActionEvent e) -> procesarPago());
 
-        panel.add(btnComprar);
+        content.add(btnComprar);
 
+        panel.add(content, BorderLayout.CENTER);
         add(panel);
     }
 

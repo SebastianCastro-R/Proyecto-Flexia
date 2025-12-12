@@ -31,6 +31,9 @@ public class Formulario extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Formulario.class.getName());
 
+    // Para mover la ventana (barra superior)
+    int xmouse, ymouse;
+
     /**
      * Creates new form Formulario
      */
@@ -118,6 +121,16 @@ public class Formulario extends javax.swing.JFrame {
         FondoPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         BarraPanel.setBackground(new java.awt.Color(30, 56, 136));
+        BarraPanel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                BarraPanelMousePressed(evt);
+            }
+        });
+        BarraPanel.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(java.awt.event.MouseEvent evt) {
+                BarraPanelMouseDragged(evt);
+            }
+        });
         BarraPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         flexiaLabel.setFont(new java.awt.Font("Epunda Slab ExtraBold", 0, 24)); // NOI18N
@@ -125,14 +138,56 @@ public class Formulario extends javax.swing.JFrame {
         flexiaLabel.setText("ENCUESTA DIAGNOSTICA");
         BarraPanel.add(flexiaLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 0, -1, 40));
 
-        Exit2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/exit.png"))); // NOI18N
+        // Botón minimizar (estilo login)
+        minimizebtn = new javax.swing.JPanel();
+        minimizetxt = new javax.swing.JLabel();
+        minimizebtn.setBackground(new java.awt.Color(30, 56, 136));
+        minimizebtn.setLayout(new java.awt.BorderLayout());
+        minimizetxt.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        minimizetxt.setText("-");
+        minimizetxt.setFont(new java.awt.Font("Epunda Slab ExtraBold", 0, 30));
+        minimizetxt.setForeground(new java.awt.Color(250, 250, 250));
+        minimizetxt.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        minimizetxt.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                minimizetxtMouseClicked(evt);
+            }
+
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                minimizetxtMouseEntered(evt);
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                minimizetxtMouseExited(evt);
+            }
+        });
+        minimizebtn.add(minimizetxt, java.awt.BorderLayout.CENTER);
+        BarraPanel.add(minimizebtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(1312, 0, 60, 40));
+
+        // Botón cerrar (reutiliza Exit2 como label)
+        Closebtn = new javax.swing.JPanel();
+        Closebtn.setBackground(new java.awt.Color(30, 56, 136));
+        Closebtn.setLayout(new java.awt.BorderLayout());
+
+        Exit2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        Exit2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/cerrar.png"))); // NOI18N
         Exit2.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         Exit2.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 Exit2MouseClicked(evt);
             }
+
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                Exit2MouseEntered(evt);
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                Exit2MouseExited(evt);
+            }
         });
-        BarraPanel.add(Exit2, new org.netbeans.lib.awtextra.AbsoluteConstraints(1410, 0, 30, 40));
+
+        Closebtn.add(Exit2, java.awt.BorderLayout.CENTER);
+        BarraPanel.add(Closebtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(1380, 0, 60, 40));
 
         FondoPanel.add(BarraPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1440, 40));
 
@@ -679,6 +734,37 @@ public class Formulario extends javax.swing.JFrame {
     }
 
 
+    private void BarraPanelMousePressed(java.awt.event.MouseEvent evt) {
+        xmouse = evt.getX();
+        ymouse = evt.getY();
+    }
+
+    private void BarraPanelMouseDragged(java.awt.event.MouseEvent evt) {
+        int x = evt.getXOnScreen();
+        int y = evt.getYOnScreen();
+        this.setLocation(x - xmouse, y - ymouse);
+    }
+
+    private void Exit2MouseEntered(java.awt.event.MouseEvent evt) {
+        Closebtn.setBackground(java.awt.Color.red);
+    }
+
+    private void Exit2MouseExited(java.awt.event.MouseEvent evt) {
+        Closebtn.setBackground(new java.awt.Color(30, 56, 136));
+    }
+
+    private void minimizetxtMouseEntered(java.awt.event.MouseEvent evt) {
+        minimizebtn.setBackground(java.awt.Color.decode("#2e4ca9"));
+    }
+
+    private void minimizetxtMouseExited(java.awt.event.MouseEvent evt) {
+        minimizebtn.setBackground(new java.awt.Color(30, 56, 136));
+    }
+
+    private void minimizetxtMouseClicked(java.awt.event.MouseEvent evt) {
+        this.setState(javax.swing.JFrame.ICONIFIED);
+    }
+
     private void Exit2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Exit2MouseClicked
         System.exit(0);
     }//GEN-LAST:event_Exit2MouseClicked
@@ -738,6 +824,9 @@ public class Formulario extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel BarraPanel;
+    private javax.swing.JPanel Closebtn;
+    private javax.swing.JPanel minimizebtn;
+    private javax.swing.JLabel minimizetxt;
     private javax.swing.JButton ButtonEnviar;
     private javax.swing.JLabel DominanteLabel;
     private javax.swing.JTextField EdadField;
