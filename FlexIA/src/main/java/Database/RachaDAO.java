@@ -196,5 +196,29 @@ public class RachaDAO {
         }
         return 0;
     }
+
+    /** Total de días con actividad (realizo=true) para el usuario. */
+    public int contarDiasConActividad(int idUsuario) {
+        String sql = "SELECT COUNT(*) AS total FROM racha_usuario WHERE id_usuario = ? AND realizo = true";
+
+        try (Connection conn = Conexion.getConnection();
+                PreparedStatement stmt = (conn != null) ? conn.prepareStatement(sql) : null) {
+
+            if (stmt == null) {
+                return 0;
+            }
+
+            stmt.setInt(1, idUsuario);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error al contar días con actividad: " + e.getMessage());
+        }
+
+        return 0;
+    }
     
 }

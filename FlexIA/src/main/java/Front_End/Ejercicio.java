@@ -8,6 +8,7 @@ import Back_End.Usuario;
 import Database.ProgresoDAO;
 import Database.RachaDAO;
 import Database.VideosDAO;
+import Database.MetricasEjercicioDAO;
 
 import java.awt.*;
 import java.io.*;
@@ -35,6 +36,11 @@ public class Ejercicio extends javax.swing.JFrame {
     private int idUsuario;
     private int idVideo;
     private boolean progresoGuardado = false;
+
+    // Métricas (para tasa de precisión)
+    private int okCountSesion = 0;
+    private int resetCountSesion = 0;
+    private boolean metricasGuardadas = false;
 
     // Constructor (compatibilidad)
     public Ejercicio(String tituloEjercicio) {
@@ -308,6 +314,7 @@ public class Ejercicio extends javax.swing.JFrame {
                     String mensaje = new String(data);
                     if (mensaje.startsWith("STATUS:")) {
                         if (mensaje.equals("STATUS:OK")) {
+                            okCountSesion++;
                             SwingUtilities.invokeLater(() -> {
                                 ejercicioCompletado = true;
                                 repeticionesFaltantes = Math.max(0, repeticionesFaltantes - 1);
@@ -319,6 +326,7 @@ public class Ejercicio extends javax.swing.JFrame {
                             });
                             System.out.println("Ejercicio completado (STATUS:OK)");
                         } else if (mensaje.equals("STATUS:RESET")) {
+                            resetCountSesion++;
                             SwingUtilities.invokeLater(() -> {
                                 ejercicioCompletado = false;
                             });
@@ -352,9 +360,24 @@ public class Ejercicio extends javax.swing.JFrame {
         }).start();
     }
 
+    private void persistirMetricasSesionSiAplica() {
+        if (metricasGuardadas) {
+            return;
+        }
+        metricasGuardadas = true;
+
+        // Solo si tenemos IDs válidos
+        if (idUsuario > 0 && idVideo > 0) {
+            MetricasEjercicioDAO.agregarEventosHoy(idUsuario, idVideo, okCountSesion, resetCountSesion);
+        }
+    }
+
     // Método para cerrar todos los recursos
     private void cerrarRecursos() {
         System.out.println("🔴 Cerrando recursos...");
+
+        // Guardar métricas antes de cerrar
+        persistirMetricasSesionSiAplica();
 
         if (socket != null && !socket.isClosed()) {
             try {

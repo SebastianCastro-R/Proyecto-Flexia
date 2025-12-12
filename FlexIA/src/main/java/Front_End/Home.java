@@ -39,6 +39,7 @@ import Back_End.SesionUsuario;
 import Back_End.Ads.AdManager;
 import Database.Conexion;
 import Database.RachaDAO;
+import Database.DolorDAO;
 
 import java.awt.Cursor;
 
@@ -1047,8 +1048,18 @@ public class Home extends javax.swing.JFrame {
             }
         }
         
-        // Aquí puedes agregar lógica para guardar la selección en tu base de datos
-        System.out.println("Nivel de dolor seleccionado: " + (nivel + 1));
+        // Guardar la selección en base de datos (por día)
+        int nivelGuardado = nivel + 1; // 1-5
+        System.out.println("Nivel de dolor seleccionado: " + nivelGuardado);
+        try {
+            SesionUsuario sesion = SesionUsuario.getInstancia();
+            if (sesion != null && sesion.estaLogueado()) {
+                int idUsuario = obtenerIdUsuario(sesion.getCorreoUsuario());
+                DolorDAO.registrarDolorHoy(idUsuario, nivelGuardado);
+            }
+        } catch (Exception e) {
+            System.err.println("⚠️ No se pudo guardar el nivel de dolor: " + e.getMessage());
+        }
     }
 
     /**

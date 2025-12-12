@@ -4,7 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class ProgresoDAO {
@@ -170,5 +173,110 @@ public class ProgresoDAO {
         }
 
         return completados;
+    }
+
+    /** Total de videos completados (únicos) por el usuario (tabla resumen). */
+    public static int contarVideosCompletados(int idUsuario) {
+        String sql = "SELECT COUNT(*) AS total FROM usuarios_video_progreso WHERE id_usuario = ? AND completado = TRUE";
+
+        try (Connection conn = Conexion.getConnection();
+                PreparedStatement ps = (conn != null) ? conn.prepareStatement(sql) : null) {
+
+            if (ps == null) {
+                return 0;
+            }
+
+            ps.setInt(1, idUsuario);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ ProgresoDAO.contarVideosCompletados: " + e.getMessage());
+        }
+
+        return 0;
+    }
+
+    /** Total de ejercicios realizados (diario): cuenta el completado base + repeticiones extra. */
+    public static long obtenerTotalEjerciciosRealizados(int idUsuario) {
+        String sql = "SELECT COALESCE(COUNT(*),0) + COALESCE(SUM(repeticiones_extra),0) AS total " +
+                "FROM usuarios_video_progreso_diario WHERE id_usuario = ?";
+
+        try (Connection conn = Conexion.getConnection();
+                PreparedStatement ps = (conn != null) ? conn.prepareStatement(sql) : null) {
+
+            if (ps == null) {
+                return 0;
+            }
+
+            ps.setInt(1, idUsuario);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getLong("total");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ ProgresoDAO.obtenerTotalEjerciciosRealizados: " + e.getMessage());
+        }
+
+        return 0;
+    }
+
+    public static class ProgresoDiario {
+        public final LocalDate fecha;
+        public final long totalEjercicios;
+
+        public ProgresoDiario(LocalDate fecha, long totalEjercicios) {
+            this.fecha = fecha;
+            this.totalEjercicios = totalEjercicios;
+        }
+    }
+
+    /**
+     * Serie de progreso por día (últimos N días, incluyendo hoy).
+     * totalEjercicios = (COUNT registros del día) + (SUM repeticiones_extra del día).
+     */
+    public static List<ProgresoDiario> obtenerProgresoUltimosNDias(int idUsuario, int dias) {
+        List<ProgresoDiario> out = new ArrayList<>();
+        if (idUsuario <= 0 || dias <= 0) {
+            return out;
+        }
+
+        // Traer solo días presentes
+        String sql = "SELECT fecha, (COUNT(*) + COALESCE(SUM(repeticiones_extra),0)) AS total " +
+                "FROM usuarios_video_progreso_diario " +
+                "WHERE id_usuario = ? AND fecha >= (CURRENT_DATE - (? - 1)) " +
+                "GROUP BY fecha ORDER BY fecha ASC";
+
+        java.util.Map<LocalDate, Long> mapa = new java.util.HashMap<>();
+
+        try (Connection conn = Conexion.getConnection();
+                PreparedStatement ps = (conn != null) ? conn.prepareStatement(sql) : null) {
+
+            if (ps != null) {
+                ps.setInt(1, idUsuario);
+                ps.setInt(2, dias);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        LocalDate fecha = rs.getDate("fecha").toLocalDate();
+                        long total = rs.getLong("total");
+                        mapa.put(fecha, total);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ ProgresoDAO.obtenerProgresoUltimosNDias: " + e.getMessage());
+        }
+
+        // Rellenar días faltantes con 0
+        LocalDate inicio = LocalDate.now().minusDays(dias - 1L);
+        for (int i = 0; i < dias; i++) {
+            LocalDate d = inicio.plusDays(i);
+            out.add(new ProgresoDiario(d, mapa.getOrDefault(d, 0L)));
+        }
+
+        return out;
     }
 }

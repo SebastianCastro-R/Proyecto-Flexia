@@ -679,7 +679,15 @@ public class Menu extends javax.swing.JPanel {
     }// GEN-LAST:event_CloseMouseClicked
 
     private void EstadisticasMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_EstadisticasMouseClicked
+        java.awt.Window ventanaActual = javax.swing.SwingUtilities.getWindowAncestor(this);
 
+        Estadisticas estadisticas = new Estadisticas();
+        estadisticas.setVisible(true);
+        estadisticas.setLocationRelativeTo(null);
+
+        if (ventanaActual != null) {
+            ventanaActual.dispose();
+        }
     }// GEN-LAST:event_EstadisticasMouseClicked
 
     private void EstadisticasMouseEntered(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_EstadisticasMouseEntered
