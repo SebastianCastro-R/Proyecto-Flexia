@@ -85,8 +85,8 @@ public static class Video {
             if (rs.next()) {
                 return new Video(
                     rs.getInt("id_video"),
-                    rs.getString("titulo"),
                     rs.getString("miniatura"),
+                    rs.getString("titulo"),
                     rs.getString("tipo"),
                     rs.getString("descripcion"),
                     rs.getString("archivo"),
@@ -114,8 +114,8 @@ public static class Video {
             if (rs.next()) {
                 return new Video(
                     rs.getInt("id_video"),
-                    rs.getString("titulo"),
                     rs.getString("miniatura"),
+                    rs.getString("titulo"),
                     rs.getString("tipo"),
                     rs.getString("descripcion"),
                     rs.getString("archivo"),

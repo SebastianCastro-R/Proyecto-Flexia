@@ -65,7 +65,7 @@ public class Home extends javax.swing.JFrame {
 
         initComponents();
         colocarFechaActual();
-        registrarActividadDiaria();
+        // La racha se registra cuando el usuario completa un ejercicio (no solo por abrir Home)
         configurarNavegacionTecladoHome();
 
         // INICIALIZAR GESTOR DE ANUNCIOS

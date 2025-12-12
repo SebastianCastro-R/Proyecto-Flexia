@@ -4,17 +4,23 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.net.URL;
+import java.time.LocalDate;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.*;
 
 import Back_End.FuenteUtil;
+import Back_End.SesionUsuario;
+import Back_End.Usuario;
 import Database.LeccionesDAO;
+import Database.ProgresoDAO;
 import Database.VideosDAO;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Ejercicios extends javax.swing.JFrame {
 
@@ -34,9 +40,21 @@ public class Ejercicios extends javax.swing.JFrame {
     private JLayeredPane layeredPane;
     private JPanel glassPane;
 
+    // Progreso (persistente)
+    private int idUsuario = -1;
+    private Set<Integer> videosCompletados = new HashSet<>();
+
+    // Reset visual diario (si la ventana queda abierta y cambia el día)
+    private LocalDate fechaProgresoCargada;
+    private Timer resetDiarioTimer;
+
     public Ejercicios() {
+        cargarSesionYProgreso();
         initComponents();
         configurarNavegacionTecladoEjercicios();
+
+        // Reset visual automático cuando cambia el día (sin tocar historial en BD)
+        iniciarResetDiarioVisual();
 
         // Configurar layered pane
         layeredPane = getLayeredPane();
@@ -78,6 +96,49 @@ public class Ejercicios extends javax.swing.JFrame {
 
         revalidate();
         repaint();
+    }
+
+    private void cargarSesionYProgreso() {
+        try {
+            Usuario u = SesionUsuario.getInstancia().getUsuarioActual();
+            if (u != null && u.getIdUsuario() > 0) {
+                idUsuario = u.getIdUsuario();
+                // Solo marcar como completado lo que se completó HOY (reset visual diario)
+                videosCompletados = ProgresoDAO.obtenerVideosCompletadosHoy(idUsuario);
+            }
+        } catch (Exception e) {
+            idUsuario = -1;
+            videosCompletados = new HashSet<>();
+        }
+    }
+
+    private void iniciarResetDiarioVisual() {
+        fechaProgresoCargada = LocalDate.now();
+
+        // Revisar cada minuto si cambió el día. Si cambió, recrear la pantalla para refrescar completados de HOY.
+        resetDiarioTimer = new Timer(60_000, e -> {
+            LocalDate hoy = LocalDate.now();
+            if (!hoy.equals(fechaProgresoCargada)) {
+                ((Timer) e.getSource()).stop();
+                SwingUtilities.invokeLater(() -> {
+                    Ejercicios nueva = new Ejercicios();
+                    nueva.setVisible(true);
+                    nueva.setLocationRelativeTo(null);
+                    Ejercicios.this.dispose();
+                });
+            }
+        });
+        resetDiarioTimer.setRepeats(true);
+        resetDiarioTimer.start();
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                if (resetDiarioTimer != null) {
+                    resetDiarioTimer.stop();
+                }
+            }
+        });
     }
 
     private void initComponents() {
@@ -476,16 +537,27 @@ public class Ejercicios extends javax.swing.JFrame {
 
     // ---------------- CREACIÓN DE EJERCICIO ----------------
     private JPanel crearEjercicio(String titulo, String descripcion, int idVideo, VideosDAO.Video video) {
+        boolean completado = (videosCompletados != null) && videosCompletados.contains(idVideo);
+
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(new Color(245, 245, 250));
+
+        Color bordeColor = completado ? new Color(46, 204, 113) : new Color(230, 230, 250);
+        int bordeGrosor = completado ? 3 : 1;
         panel.setBorder(new CompoundBorder(
-                new LineBorder(new Color(230, 230, 250), 1, true),
+                new LineBorder(bordeColor, bordeGrosor, true),
                 new EmptyBorder(15, 15, 15, 15)));
 
         JLabel tituloLbl = new JLabel(titulo);
         tituloLbl.setFont(new Font("Epunda Slab ExtraBold", Font.PLAIN, 18));
         tituloLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel completadoLbl = new JLabel("✔ Completado");
+        completadoLbl.setFont(new Font("SansSerif", Font.BOLD, 12));
+        completadoLbl.setForeground(new Color(46, 204, 113));
+        completadoLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
+        completadoLbl.setVisible(completado);
 
         // Obtener la miniatura desde el objeto Video
         String rutaImagen = video.getMiniatura();
@@ -684,6 +756,10 @@ public class Ejercicios extends javax.swing.JFrame {
         desc.setBorder(null);
 
         panel.add(tituloLbl);
+        if (completado) {
+            panel.add(Box.createVerticalStrut(4));
+            panel.add(completadoLbl);
+        }
         panel.add(Box.createVerticalStrut(10));
         panel.add(contenedorImagen);
         panel.add(Box.createVerticalStrut(10));
@@ -724,9 +800,10 @@ public class Ejercicios extends javax.swing.JFrame {
                 ? video.getInstrucciones()
                 : obtenerInstruccionesPorDefecto();
 
-        // Abrir ventana de instrucciones con los datos
+        // Abrir ventana de instrucciones con los datos (incluye idVideo + idUsuario para guardar progreso)
+        int usuarioId = (idUsuario > 0) ? idUsuario : -1;
         Instrucciones instrucciones = new Instrucciones(tituloEjercicio, descripcionEjercicio, archivo,
-                instruccionesAdicionales);
+                instruccionesAdicionales, video.getIdVideo(), usuarioId);
         instrucciones.setVisible(true);
         instrucciones.setLocationRelativeTo(null);
 

@@ -3,6 +3,12 @@ package Front_End;
 import componentes.RoundedPanel;
 import com.formdev.flatlaf.FlatLightLaf;
 
+import Back_End.SesionUsuario;
+import Back_End.Usuario;
+import Database.ProgresoDAO;
+import Database.RachaDAO;
+import Database.VideosDAO;
+
 import java.awt.*;
 import java.io.*;
 import java.net.Socket;
@@ -25,9 +31,27 @@ public class Ejercicio extends javax.swing.JFrame {
     private int repeticionesFaltantes = 12; // Contador de repeticiones
     private int ejercicioActual = 1; // Número del ejercicio actual
 
-    // Constructor
+    // Progreso
+    private int idUsuario;
+    private int idVideo;
+    private boolean progresoGuardado = false;
+
+    // Constructor (compatibilidad)
     public Ejercicio(String tituloEjercicio) {
+        this(tituloEjercicio, -1, getIdUsuarioSesionOrDefault());
+    }
+
+    // Constructor recomendado
+    public Ejercicio(String tituloEjercicio, int idVideo, int idUsuario) {
         this.tituloEjercicio = tituloEjercicio;
+        this.idVideo = idVideo;
+        this.idUsuario = (idUsuario > 0) ? idUsuario : getIdUsuarioSesionOrDefault();
+
+        // Si no vino el idVideo, intentar resolverlo desde la BD por el título
+        if (this.idVideo <= 0) {
+            this.idVideo = resolverIdVideoPorTitulo(tituloEjercicio);
+        }
+
         initComponents();
 
         // Determinar el número de ejercicio actual basado en el título
@@ -138,7 +162,7 @@ public class Ejercicio extends javax.swing.JFrame {
         String nombreEjercicioAnterior = obtenerNombreEjercicio(ejercicioAnterior);
 
         // Abrir ventana de instrucciones del ejercicio anterior
-        Instrucciones instrucciones = new Instrucciones(nombreEjercicioAnterior);
+        Instrucciones instrucciones = new Instrucciones(nombreEjercicioAnterior, getIdUsuarioSesionOrDefault());
         instrucciones.setVisible(true);
         instrucciones.setLocationRelativeTo(null);
     }
@@ -155,7 +179,7 @@ public class Ejercicio extends javax.swing.JFrame {
         String nombreEjercicioSiguiente = obtenerNombreEjercicio(ejercicioSiguiente);
 
         // Abrir ventana de instrucciones del ejercicio siguiente
-        Instrucciones instrucciones = new Instrucciones(nombreEjercicioSiguiente);
+        Instrucciones instrucciones = new Instrucciones(nombreEjercicioSiguiente, getIdUsuarioSesionOrDefault());
         instrucciones.setVisible(true);
         instrucciones.setLocationRelativeTo(null);
     }
@@ -166,7 +190,7 @@ public class Ejercicio extends javax.swing.JFrame {
         this.dispose();
 
         // Volver a las instrucciones del ejercicio actual
-        Instrucciones instrucciones = new Instrucciones(tituloEjercicio);
+        Instrucciones instrucciones = new Instrucciones(tituloEjercicio, getIdUsuarioSesionOrDefault());
         instrucciones.setVisible(true);
         instrucciones.setLocationRelativeTo(null);
     }
@@ -288,6 +312,10 @@ public class Ejercicio extends javax.swing.JFrame {
                                 ejercicioCompletado = true;
                                 repeticionesFaltantes = Math.max(0, repeticionesFaltantes - 1);
                                 actualizarMensajeRepeticiones();
+
+                                if (repeticionesFaltantes <= 0) {
+                                    onEjercicioFinalizado();
+                                }
                             });
                             System.out.println("Ejercicio completado (STATUS:OK)");
                         } else if (mensaje.equals("STATUS:RESET")) {
@@ -358,6 +386,74 @@ public class Ejercicio extends javax.swing.JFrame {
         }
     }
 
+    private static int getIdUsuarioSesionOrDefault() {
+        try {
+            Usuario u = SesionUsuario.getInstancia().getUsuarioActual();
+            if (u != null && u.getIdUsuario() > 0) {
+                return u.getIdUsuario();
+            }
+        } catch (Exception e) {
+            // ignorar
+        }
+        return 1;
+    }
+
+    private int resolverIdVideoPorTitulo(String titulo) {
+        try {
+            VideosDAO dao = new VideosDAO();
+            VideosDAO.Video v = dao.obtenerVideoPorTitulo(titulo);
+            return (v != null) ? v.getIdVideo() : -1;
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    private void onEjercicioFinalizado() {
+        if (progresoGuardado) {
+            return;
+        }
+        progresoGuardado = true;
+
+        boolean cuentaComoCompletadoHoy = false;
+
+        // Guardar progreso (1 vez por día por video, pero permitir repeticiones extra sin progreso adicional)
+        if (idUsuario > 0 && idVideo > 0) {
+            cuentaComoCompletadoHoy = ProgresoDAO.registrarVideoCompletadoHoy(idUsuario, idVideo);
+
+            // Registrar racha SOLO una vez por día (al completar el primer ejercicio del día)
+            if (cuentaComoCompletadoHoy) {
+                try {
+                    RachaDAO rachaDAO = new RachaDAO();
+                    if (!rachaDAO.yaRegistroHoy(idUsuario)) {
+                        rachaDAO.registrarActividadHoy(idUsuario);
+                    }
+                } catch (Exception e) {
+                    System.err.println("⚠️ No se pudo registrar racha: " + e.getMessage());
+                }
+            }
+
+        } else {
+            System.err.println("⚠️ No se pudo guardar progreso: idUsuario=" + idUsuario + " idVideo=" + idVideo);
+        }
+
+        String mensaje = cuentaComoCompletadoHoy
+                ? "✅ ¡Ejercicio completado!\nSe registró como completado por hoy."
+                : "✅ ¡Ejercicio completado!\nSe registró como repetición extra (sin progreso adicional).";
+
+        JOptionPane.showMessageDialog(
+                this,
+                mensaje,
+                "Completado",
+                JOptionPane.INFORMATION_MESSAGE);
+
+        // Volver al menú de ejercicios
+        cerrarRecursos();
+        Ejercicios ejercicios = new Ejercicios();
+        ejercicios.setVisible(true);
+        ejercicios.setLocationRelativeTo(null);
+        this.dispose();
+    }
+
     private String determinarScriptPython(String tipoEjercicio) {
         if (tipoEjercicio == null)
             return "ejercicio1";
@@ -415,8 +511,6 @@ public class Ejercicio extends javax.swing.JFrame {
         minimizetxt = new javax.swing.JLabel();
         Closebtn = new javax.swing.JPanel();
         Closetxt = new javax.swing.JLabel();
-        ButtonSiguiente = new javax.swing.JButton();
-        ButtonAnterior = new javax.swing.JButton();
         roundedPanel1 = new RoundedPanel();
 
         // NUEVOS COMPONENTES PARA LA INFORMACIÓN DEL EJERCICIO
@@ -533,28 +627,6 @@ public class Ejercicio extends javax.swing.JFrame {
         // Agregar header al panel principal
         jPanel1.add(header, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 905, 40));
 
-        // ... (el resto del código se mantiene igual)
-        // BOTONES (eliminamos ButtonVolver ya que ahora está en el header)
-        ButtonSiguiente.setBackground(new java.awt.Color(152, 206, 255));
-        ButtonSiguiente.setFont(new java.awt.Font("Epunda Slab", 0, 18));
-        ButtonSiguiente.setText("Siguiente");
-        ButtonSiguiente.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ButtonSiguienteActionPerformed(evt);
-            }
-        });
-        jPanel1.add(ButtonSiguiente, new org.netbeans.lib.awtextra.AbsoluteConstraints(730, 610, 120, 40));
-
-        ButtonAnterior.setBackground(new java.awt.Color(152, 206, 255));
-        ButtonAnterior.setFont(new java.awt.Font("Epunda Slab", 0, 18));
-        ButtonAnterior.setText("Anterior");
-        ButtonAnterior.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ButtonAnteriorActionPerformed(evt);
-            }
-        });
-        jPanel1.add(ButtonAnterior, new org.netbeans.lib.awtextra.AbsoluteConstraints(580, 610, 120, 40));
-
         // PANEL CÁMARA
         roundedPanel1.setLayout(new BorderLayout());
         roundedPanel1.add(cameraLabel, BorderLayout.CENTER);
@@ -641,15 +713,6 @@ public class Ejercicio extends javax.swing.JFrame {
         pack();
     }
 
-    // NUEVOS MÉTODOS PARA LOS BOTONES
-    private void ButtonAnteriorActionPerformed(java.awt.event.ActionEvent evt) {
-        navegarEjercicioAnterior();
-    }
-
-    private void ButtonSiguienteActionPerformed(java.awt.event.ActionEvent evt) {
-        navegarEjercicioSiguiente();
-    }
-
     private void volverTxtMouseClicked(java.awt.event.MouseEvent evt) {
         volverAInstrucciones();
     }
@@ -680,8 +743,6 @@ public class Ejercicio extends javax.swing.JFrame {
     }
 
     // Variables declaration
-    private javax.swing.JButton ButtonAnterior;
-    private javax.swing.JButton ButtonSiguiente;
     private javax.swing.JPanel Closebtn;
     private javax.swing.JLabel Closetxt;
     private javax.swing.JPanel header;

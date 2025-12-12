@@ -71,3 +71,6 @@ pyvenv.cfg
 pip-selfcheck.json
 
 # End of https://www.toptal.com/developers/gitignore/api/java,maven,netbeans
+
+# Progreso/sesiones locales (no subir al repo)
+progreso/

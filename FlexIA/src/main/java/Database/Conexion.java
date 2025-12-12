@@ -7,7 +7,7 @@ import java.sql.SQLException;
 public class Conexion {
     private static final String URL = "jdbc:postgresql://localhost:5432/Flexia";
     private static final String USER = "postgres";
-    private static final String PASSWORD = "2459";
+    private static final String PASSWORD = "Univalle";
 
     // ✅ Retorna una conexión nueva cada vez
     public static Connection getConnection() {

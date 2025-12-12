@@ -78,7 +78,7 @@ public class CorreoService {
 
             // Imagen 2: mascota FLEX-IA
             MimeBodyPart mascotaPart = new MimeBodyPart();
-            try (InputStream mascotaStream = CorreoService.class.getResourceAsStream("/images/Mascota.png")) {
+            try (InputStream mascotaStream = CorreoService.class.getResourceAsStream("/Images/Carpianin2.png")) {
                 if (mascotaStream == null) throw new FileNotFoundException("No se encontró Mascota.png en resources");
                 mascotaPart.setDataHandler(new DataHandler(new ByteArrayDataSource(mascotaStream, "image/png")));
                 mascotaPart.setHeader("Content-ID", "<mascotaFlexia>");
