@@ -307,49 +307,64 @@ public class Menu extends javax.swing.JPanel {
                                                         .addGap(18, 18, 18))
                                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, roundedPanel1Layout
                                                 .createSequentialGroup()
-                                                .addGroup(roundedPanel1Layout
-                                                        .createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING,
-                                                                false)
-                                                        .addComponent(jSeparator1)
-                                                        .addComponent(Inicio, javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                        .addComponent(Videos, javax.swing.GroupLayout.Alignment.LEADING,
-                                                                javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                        .addComponent(jSeparator2,
-                                                                javax.swing.GroupLayout.Alignment.LEADING)
-                                                        .addComponent(Estadisticas,
-                                                                javax.swing.GroupLayout.Alignment.LEADING,
-                                                                javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                        .addComponent(jSeparator3,
-                                                                javax.swing.GroupLayout.Alignment.LEADING)
-                                                        .addComponent(Perfil, javax.swing.GroupLayout.Alignment.LEADING,
-                                                                javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                        .addComponent(jSeparator4)
-                                                        .addComponent(Contactanos,
-                                                                javax.swing.GroupLayout.Alignment.LEADING,
-                                                                javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                                javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                        .addComponent(jSeparator5,
-                                                                javax.swing.GroupLayout.Alignment.LEADING,
-                                                                javax.swing.GroupLayout.PREFERRED_SIZE, 195,
-                                                                javax.swing.GroupLayout.PREFERRED_SIZE))
+                                                .addGroup(
+                                                        roundedPanel1Layout
+                                                                .createParallelGroup(
+                                                                        javax.swing.GroupLayout.Alignment.CENTER)
+                                                                .addComponent(Inicio,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE, 220,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                                .addComponent(jSeparator1,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE, 180,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+
+                                                                .addComponent(Videos,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE, 220,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                                .addComponent(jSeparator2,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE, 180,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+
+                                                                .addComponent(Estadisticas,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE, 220,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                                .addComponent(jSeparator3,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE, 180,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+
+                                                                .addComponent(Perfil,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE, 220,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                                .addComponent(jSeparator4,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE, 180,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+
+                                                                .addComponent(Contactanos,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE, 220,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                                .addComponent(jSeparator5,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE, 180,
+                                                                        javax.swing.GroupLayout.PREFERRED_SIZE))
+
                                                 .addGap(93, 93, 93))))
                         .addGroup(roundedPanel1Layout.createSequentialGroup()
                                 .addGroup(roundedPanel1Layout
                                         .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addGroup(roundedPanel1Layout.createSequentialGroup()
-                                                .addGap(69, 69, 69)
-                                                .addComponent(Bienvenido))
+                                                .addGap(0, 0, Short.MAX_VALUE)
+                                                .addComponent(FotoPerfil)
+                                                .addGap(0, 0, Short.MAX_VALUE))
+
                                         .addGroup(roundedPanel1Layout.createSequentialGroup()
-                                                .addGap(107, 107, 107)
-                                                .addComponent(ButtonCerrarSesion))
+                                                .addGap(0, 0, Short.MAX_VALUE)
+                                                .addComponent(Bienvenido)
+                                                .addGap(0, 0, Short.MAX_VALUE))
+
                                         .addGroup(roundedPanel1Layout.createSequentialGroup()
-                                                .addGap(80, 80, 80)
-                                                .addComponent(FotoPerfil)))
-                                .addContainerGap(82, Short.MAX_VALUE)));
+                                                .addGap(0, 0, Short.MAX_VALUE)
+                                                .addComponent(ButtonCerrarSesion)
+                                                .addGap(0, 0, Short.MAX_VALUE))
+                                        .addGap(82, 82, Short.MAX_VALUE))));
         roundedPanel1Layout.setVerticalGroup(
                 roundedPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
@@ -508,13 +523,13 @@ public class Menu extends javax.swing.JPanel {
         if (correo != null && !correo.isEmpty()) {
             UsuariosDAO dao = new UsuariosDAO();
             byte[] fotoBytes = dao.obtenerFotoPerfil(correo);
-            
+
             // Usar un tamaño consistente, por ejemplo, 200x200
-            final int TAMANO_IMAGEN = 200; 
+            final int TAMANO_IMAGEN = 200;
 
             if (fotoBytes != null && fotoBytes.length > 0) {
                 // Convertir bytes a ImageIcon circular
-                ImageIcon imagenCircular = crearImagenCircular(fotoBytes, TAMANO_IMAGEN, TAMANO_IMAGEN); 
+                ImageIcon imagenCircular = crearImagenCircular(fotoBytes, TAMANO_IMAGEN, TAMANO_IMAGEN);
                 if (imagenCircular != null) {
                     FotoPerfil.setIcon(imagenCircular);
                     // Ajustar el tamaño del JLabel para que coincida con la imagen circular
@@ -529,11 +544,11 @@ public class Menu extends javax.swing.JPanel {
             cargarFotoPerfilDefecto(TAMANO_IMAGEN);
         }
     }
-    
+
     private void cargarFotoPerfilDefecto(int size) {
         try {
             // Asegúrate de que la ruta del recurso es correcta
-            ImageIcon iconoDefault = new ImageIcon(getClass().getResource("/Images/Group 5.png")); 
+            ImageIcon iconoDefault = new ImageIcon(getClass().getResource("/Images/Group 5.png"));
             if (iconoDefault != null) {
                 // Crear imagen circular desde el icono por defecto
                 ImageIcon imagenCircular = crearImagenCircularDeIcono(iconoDefault, size, size);
@@ -565,35 +580,35 @@ public class Menu extends javax.swing.JPanel {
     // Método para crear imagen circular desde ImageIcon
     private ImageIcon crearImagenCircularDeIcono(ImageIcon originalIcon, int width, int height) {
         int size = Math.min(width, height); // Forzar que sea un cuadrado para un círculo
-        
+
         java.awt.Image imagenOriginal = originalIcon.getImage();
-        
+
         // Crear un buffer con transparencia para la imagen final
         BufferedImage circularImage = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = circularImage.createGraphics();
-        
+
         // Configurar Hints para máxima calidad
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        
+
         // Crear un círculo como clip (máscara)
         java.awt.geom.Ellipse2D.Double circle = new java.awt.geom.Ellipse2D.Double(0, 0, size, size);
-        
+
         // Aplicar el clip circular
         g2d.setClip(circle);
-        
+
         // Dibujar la imagen redimensionada dentro del clip circular
         g2d.drawImage(imagenOriginal, 0, 0, size, size, null);
-        
+
         // Dibujar un borde opcional (puedes comentar si no lo quieres)
         g2d.setClip(null);
         g2d.setColor(new Color(0x1E3888)); // Color azul de tu diseño
         g2d.setStroke(new java.awt.BasicStroke(2.0f));
         g2d.draw(circle);
-        
+
         g2d.dispose();
-        
+
         return new ImageIcon(circularImage);
     }
 
@@ -754,7 +769,6 @@ public class Menu extends javax.swing.JPanel {
         // TODO add your handling code here:
     }// GEN-LAST:event_ContactanosActionPerformed
 
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel Bienvenido;
     private javax.swing.JButton ButtonCerrarSesion;
@@ -771,7 +785,7 @@ public class Menu extends javax.swing.JPanel {
     private javax.swing.JSeparator jSeparator4;
     private javax.swing.JSeparator jSeparator5;
     private componentes.RoundedPanel roundedPanel1;
-    
+
     private String pantallaActiva;
     private String correoUsuario = "";
     // End of variables declaration//GEN-END:variables

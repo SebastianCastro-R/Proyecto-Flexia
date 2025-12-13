@@ -29,7 +29,7 @@ public class Estadisticas extends JFrame {
 
     private Menu menuPanel;
     private boolean menuVisible = false;
-    private int menuWidth = 370;
+    private int menuWidth = 450;
     private int menuX = -menuWidth;
     private int xmouse, ymouse;
 

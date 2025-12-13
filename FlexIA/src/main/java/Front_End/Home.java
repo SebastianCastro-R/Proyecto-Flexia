@@ -63,7 +63,7 @@ public class Home extends javax.swing.JFrame {
 
     private Menu menuPanel;
     private boolean menuVisible = false;
-    private int menuWidth = 370; // ancho del panel del menú
+    private int menuWidth = 450; // ancho del panel del menú
     private int menuX = -menuWidth; // posición inicial fuera de pantalla
     int xmouse, ymouse;
 

@@ -239,8 +239,23 @@ public class Ejercicio extends javax.swing.JFrame {
 
     // Método para actualizar el mensaje de repeticiones
     private void actualizarMensajeRepeticiones() {
-        mensajeRepeticionesLabel.setText("<html><div style='text-align:center;'>Lo estás haciendo bien!<br>Te faltan "
-                + repeticionesFaltantes + " repeticiones</div></html>");
+        int repeticionesHechas = 12 - repeticionesFaltantes;
+
+        String mensaje;
+        if (repeticionesFaltantes > 0) {
+            mensaje = "<html><div style='text-align:center;'>"
+                    + "¡Vas bien!<br>"
+                    + "Completadas: <b>" + repeticionesHechas + "</b><br>"
+                    + "Faltan: <b>" + repeticionesFaltantes + "</b> repeticiones"
+                    + "</div></html>";
+        } else {
+            mensaje = "<html><div style='text-align:center;color:#4CAF50;'>"
+                    + "¡Ejercicio completado!<br>"
+                    + "12/12 repeticiones"
+                    + "</div></html>";
+        }
+
+        mensajeRepeticionesLabel.setText(mensaje);
     }
 
     private void startCameraStream(String tipoEjercicio) {
@@ -312,29 +327,40 @@ public class Ejercicio extends javax.swing.JFrame {
                     input.readFully(data);
 
                     String mensaje = new String(data);
+                    // Reemplaza el bloque donde procesas los mensajes STATUS en
+                    // startCameraStream():
                     if (mensaje.startsWith("STATUS:")) {
                         if (mensaje.equals("STATUS:OK")) {
                             okCountSesion++;
                             SwingUtilities.invokeLater(() -> {
                                 ejercicioCompletado = true;
-                                repeticionesFaltantes = Math.max(0, repeticionesFaltantes - 1);
-                                actualizarMensajeRepeticiones();
 
-                                if (repeticionesFaltantes <= 0) {
-                                    onEjercicioFinalizado();
+                                // Solo decrementar si aún quedan repeticiones
+                                if (repeticionesFaltantes > 0) {
+                                    repeticionesFaltantes--;
+                                    actualizarMensajeRepeticiones();
+
+                                    System.out
+                                            .println("✅ Repetición " + (12 - repeticionesFaltantes) + "/12 completada");
+
+                                    if (repeticionesFaltantes <= 0) {
+                                        onEjercicioFinalizado();
+                                    }
                                 }
                             });
-                            System.out.println("Ejercicio completado (STATUS:OK)");
                         } else if (mensaje.equals("STATUS:RESET")) {
-                            resetCountSesion++;
+                            // NO incrementar resetCountSesion aquí
+                            // resetCountSesion++; // ← COMENTA o ELIMINA esta línea
+
                             SwingUtilities.invokeLater(() -> {
                                 ejercicioCompletado = false;
                             });
-                            System.out.println("Ejercicio no completado (STATUS:RESET)");
+
+                            // Opcional: puedes llevar un contador separado para debugging
+                            System.out.println("🔄 Reset detectado (no cuenta en precisión)");
                         }
                         continue;
                     }
-
                     try {
                         Image image = javax.imageio.ImageIO.read(new ByteArrayInputStream(data));
                         if (image != null) {
@@ -368,7 +394,9 @@ public class Ejercicio extends javax.swing.JFrame {
 
         // Solo si tenemos IDs válidos
         if (idUsuario > 0 && idVideo > 0) {
-            MetricasEjercicioDAO.agregarEventosHoy(idUsuario, idVideo, okCountSesion, resetCountSesion);
+            // Aquí solo enviamos los OKs como eventos exitosos
+            // Los RESET no se envían como eventos fallidos
+            MetricasEjercicioDAO.agregarEventosHoy(idUsuario, idVideo, okCountSesion, 0); // ← resetCount = 0
         }
     }
 
@@ -439,11 +467,13 @@ public class Ejercicio extends javax.swing.JFrame {
 
         boolean cuentaComoCompletadoHoy = false;
 
-        // Guardar progreso (1 vez por día por video, pero permitir repeticiones extra sin progreso adicional)
+        // Guardar progreso (1 vez por día por video, pero permitir repeticiones extra
+        // sin progreso adicional)
         if (idUsuario > 0 && idVideo > 0) {
             cuentaComoCompletadoHoy = ProgresoDAO.registrarVideoCompletadoHoy(idUsuario, idVideo);
 
-            // Registrar racha SOLO una vez por día (al completar el primer ejercicio del día)
+            // Registrar racha SOLO una vez por día (al completar el primer ejercicio del
+            // día)
             if (cuentaComoCompletadoHoy) {
                 try {
                     RachaDAO rachaDAO = new RachaDAO();
@@ -739,7 +769,6 @@ public class Ejercicio extends javax.swing.JFrame {
     private void volverTxtMouseClicked(java.awt.event.MouseEvent evt) {
         volverAInstrucciones();
     }
-
 
     // ELIMINAMOS ButtonVolverActionPerformed ya que el botón volver fue removido
 

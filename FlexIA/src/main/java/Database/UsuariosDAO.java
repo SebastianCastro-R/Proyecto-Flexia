@@ -16,7 +16,6 @@ public class UsuariosDAO {
         conexion = new Conexion();
     }
 
-
     /**
      * Registra un usuario: hashea la contraseña con BCrypt antes de guardarla.
      * 
@@ -49,8 +48,8 @@ public class UsuariosDAO {
             ps.setDate(7, fechaNacimiento);
             ps.setString(8, telefono);
             ps.setBoolean(9, esPremium);
-            
-                // Manejar la foto de perfil (puede ser null)
+
+            // Manejar la foto de perfil (puede ser null)
             if (fotoPerfil != null && fotoPerfil.length > 0) {
                 ps.setBytes(10, fotoPerfil);
             } else {
@@ -150,8 +149,8 @@ public class UsuariosDAO {
     public Usuario obtenerUsuarioPorCorreo(String correo) {
         String sql = "SELECT * FROM usuarios WHERE correo_electronico = ?";
         try (Connection conn = conexion.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, correo);
             ResultSet rs = stmt.executeQuery();
 
@@ -173,12 +172,12 @@ public class UsuariosDAO {
         }
         return null;
     }
-    
+
     public boolean actualizarUsuario(Usuario u) {
         String sql = "UPDATE usuarios SET nombres=?, apellidos=?, telefono=?, fecha_nacimiento=?, numero_id=?, tipo_id=? WHERE correo_electronico=?";
 
         try (Connection conn = conexion.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, u.getNombres());
             ps.setString(2, u.getApellidos());
@@ -190,7 +189,7 @@ public class UsuariosDAO {
 
             int filasActualizadas = ps.executeUpdate();
             System.out.println("✅ Filas actualizadas: " + filasActualizadas);
-            
+
             return filasActualizadas > 0;
 
         } catch (Exception e) {
@@ -200,27 +199,28 @@ public class UsuariosDAO {
         }
     }
 
-        // Agrega este método en UsuariosDAO.java
+    // Agrega este método en UsuariosDAO.java
     public byte[] obtenerFotoPerfil(String correo) {
         String sql = "SELECT foto_perfil FROM usuarios WHERE correo_electronico = ?";
-        
+
         try (Connection conn = Conexion.getConnection();
-                    PreparedStatement ps = conn.prepareStatement(sql)) {
-                    
-                    ps.setString(1, correo);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) {
-                            byte[] fotoBytes = rs.getBytes("foto_perfil");
-                            // *** AÑADIR ESTA LÍNEA DE DEPURACIÓN ***
-                            if (fotoBytes != null) {
-                                System.out.println("✅ Bytes de la foto de perfil cargados. Tamaño: " + fotoBytes.length + " bytes.");
-                            } else {
-                                System.out.println("⚠️ Bytes de la foto de perfil son NULL.");
-                            }
-                            // ***************************************
-                            return fotoBytes;
-                        }
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, correo);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    byte[] fotoBytes = rs.getBytes("foto_perfil");
+                    // *** AÑADIR ESTA LÍNEA DE DEPURACIÓN ***
+                    if (fotoBytes != null) {
+                        System.out.println(
+                                "✅ Bytes de la foto de perfil cargados. Tamaño: " + fotoBytes.length + " bytes.");
+                    } else {
+                        System.out.println("⚠️ Bytes de la foto de perfil son NULL.");
                     }
+                    // ***************************************
+                    return fotoBytes;
+                }
+            }
         } catch (SQLException e) {
             System.err.println("❌ Error al obtener foto de perfil: " + e.getMessage());
         }
@@ -231,7 +231,7 @@ public class UsuariosDAO {
         String sql = "UPDATE usuarios SET es_premium = ? WHERE id_usuario = ?";
 
         try (Connection conn = Conexion.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setBoolean(1, premium);
             stmt.setInt(2, idUsuario);
@@ -248,7 +248,7 @@ public class UsuariosDAO {
         String sql = "UPDATE usuarios SET foto_perfil = ? WHERE id_usuario = ?";
 
         try (Connection conn = Conexion.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setBytes(1, fotoPerfil);
             ps.setInt(2, idUsuario);
@@ -263,5 +263,63 @@ public class UsuariosDAO {
         }
     }
 
+    private Usuario mapearUsuario(ResultSet rs) throws SQLException {
+        Usuario u = new Usuario();
+        u.setIdUsuario(rs.getInt("id_usuario"));
+        u.setTipoId(rs.getString("tipo_id"));
+        u.setNumeroId(rs.getString("numero_id"));
+        u.setNombres(rs.getString("nombres"));
+        u.setApellidos(rs.getString("apellidos"));
+        u.setCorreo(rs.getString("correo_electronico"));
+        u.setFechaNacimiento(rs.getDate("fecha_nacimiento"));
+        u.setTelefono(rs.getString("telefono"));
+        u.setEsPremium(rs.getBoolean("es_premium"));
+        return u;
+    }
+
+    public Usuario crearUsuarioGoogle(
+            String nombre,
+            String correo,
+            String googleId,
+            byte[] fotoPerfil) {
+
+        String sql = """
+                    INSERT INTO usuarios
+                    (nombres, apellidos, correo_electronico, contrasena, google_id, foto_perfil)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    RETURNING *
+                """;
+
+        String dummyPassword = BCrypt.hashpw(
+                "GOOGLE_AUTH_" + googleId,
+                BCrypt.gensalt(12));
+
+        try (Connection conn = Conexion.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, nombre);
+            ps.setString(2, "");
+            ps.setString(3, correo);
+            ps.setString(4, dummyPassword);
+            ps.setString(5, googleId);
+
+            if (fotoPerfil != null) {
+                ps.setBytes(6, fotoPerfil);
+            } else {
+                ps.setNull(6, java.sql.Types.BINARY);
+            }
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return mapearUsuario(rs);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 
 }

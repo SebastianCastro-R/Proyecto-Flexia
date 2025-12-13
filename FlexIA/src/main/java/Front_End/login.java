@@ -5,6 +5,9 @@
 package Front_End;
 
 import Back_End.FuenteUtil;
+import Back_End.GoogleAuth;
+import Back_End.GoogleImageUtil;
+import Back_End.GoogleUser;
 import Back_End.RecuperarContrasena;
 import Back_End.SesionUsuario;
 import Back_End.Usuario;
@@ -264,23 +267,79 @@ public class login extends javax.swing.JFrame {
         // ===== Botones sociales (Google, Facebook, Outlook) =====
         Color fondoCirculo = new Color(0xE8E8E8);
         int baseY = 330; // Y base para los botones
-        int espacio = 50; // separación horizontal entre ellos
-        int inicioX = (panelDerecho.getWidth() - (3 * 51 + 2 * 40)) / 2; // centrado dinámico
+         // separación horizontal entre ellos
+        int inicioX = (panelDerecho.getWidth() - (1 * 51)) / 2; // centrado dinámico
 
         btnGoogle = crearBotonSocial("/Images/google.png", inicioX, baseY, fondoCirculo);
         btnGoogle.setOpaque(false);
         btnGoogle.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnFacebook = crearBotonSocial("/Images/facebook.png", inicioX + espacio + 40, baseY, fondoCirculo);
-        btnFacebook.setOpaque(false);
-        btnFacebook.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnOutlook = crearBotonSocial("/Images/outlook.png", inicioX + (espacio + 40) * 2, baseY, fondoCirculo);
-        btnOutlook.setOpaque(false);
-        btnOutlook.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnGoogle.addActionListener(e -> {
+            try {
+                // 1️⃣ Login con Google
+                GoogleUser googleUser = GoogleAuth.loginWithGoogle();
+
+                if (googleUser == null || googleUser.email == null) {
+                    throw new RuntimeException("No se pudo obtener información de Google");
+                }
+
+                String nombres = googleUser.name;
+                String correo = googleUser.email;
+                String googleId = googleUser.getId(); // sub
+                String fotoUrl = googleUser.picture;
+
+                // 2️⃣ Buscar usuario en la BD
+                UsuariosDAO dao = new UsuariosDAO();
+                Usuario usuario = dao.obtenerUsuarioPorCorreo(correo);
+
+                // 3️⃣ Si no existe, crearlo automáticamente
+                if (usuario == null) {
+
+                    byte[] fotoPerfil = null;
+
+                    // 🔥 Descargar foto SOLO si existe
+                    if (fotoUrl != null && !fotoUrl.isEmpty()) {
+                        fotoPerfil = GoogleImageUtil.descargarImagen(fotoUrl);
+                    }
+
+                    usuario = dao.crearUsuarioGoogle(
+                            nombres,
+                            correo,
+                            googleId,
+                            fotoPerfil // ✅ VARIABLE CORRECTA
+                    );
+                }
+
+                // 4️⃣ Validación final
+                if (usuario == null) {
+                    throw new RuntimeException("Usuario Google no pudo crearse");
+                }
+
+                // 5️⃣ Iniciar sesión
+                SesionUsuario.getInstancia().iniciarSesion(usuario);
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Bienvenido " + usuario.getNombres(),
+                        "Login con Google",
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                new Home().setVisible(true);
+                dispose();
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Error al iniciar sesión con Google",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        
 
         panelDerecho.add(btnGoogle);
-        panelDerecho.add(btnFacebook);
-        panelDerecho.add(btnOutlook);
-
+        
         // ===== Label "Correo Electrónico" =====
         JLabel lblCorreo = new JLabel("Correo Electrónico:");
         lblCorreo.setFont(new Font("Epunda Slab SemiBold", Font.PLAIN, 20));
@@ -549,16 +608,6 @@ public class login extends javax.swing.JFrame {
         btnGoogle.getAccessibleContext().setAccessibleName("Iniciar sesión con Google");
         btnGoogle.getAccessibleContext().setAccessibleDescription("Botón para iniciar sesión usando cuenta de Google");
         btnGoogle.setToolTipText("Iniciar sesión con Google");
-
-        btnFacebook.getAccessibleContext().setAccessibleName("Iniciar sesión con Facebook");
-        btnFacebook.getAccessibleContext()
-                .setAccessibleDescription("Botón para iniciar sesión usando cuenta de Facebook");
-        btnFacebook.setToolTipText("Iniciar sesión con Facebook");
-
-        btnOutlook.getAccessibleContext().setAccessibleName("Iniciar sesión con Outlook");
-        btnOutlook.getAccessibleContext()
-                .setAccessibleDescription("Botón para iniciar sesión usando cuenta de Outlook");
-        btnOutlook.setToolTipText("Iniciar sesión con Outlook");
 
         // Campo correo electrónico
         lblCorreo.getAccessibleContext().setAccessibleName("Etiqueta correo electrónico");
@@ -831,10 +880,6 @@ public class login extends javax.swing.JFrame {
         // Agregar botones sociales usando las variables de clase
         if (btnGoogle != null)
             focusOrder.add(btnGoogle);
-        if (btnFacebook != null)
-            focusOrder.add(btnFacebook);
-        if (btnOutlook != null)
-            focusOrder.add(btnOutlook);
 
         // Agregar el botón de iniciar sesión
         if (btnIniciar != null)

@@ -58,9 +58,19 @@ public class SignIn extends javax.swing.JFrame {
 
         initComponents();
         initStyles();
+<<<<<<< Updated upstream
         initButtons(); // <-- 👈 añadimos esta llamada
         initFocusOrder(); // <-- Agregar esta línea
         setupKeyboardNavigation(); // <-- Agregar esta línea
+=======
+        initButtons();
+        initFocusOrder();
+        setupKeyboardNavigation();
+        establecerImagenPorDefecto();
+>>>>>>> Stashed changes
+
+        // Inicializar la variable de imagen
+        imagenSeleccionada = null;
 
         setSize(1440, 1024);
         setLocationRelativeTo(null);
@@ -1089,6 +1099,7 @@ public class SignIn extends javax.swing.JFrame {
         PasswordText.setText("");
     }// GEN-LAST:event_PasswordTextMousePressed
 
+<<<<<<< Updated upstream
     private void ButtonAgregarImagenActionPerformed(java.awt.event.ActionEvent evt) {                                             
         javax.swing.JFileChooser fileChooser = new javax.swing.JFileChooser();
         // Filtrar solo archivos de imagen
@@ -1124,6 +1135,84 @@ public class SignIn extends javax.swing.JFrame {
             }
         }
     }
+=======
+    private void seleccionarFotoPerfil() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileFilter(new FileNameExtensionFilter("Imágenes", "jpg", "png", "jpeg", "gif", "bmp"));
+
+        int res = chooser.showOpenDialog(this);
+        if (res == JFileChooser.APPROVE_OPTION) {
+            File file = chooser.getSelectedFile();
+
+            try {
+                // Verificar tamaño del archivo (máximo 5MB)
+                long fileSize = file.length();
+                if (fileSize > 5 * 1024 * 1024) {
+                    JOptionPane.showMessageDialog(this,
+                            "La imagen es demasiado grande. Máximo 5MB permitido.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Convertir imagen a bytes
+                FileInputStream fis = new FileInputStream(file);
+                imagenSeleccionada = fis.readAllBytes();
+                fis.close();
+
+                // Mostrar imagen en jLabel1 circular (150x150 px)
+                mostrarImagenSeleccionada(imagenSeleccionada);
+
+                // Opcional: mostrar mensaje de éxito
+                jLabel1.setToolTipText("Foto seleccionada: " + file.getName());
+
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this,
+                        "Error al cargar la imagen: " + e.getMessage(),
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    // Nuevo método para mostrar la imagen
+    private void mostrarImagenSeleccionada(byte[] imagenBytes) {
+        if (imagenBytes != null && imagenBytes.length > 0) {
+            try {
+                // Crear ImageIcon desde bytes
+                ImageIcon iconoOriginal = new ImageIcon(imagenBytes);
+
+                // Redondear la imagen
+                ImageIcon iconoRedondeado = redondearImagen(iconoOriginal.getImage(), 150);
+
+                // Establecer la imagen en el JLabel
+                jLabel1.setIcon(iconoRedondeado);
+
+                // Forzar repintado
+                jLabel1.revalidate();
+                jLabel1.repaint();
+
+            } catch (Exception e) {
+                System.err.println("Error al mostrar imagen: " + e.getMessage());
+                establecerImagenPorDefecto();
+            }
+        }
+    }
+
+    // También actualiza establecerImagenPorDefecto para usar el mismo método
+    private void establecerImagenPorDefecto() {
+        try {
+            // Cargar imagen por defecto
+            ImageIcon iconoDefault = new ImageIcon(getClass().getResource("/Images/Group 5.png"));
+            if (iconoDefault.getImage() != null) {
+                ImageIcon iconoRedondeado = redondearImagen(iconoDefault.getImage(), 150);
+                jLabel1.setIcon(iconoRedondeado);
+                jLabel1.setToolTipText("Haz clic para seleccionar foto de perfil");
+            }
+        } catch (Exception e) {
+            System.err.println("Error al cargar imagen por defecto: " + e.getMessage());
+        }
+    }
+>>>>>>> Stashed changes
 
     private boolean mostrarTerminosYCondiciones() {
         // 🧾 Texto HTML con estilo visual y márgenes
@@ -1246,6 +1335,26 @@ public class SignIn extends javax.swing.JFrame {
         return aceptado[0];
     }
 
+<<<<<<< Updated upstream
+=======
+    private ImageIcon redondearImagen(Image img, int size) {
+        BufferedImage circleBuffer = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = circleBuffer.createGraphics();
+
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Crear máscara circular
+        Ellipse2D.Double circle = new Ellipse2D.Double(0, 0, size, size);
+        g2.setClip(circle);
+
+        // Dibujar la imagen redimensionada dentro del círculo
+        g2.drawImage(img.getScaledInstance(size, size, Image.SCALE_SMOOTH), 0, 0, null);
+        g2.dispose();
+
+        return new ImageIcon(circleBuffer);
+    }
+
+>>>>>>> Stashed changes
     /**
      * @param args the command line arguments
      */
@@ -1287,8 +1396,11 @@ public class SignIn extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+<<<<<<< Updated upstream
     private javax.swing.JButton ButtonAgregarImagen;
     private byte[] imagenSeleccionada; // almacenará la imagen temporalmente
+=======
+>>>>>>> Stashed changes
     private javax.swing.JLabel Apellidos;
     private componentes.IconTextField ApellidosText;
     private javax.swing.JPanel BackGround;
@@ -1328,5 +1440,6 @@ public class SignIn extends javax.swing.JFrame {
     private javax.swing.JLabel password;
     private javax.swing.JLabel titlelbl;
     private componentes.RoundedPanel white;
+    private byte[] imagenSeleccionada = null;
     // End of variables declaration//GEN-END:variables
 }
