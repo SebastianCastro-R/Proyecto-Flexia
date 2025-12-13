@@ -128,10 +128,14 @@ public class Home extends javax.swing.JFrame {
         menuPanel.setOnCloseCallback(() -> {
             toggleMenu(null); // Reutiliza tu animación de cerrar menú
         });
-        getContentPane().add(menuPanel);
-        getContentPane().setComponentZOrder(menuPanel, 0); // asegúrate que esté arriba
-        revalidate();
-        repaint();
+
+        // IMPORTANTE: agregar el menú al LayeredPane para que siempre quede por encima
+        // (evita que la miniatura/preview se dibuje encima del menú)
+        getLayeredPane().add(menuPanel, JLayeredPane.POPUP_LAYER);
+        getLayeredPane().setLayer(menuPanel, JLayeredPane.POPUP_LAYER);
+        menuPanel.setBounds(menuX, 0, menuWidth, getHeight());
+        menuPanel.revalidate();
+        menuPanel.repaint();
 
         setLayout(null);
         // Configuración de la ventana
@@ -324,6 +328,12 @@ public class Home extends javax.swing.JFrame {
 
         notification.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/notificacion.png"))); // NOI18N
         notification.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        notification.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                abrirVentanaNotificaciones();
+            }
+        });
         roundedPanel1.add(notification, new org.netbeans.lib.awtextra.AbsoluteConstraints(361, 23, -1, -1));
 
         JPanel panelRacha = crearPanelRacha();
@@ -554,12 +564,23 @@ public class Home extends javax.swing.JFrame {
     }// GEN-LAST:event_minimizetxtMouseExited
 
     private void toggleMenu(java.awt.event.MouseEvent evt) {
+        // Asegurar que el menú se mantenga en el layer superior
+        try {
+            if (menuPanel != null) {
+                getLayeredPane().setLayer(menuPanel, JLayeredPane.POPUP_LAYER);
+                // mantener el alto del frame (por si cambió tras pack/setSize)
+                menuPanel.setSize(menuWidth, getHeight());
+            }
+        } catch (Exception ignored) {
+        }
+
         if (menuVisible) {
             // Ocultar menú
             Timer slideOut = new Timer(2, e -> {
                 if (menuX > -menuWidth) {
                     menuX -= 10;
                     menuPanel.setLocation(menuX, 0);
+                    menuPanel.repaint();
                 } else {
                     ((Timer) e.getSource()).stop();
                     menuVisible = false;
@@ -577,6 +598,7 @@ public class Home extends javax.swing.JFrame {
                 if (menuX < 0) {
                     menuX += 10;
                     menuPanel.setLocation(menuX, 0);
+                    menuPanel.repaint();
                 } else {
                     ((Timer) e.getSource()).stop();
                     menuVisible = true;
@@ -752,6 +774,14 @@ public class Home extends javax.swing.JFrame {
     private void abrirCalendarioRacha(int idUsuario) {
         Back_End.CalendarioRacha calendario = new Back_End.CalendarioRacha(this, idUsuario);
         calendario.setVisible(true);
+    }
+
+    private void abrirVentanaNotificaciones() {
+        // TODO: Implement notifications window
+        java.util.List<String> items = new java.util.ArrayList<>();
+
+        NotificationsDialog dlg = new NotificationsDialog(this, items);
+        dlg.setVisible(true);
     }
 
     private void registrarActividadDiaria() {
