@@ -41,6 +41,8 @@ import Database.Conexion;
 import Database.RachaDAO;
 import Database.DolorDAO;
 import Database.ProgresoDAO;
+import Database.MetricasEjercicioDAO;
+import componentes.DonutChartPanel;
 
 import java.awt.Cursor;
 
@@ -65,6 +67,9 @@ public class Home extends javax.swing.JFrame {
     private JLabel lblCirculoDolor;
     private JLabel lblCirculoUnidades;
 
+    // Gráfica de Correctos / Incorrectos
+    private DonutChartPanel chartCorrectosIncorrectos;
+
     /**
      * Creates new form Home
      */
@@ -78,6 +83,10 @@ public class Home extends javax.swing.JFrame {
         // Estadísticas Generales: colocar valores dentro de los círculos (videos, dolor, unidades)
         setupEstadisticasGeneralesCirculos();
         actualizarEstadisticasGeneralesCirculos();
+
+        // Gráfica: Correctos vs Incorrectos (al lado de Estadísticas Generales)
+        setupGraficaCorrectosIncorrectos();
+        actualizarGraficaCorrectosIncorrectos();
 
         // INICIALIZAR GESTOR DE ANUNCIOS
         Back_End.Ads.AdManager adManager = Back_End.Ads.AdManager.getInstance();
@@ -1099,11 +1108,11 @@ public class Home extends javax.swing.JFrame {
 
             // Coordenadas aproximadas de los círculos dentro de la imagen
             // (Ajustables si se cambia el recurso o el tamaño)
-            final int circleSize = 44;
-            final int circleX = panelW - 30 - circleSize; // margen derecho ~30px
-            final int circleY1 = 20;
-            final int circleY2 = 95;
-            final int circleY3 = 170;
+            final int circleSize = 30;
+            final int circleX = panelW - 24 - circleSize; // margen derecho ~30px
+            final int circleY1 = 21;
+            final int circleY2 = 140;
+            final int circleY3 = 258;
 
             lblCirculoVideos = crearLabelCirculo();
             lblCirculoDolor = crearLabelCirculo();
@@ -1133,7 +1142,7 @@ public class Home extends javax.swing.JFrame {
 
     private JLabel crearLabelCirculo() {
         JLabel lbl = new JLabel("—", SwingConstants.CENTER);
-        lbl.setForeground(Color.WHITE);
+        lbl.setForeground(Color.darkGray);
         lbl.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 18f));
         return lbl;
     }
@@ -1182,6 +1191,49 @@ public class Home extends javax.swing.JFrame {
 
         } catch (Exception e) {
             System.err.println("⚠️ No se pudieron cargar estadísticas generales: " + e.getMessage());
+        }
+    }
+
+    private void setupGraficaCorrectosIncorrectos() {
+        try {
+            roundedPanel2.removeAll();
+            roundedPanel2.setLayout(new BorderLayout());
+
+            chartCorrectosIncorrectos = new DonutChartPanel();
+            chartCorrectosIncorrectos.setLegendLabels("Correctos", "Incorrectos");
+            chartCorrectosIncorrectos.setTitle("Ejercicios Realizados");
+
+            roundedPanel2.add(chartCorrectosIncorrectos, BorderLayout.CENTER);
+            roundedPanel2.revalidate();
+            roundedPanel2.repaint();
+        } catch (Exception e) {
+            System.err.println("⚠️ No se pudo inicializar la gráfica Correctos/Incorrectos: " + e.getMessage());
+        }
+    }
+
+    private void actualizarGraficaCorrectosIncorrectos() {
+        try {
+            if (chartCorrectosIncorrectos == null) {
+                return;
+            }
+
+            SesionUsuario sesion = SesionUsuario.getInstancia();
+            if (sesion == null || !sesion.estaLogueado()) {
+                chartCorrectosIncorrectos.setData(0, 0);
+                return;
+            }
+
+            int idUsuario = obtenerIdUsuario(sesion.getCorreoUsuario());
+            if (idUsuario <= 0) {
+                chartCorrectosIncorrectos.setData(0, 0);
+                return;
+            }
+
+            MetricasEjercicioDAO.PrecisionGlobal prec = MetricasEjercicioDAO.obtenerPrecisionGlobal(idUsuario);
+            chartCorrectosIncorrectos.setData(prec.ok, prec.reset);
+
+        } catch (Exception e) {
+            System.err.println("⚠️ No se pudo cargar la gráfica Correctos/Incorrectos: " + e.getMessage());
         }
     }
 
