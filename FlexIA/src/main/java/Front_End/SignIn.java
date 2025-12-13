@@ -6,7 +6,6 @@ package Front_End;
 
 import Back_End.FuenteUtil;
 import Database.UsuariosDAO;
-import java.awt.Image;
 
 import com.formdev.flatlaf.FlatLightLaf;
 
@@ -18,12 +17,6 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.geom.Ellipse2D;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
@@ -33,7 +26,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -42,8 +34,6 @@ import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
 /**
  *
  * @author Karol
@@ -71,7 +61,6 @@ public class SignIn extends javax.swing.JFrame {
         initButtons(); // <-- 👈 añadimos esta llamada
         initFocusOrder(); // <-- Agregar esta línea
         setupKeyboardNavigation(); // <-- Agregar esta línea
-        establecerImagenPorDefecto();
 
         setSize(1440, 1024);
         setLocationRelativeTo(null);
@@ -176,7 +165,9 @@ public class SignIn extends javax.swing.JFrame {
     private void initFocusOrder() {
         focusOrder = new ArrayList<>();
 
+
         // Definir el orden lógico de navegación (izquierda a derecha, arriba a abajo)
+        focusOrder.add(ButtonAgregarImagen);
         focusOrder.add(IDType);
         focusOrder.add(numIDText);
         focusOrder.add(nameText);
@@ -418,6 +409,7 @@ public class SignIn extends javax.swing.JFrame {
         celText = new componentes.IconTextField();
         DateText = new componentes.IconTextField();
         LabelImagen1 = new javax.swing.JLabel();
+        ButtonAgregarImagen = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setUndecorated(true);
@@ -612,10 +604,37 @@ public class SignIn extends javax.swing.JFrame {
         FotoPefil.setText("Foto de Perfil");
         white.add(FotoPefil, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 230, -1, -1));
 
+        white.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 230, -1, -1));
+
         Telefono.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
         Telefono.setText("Teléfono");
         white.add(Telefono, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 460, -1, -1));
 
+        ButtonAgregarImagen.setBackground(new java.awt.Color(152, 206, 255));
+        ButtonAgregarImagen.setFont(new java.awt.Font("Epunda Slab", 0, 16)); // NOI18N
+        ButtonAgregarImagen.setText("Agregar Imagen");
+        ButtonAgregarImagen.setToolTipText("Seleccionar imagen de perfil");
+        ButtonAgregarImagen.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        
+        // Listener de acción (ya existía en tu código)
+        ButtonAgregarImagen.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ButtonAgregarImagenActionPerformed(evt);
+            }
+        });
+
+        // Listeners de estilo (usando los de ButtonSignIn para simplificar)
+        ButtonAgregarImagen.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                ButtonAgregarImagenMouseEntered(evt); // Usar el mismo efecto hover
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                ButtonAgregarImagenMouseExited(evt); // Usar el mismo efecto hover
+            }
+        });
+
+        white.add(ButtonAgregarImagen, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 260, 180, 35));
+       
         ButtonSignIn.setBackground(new java.awt.Color(152, 206, 255));
         ButtonSignIn.setFont(new java.awt.Font("Epunda Slab", 0, 20)); // NOI18N
         ButtonSignIn.setText("Registrarse");
@@ -694,17 +713,6 @@ public class SignIn extends javax.swing.JFrame {
             }
         });
         white.add(PasswordText, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 570, 180, 35));
-
-        // En el initComponents(), reemplaza esta parte del jLabel1:
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/Group 5.png"))); // NOI18N
-        jLabel1.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                seleccionarFotoPerfil();
-            }
-        });
-
-        white.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 260, -1, -1));
 
         CorreoText.setForeground(new java.awt.Color(142, 142, 147));
         CorreoText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Images/correo.png"))); // NOI18N
@@ -914,8 +922,7 @@ public class SignIn extends javax.swing.JFrame {
                     fechaSQL,
                     telefono,
                     false, // esPremium por defecto
-                    imagenSeleccionada
-            );
+                    imagenSeleccionada);
 
             if (exito) {
                 JOptionPane.showMessageDialog(this, "✅ Registro exitoso. ¡Bienvenido/a a FLEX-IA!");
@@ -975,6 +982,16 @@ public class SignIn extends javax.swing.JFrame {
         ButtonLogIn1.setBackground(new Color(0x1E3888));
         ButtonLogIn1.setForeground(Color.WHITE);
     }// GEN-LAST:event_ButtonLogIn1MouseEntered
+
+    private void ButtonAgregarImagenMouseEntered(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ButtonSignInMouseEntered
+        ButtonAgregarImagen.setBackground(new Color(0x1E3888));
+        ButtonAgregarImagen.setForeground(Color.WHITE);
+    }// GEN-LAST:event_ButtonSignInMouseEntered
+
+    private void ButtonAgregarImagenMouseExited(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ButtonSignInMouseExited
+        ButtonAgregarImagen.setBackground(new Color(0x98CEFF));
+        ButtonAgregarImagen.setForeground(Color.BLACK);
+    }// GEN-LAST:event_ButtonSignInMouseExited
 
     private void ButtonSignInMouseEntered(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_ButtonSignInMouseEntered
         ButtonSignIn.setBackground(new Color(0x1E3888));
@@ -1071,45 +1088,42 @@ public class SignIn extends javax.swing.JFrame {
     private void PasswordTextMousePressed(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_PasswordTextMousePressed
         PasswordText.setText("");
     }// GEN-LAST:event_PasswordTextMousePressed
-        private void seleccionarFotoPerfil() {
-            JFileChooser chooser = new JFileChooser();
-            chooser.setFileFilter(new FileNameExtensionFilter("Imágenes", "jpg", "png", "jpeg", "gif", "bmp"));
-            
-            int res = chooser.showOpenDialog(this);
-            if (res == JFileChooser.APPROVE_OPTION) {
-                File file = chooser.getSelectedFile();
+
+    private void ButtonAgregarImagenActionPerformed(java.awt.event.ActionEvent evt) {                                             
+        javax.swing.JFileChooser fileChooser = new javax.swing.JFileChooser();
+        // Filtrar solo archivos de imagen
+        javax.swing.filechooser.FileNameExtensionFilter filter = new javax.swing.filechooser.FileNameExtensionFilter("Archivos de imagen (JPG, PNG)", "jpg", "png", "jpeg");
+        fileChooser.setFileFilter(filter);
+
+        int result = fileChooser.showOpenDialog(this);
+
+        if (result == javax.swing.JFileChooser.APPROVE_OPTION) {
+            try {
+                java.io.File selectedFile = fileChooser.getSelectedFile();
                 
-                try {
-                    // Verificar tamaño del archivo (máximo 5MB)
-                    long fileSize = file.length();
-                    if (fileSize > 5 * 1024 * 1024) {
-                        JOptionPane.showMessageDialog(this, 
-                            "La imagen es demasiado grande. Máximo 5MB permitido.", 
-                            "Error", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                    
-                    // Convertir imagen a bytes
-                    FileInputStream fis = new FileInputStream(file);
-                    imagenSeleccionada = fis.readAllBytes();
-                    fis.close();
-                    
-                    // Mostrar imagen en jLabel circular (150x150 px)
-                    ImageIcon iconOriginal = new ImageIcon(imagenSeleccionada);
-                    ImageIcon iconRedondeado = redondearImagen(iconOriginal.getImage(), 150);
-                    jLabel1.setIcon(iconRedondeado);
-                    
-                    // Opcional: mostrar mensaje de éxito
-                    jLabel1.setToolTipText("Foto seleccionada: " + file.getName());
-                    
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(this, 
-                        "Error al cargar la imagen: " + e.getMessage(), 
-                        "Error", JOptionPane.ERROR_MESSAGE);
-                    e.printStackTrace();
+                // 1. Convertir archivo a bytes y guardarlo en la variable de clase
+                try (java.io.FileInputStream fis = new java.io.FileInputStream(selectedFile)) {
+                    this.imagenSeleccionada = new byte[(int) selectedFile.length()];
+                    fis.read(this.imagenSeleccionada);
                 }
+                
+                FotoPefil.revalidate();
+                FotoPefil.repaint();
+                
+                // 3. CONFIRMACIÓN: Cambiar el texto y el color del botón
+                ButtonAgregarImagen.setText("Imagen agregada (✔️)");
+                ButtonAgregarImagen.setBackground(new java.awt.Color(46, 204, 113)); // Verde para indicar éxito
+                
+            } catch (java.io.IOException e) {
+                // Si hay error, mostrar mensaje y revertir el botón
+                javax.swing.JOptionPane.showMessageDialog(this, "Error al leer el archivo de imagen.", "Error de lectura", javax.swing.JOptionPane.ERROR_MESSAGE);
+                System.err.println("Error de lectura de archivo: " + e.getMessage());
+                
+                ButtonAgregarImagen.setText("Agregar imagen");
+                ButtonAgregarImagen.setBackground(new java.awt.Color(0, 102, 204));
             }
         }
+    }
 
     private boolean mostrarTerminosYCondiciones() {
         // 🧾 Texto HTML con estilo visual y márgenes
@@ -1232,35 +1246,6 @@ public class SignIn extends javax.swing.JFrame {
         return aceptado[0];
     }
 
-    private ImageIcon redondearImagen(Image img, int size) {
-        BufferedImage circleBuffer = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = circleBuffer.createGraphics();
-
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        // Crear máscara circular
-        Ellipse2D.Double circle = new Ellipse2D.Double(0, 0, size, size);
-        g2.setClip(circle);
-
-        // Dibujar la imagen redimensionada dentro del círculo
-        g2.drawImage(img.getScaledInstance(size, size, Image.SCALE_SMOOTH), 0, 0, null);
-        g2.dispose();
-
-        return new ImageIcon(circleBuffer);
-}
-
-    private void establecerImagenPorDefecto() {
-        try {
-            // Cargar imagen por defecto
-            ImageIcon iconoDefault = new ImageIcon(getClass().getResource("/Images/Group 5.png"));
-            ImageIcon iconoRedondeado = redondearImagen(iconoDefault.getImage(), 150);
-            jLabel1.setIcon(iconoRedondeado);
-            jLabel1.setToolTipText("Haz clic para seleccionar foto de perfil");
-        } catch (Exception e) {
-            System.err.println("Error al cargar imagen por defecto: " + e.getMessage());
-        }
-    }
-
     /**
      * @param args the command line arguments
      */
@@ -1302,6 +1287,7 @@ public class SignIn extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton ButtonAgregarImagen;
     private byte[] imagenSeleccionada; // almacenará la imagen temporalmente
     private javax.swing.JLabel Apellidos;
     private componentes.IconTextField ApellidosText;
