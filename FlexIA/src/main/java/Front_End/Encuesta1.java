@@ -4,6 +4,16 @@
  */
 package Front_End;
 
+import Back_End.SesionUsuario;
+import Database.EncuestaDAO;
+
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author usuario
@@ -11,6 +21,8 @@ package Front_End;
 public class Encuesta1 extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Encuesta1.class.getName());
+
+    private String manoDominanteSeleccionada = null; // "Izquierda" / "Derecha"
 
     // Para mover la ventana (barra superior)
     int xmouse, ymouse;
@@ -20,7 +32,45 @@ public class Encuesta1 extends javax.swing.JFrame {
      */
     public Encuesta1() {
         initComponents();
-        
+        setLocationRelativeTo(null);
+        initLogic();
+    }
+
+    private void initLogic() {
+        // Mano dominante (botones)
+        jButton_Izq.addActionListener(e -> seleccionarMano("Izquierda"));
+        jButton_Der.addActionListener(e -> seleccionarMano("Derecha"));
+
+        // Enviar encuesta
+        BotonEnviar.addActionListener(e -> onEnviarEncuesta());
+    }
+
+    private void seleccionarMano(String mano) {
+        manoDominanteSeleccionada = mano;
+
+        Color selected = new Color(152, 206, 255);
+        Color normal = new Color(255, 255, 255);
+
+        if ("Izquierda".equals(mano)) {
+            jButton_Izq.setBackground(selected);
+            jButton_Der.setBackground(normal);
+        } else {
+            jButton_Der.setBackground(selected);
+            jButton_Izq.setBackground(normal);
+        }
+    }
+
+    private void onEnviarEncuesta() {
+        boolean ok = guardarDatosEnBD();
+        if (!ok) {
+            return;
+        }
+
+        EncuestaDiagnosticaResultado resultado = construirResultadoEncuesta();
+        ResultadosEncuestaDiagnostica vista = new ResultadosEncuestaDiagnostica(resultado);
+        vista.setVisible(true);
+        vista.setLocationRelativeTo(null);
+        dispose();
     }
 
     /**
@@ -619,6 +669,297 @@ public class Encuesta1 extends javax.swing.JFrame {
     private void ExitMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_ExitMouseClicked
         dispose();
     }//GEN-LAST:event_ExitMouseClicked
+
+    private boolean guardarDatosEnBD() {
+        // ✅ Validaciones básicas
+        if (jTextField_Nombre.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "⚠️ Ingrese su nombre.");
+            return false;
+        }
+        if (jTextField_Ocupacion.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "⚠️ Ingrese su ocupación.");
+            return false;
+        }
+
+        String edadTexto = jTextField_Edad.getText().trim();
+        int edad;
+        try {
+            edad = Integer.parseInt(edadTexto);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "⚠️ Ingrese una edad válida.");
+            return false;
+        }
+
+        if (manoDominanteSeleccionada == null || manoDominanteSeleccionada.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "⚠️ Seleccione la mano dominante.");
+            return false;
+        }
+
+        String horasTexto = (jComboBox_Horas.getSelectedItem() != null) ? jComboBox_Horas.getSelectedItem().toString().trim() : "";
+        if (horasTexto.isEmpty() || "Seleccione una".equals(horasTexto)) {
+            JOptionPane.showMessageDialog(this, "⚠️ Seleccione una opción válida en horas frente al computador.");
+            return false;
+        }
+
+        int horasComputador;
+        switch (horasTexto) {
+            case "Menos de 2 horas":
+                horasComputador = 1;
+                break;
+            case "2 - 4 horas":
+                horasComputador = 3;
+                break;
+            case "5 - 7 horas":
+                horasComputador = 6;
+                break;
+            case "Más de 8 horas":
+                horasComputador = 10;
+                break;
+            default:
+                JOptionPane.showMessageDialog(this, "⚠️ Seleccione una opción válida en horas frente al computador.");
+                return false;
+        }
+
+        // ✅ Obtener opciones seleccionadas
+        String sintoma1 = (jComboBox_Punto1.getSelectedItem() != null) ? jComboBox_Punto1.getSelectedItem().toString() : "";
+        String sintoma2 = (jComboBox_Punto2.getSelectedItem() != null) ? jComboBox_Punto2.getSelectedItem().toString() : "";
+        String sintoma3 = (jComboBox_Punto3.getSelectedItem() != null) ? jComboBox_Punto3.getSelectedItem().toString() : "";
+        String sintoma4 = (jComboBox_Punto4.getSelectedItem() != null) ? jComboBox_Punto4.getSelectedItem().toString() : "";
+        String sintoma5 = (jComboBox_Punto5.getSelectedItem() != null) ? jComboBox_Punto5.getSelectedItem().toString() : "";
+        String sintoma6 = (jComboBox_Punto6.getSelectedItem() != null) ? jComboBox_Punto6.getSelectedItem().toString() : "";
+        String habito1 = (jComboBox_punto7.getSelectedItem() != null) ? jComboBox_punto7.getSelectedItem().toString() : "";
+        String habito2 = (jComboBox_punto8.getSelectedItem() != null) ? jComboBox_punto8.getSelectedItem().toString() : "";
+        String prevencion1 = (jComboBox_punto9.getSelectedItem() != null) ? jComboBox_punto9.getSelectedItem().toString() : "";
+        String prevencion2 = (jComboBox_punto10.getSelectedItem() != null) ? jComboBox_punto10.getSelectedItem().toString() : "";
+        int nivelDolor = jSlider_nivel.getValue();
+
+        // Validar respuestas obligatorias (preguntas con *)
+        if ("Seleccione una".equals(sintoma1) || "Seleccione una".equals(sintoma2) || "Seleccione una".equals(sintoma3)
+                || "Seleccione una".equals(sintoma4) || "Seleccione una".equals(sintoma5) || "Seleccione una".equals(sintoma6)
+                || "Seleccione una".equals(habito1) || "Seleccione una".equals(habito2) || "Seleccione una".equals(prevencion2)) {
+            JOptionPane.showMessageDialog(this, "⚠️ Por favor, completa todas las preguntas obligatorias (marcadas con *).");
+            return false;
+        }
+
+        String correoUsuario;
+        try {
+            correoUsuario = SesionUsuario.getInstancia().getCorreoUsuario();
+        } catch (Exception e) {
+            correoUsuario = null;
+        }
+
+        if (correoUsuario == null || correoUsuario.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "❌ No se pudo identificar el usuario logueado para guardar la encuesta.");
+            return false;
+        }
+
+        boolean ok = EncuestaDAO.upsertEncuesta(
+                correoUsuario,
+                jTextField_Nombre.getText().trim(),
+                edad,
+                manoDominanteSeleccionada,
+                jTextField_Ocupacion.getText().trim(),
+                horasComputador,
+                sintoma1,
+                sintoma2,
+                sintoma3,
+                sintoma4,
+                sintoma5,
+                sintoma6,
+                habito1,
+                habito2,
+                prevencion1,
+                prevencion2,
+                nivelDolor
+        );
+
+        if (ok) {
+            JOptionPane.showMessageDialog(this, "✅ Encuesta almacenada correctamente 🎉");
+            return true;
+        }
+
+        JOptionPane.showMessageDialog(this, "❌ Error al guardar datos. Revisa la conexión a la base de datos.");
+        return false;
+    }
+
+    private EncuestaDiagnosticaResultado construirResultadoEncuesta() {
+        String nombre = jTextField_Nombre.getText().trim();
+        String horasTexto = (jComboBox_Horas.getSelectedItem() != null) ? jComboBox_Horas.getSelectedItem().toString().trim() : "";
+        int nivelDolor = jSlider_nivel.getValue();
+
+        // Scores
+        int scoreSintomas = scoreFrecuencia(jComboBox_Punto1.getSelectedItem().toString())
+                + scoreFrecuencia(jComboBox_Punto2.getSelectedItem().toString())
+                + scoreFrecuencia(jComboBox_Punto3.getSelectedItem().toString())
+                + scoreFrecuencia(jComboBox_Punto4.getSelectedItem().toString())
+                + scoreFrecuencia(jComboBox_Punto5.getSelectedItem().toString())
+                + scoreFrecuencia(jComboBox_Punto6.getSelectedItem().toString());
+
+        int scoreHabitos = scoreHabitoInverso(jComboBox_punto7.getSelectedItem().toString())
+                + scoreHabitoInverso(jComboBox_punto8.getSelectedItem().toString());
+
+        int scoreAlivioSacudir = scoreAlivio(jComboBox_punto10.getSelectedItem().toString());
+        int scoreHoras = scoreHoras(horasTexto);
+
+        int scoreTotal = scoreSintomas + scoreHabitos + scoreAlivioSacudir + scoreHoras + nivelDolor;
+        String riesgo = nivelRiesgo(scoreTotal);
+
+        // Factores clave (top 3 por score)
+        List<ItemScore> items = new ArrayList<>();
+        items.add(new ItemScore("Hormigueo/entumecimiento en dedos: " + jComboBox_Punto1.getSelectedItem(), scoreFrecuencia(jComboBox_Punto1.getSelectedItem().toString())));
+        items.add(new ItemScore("Pérdida de fuerza al sujetar objetos: " + jComboBox_Punto2.getSelectedItem(), scoreFrecuencia(jComboBox_Punto2.getSelectedItem().toString())));
+        items.add(new ItemScore("Dolor en muñeca/antebrazo durante el día: " + jComboBox_Punto3.getSelectedItem(), scoreFrecuencia(jComboBox_Punto3.getSelectedItem().toString())));
+        items.add(new ItemScore("Se agrava con teclado/celular/mouse: " + jComboBox_Punto4.getSelectedItem(), scoreFrecuencia(jComboBox_Punto4.getSelectedItem().toString())));
+        items.add(new ItemScore("Dificultad en tareas finas: " + jComboBox_Punto5.getSelectedItem(), scoreFrecuencia(jComboBox_Punto5.getSelectedItem().toString())));
+        items.add(new ItemScore("Interfiere con el sueño: " + jComboBox_Punto6.getSelectedItem(), scoreFrecuencia(jComboBox_Punto6.getSelectedItem().toString())));
+        items.add(new ItemScore("Alivio al sacudir/estirar la mano: " + jComboBox_punto10.getSelectedItem(), scoreAlivioSacudir));
+
+        // Incluimos horas y dolor como factor si son relevantes
+        if (scoreHoras >= 3) {
+            items.add(new ItemScore("Muchas horas frente al computador: " + horasTexto, scoreHoras));
+        }
+        if (nivelDolor >= 6) {
+            items.add(new ItemScore("Dolor reportado alto: " + nivelDolor + "/10", nivelDolor));
+        }
+
+        items.sort(Comparator.comparingInt(ItemScore::getScore).reversed());
+        List<String> factores = new ArrayList<>();
+        for (ItemScore it : items) {
+            if (it.getScore() <= 0) {
+                continue;
+            }
+            factores.add(it.getText());
+            if (factores.size() >= 3) {
+                break;
+            }
+        }
+
+        // Recomendaciones (máx 3)
+        List<String> recomendaciones = new ArrayList<>();
+
+        if (scoreHabitoInverso(jComboBox_punto7.getSelectedItem().toString()) >= 2) {
+            recomendaciones.add("Haz pausas activas cada 45–60 min (1–2 min) y estira muñecas y dedos.");
+        }
+        if (scoreHabitoInverso(jComboBox_punto8.getSelectedItem().toString()) >= 2) {
+            recomendaciones.add("Ajusta tu postura: muñeca recta, teclado bajo y silla a buena altura.");
+        }
+        if (riesgo.equals("ALTO")) {
+            recomendaciones.add("Si los síntomas son frecuentes o aumentan, considera consultar a un profesional de salud.");
+        } else {
+            recomendaciones.add("Sigue las rutinas y ejercicios de la app para prevenir molestias.");
+        }
+
+        // Limitar a 3
+        if (recomendaciones.size() > 3) {
+            recomendaciones = recomendaciones.subList(0, 3);
+        }
+
+        return new EncuestaDiagnosticaResultado(nombre, riesgo, nivelDolor, horasTexto, factores, recomendaciones);
+    }
+
+    private static int scoreFrecuencia(String v) {
+        if (v == null) {
+            return 0;
+        }
+        switch (v.trim()) {
+            case "Nunca":
+                return 0;
+            case "Rara vez":
+                return 1;
+            case "A veces":
+                return 2;
+            case "Frecuentemente":
+                return 3;
+            case "Siempre":
+                return 4;
+            default:
+                return 0;
+        }
+    }
+
+    private static int scoreHabitoInverso(String v) {
+        // A más hábito preventivo, menos riesgo
+        if (v == null) {
+            return 0;
+        }
+        switch (v.trim()) {
+            case "Siempre":
+                return 0;
+            case "Frecuentemente":
+                return 1;
+            case "A veces":
+                return 2;
+            case "Rara vez":
+                return 3;
+            case "Nunca":
+                return 4;
+            default:
+                return 0;
+        }
+    }
+
+    private static int scoreAlivio(String v) {
+        // Síntoma típico: alivio al sacudir/estirar
+        if (v == null) {
+            return 0;
+        }
+        switch (v.trim()) {
+            case "Si":
+                return 3;
+            case "A veces":
+                return 2;
+            case "No":
+                return 0;
+            default:
+                return 0;
+        }
+    }
+
+    private static int scoreHoras(String horasTexto) {
+        if (horasTexto == null) {
+            return 0;
+        }
+        switch (horasTexto.trim()) {
+            case "Menos de 2 horas":
+                return 0;
+            case "2 - 4 horas":
+                return 1;
+            case "5 - 7 horas":
+                return 3;
+            case "Más de 8 horas":
+                return 4;
+            default:
+                return 0;
+        }
+    }
+
+    private static String nivelRiesgo(int scoreTotal) {
+        if (scoreTotal >= 31) {
+            return "ALTO";
+        }
+        if (scoreTotal >= 17) {
+            return "MEDIO";
+        }
+        return "BAJO";
+    }
+
+    private static class ItemScore {
+        private final String text;
+        private final int score;
+
+        ItemScore(String text, int score) {
+            this.text = text;
+            this.score = score;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public int getScore() {
+            return score;
+        }
+    }
 
     /**
      * @param args the command line arguments

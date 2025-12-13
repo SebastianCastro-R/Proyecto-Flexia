@@ -74,3 +74,7 @@ pip-selfcheck.json
 
 # Progreso/sesiones locales (no subir al repo)
 progreso/
+
+# Artefactos locales de compilación (scripts/IDE)
+.tmp_javac/
+.tmp_javac_full/

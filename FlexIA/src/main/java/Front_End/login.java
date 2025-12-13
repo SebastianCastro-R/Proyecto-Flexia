@@ -473,10 +473,10 @@ public class login extends javax.swing.JFrame {
                             home.setVisible(true);
                             home.setLocationRelativeTo(null);
                         } else {
-                            // ❌ No respondió → ir al Formulario
-                            Formulario form = new Formulario();
-                            form.setVisible(true);
-                            form.setLocationRelativeTo(null);
+                            // ❌ No respondió → ir a la Encuesta diagnóstica (Encuesta1)
+                            Encuesta1 encuesta = new Encuesta1();
+                            encuesta.setVisible(true);
+                            encuesta.setLocationRelativeTo(null);
                         }
 
                         dispose(); // Cierra login

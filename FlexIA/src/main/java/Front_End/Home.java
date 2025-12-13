@@ -40,6 +40,7 @@ import Back_End.Ads.AdManager;
 import Database.Conexion;
 import Database.RachaDAO;
 import Database.DolorDAO;
+import Database.ProgresoDAO;
 
 import java.awt.Cursor;
 
@@ -59,6 +60,11 @@ public class Home extends javax.swing.JFrame {
     private Border bordeSinFoco = BorderFactory.createEmptyBorder(2, 2, 2, 2);
     private Border bordeConFoco = BorderFactory.createLineBorder(new Color(0, 102, 204), 2);
 
+    // Labels superpuestos dentro de los círculos de "Estadísticas Generales"
+    private JLabel lblCirculoVideos;
+    private JLabel lblCirculoDolor;
+    private JLabel lblCirculoUnidades;
+
     /**
      * Creates new form Home
      */
@@ -68,6 +74,10 @@ public class Home extends javax.swing.JFrame {
         colocarFechaActual();
         // La racha se registra cuando el usuario completa un ejercicio (no solo por abrir Home)
         configurarNavegacionTecladoHome();
+
+        // Estadísticas Generales: colocar valores dentro de los círculos (videos, dolor, unidades)
+        setupEstadisticasGeneralesCirculos();
+        actualizarEstadisticasGeneralesCirculos();
 
         // INICIALIZAR GESTOR DE ANUNCIOS
         Back_End.Ads.AdManager adManager = Back_End.Ads.AdManager.getInstance();
@@ -1059,6 +1069,119 @@ public class Home extends javax.swing.JFrame {
             }
         } catch (Exception e) {
             System.err.println("⚠️ No se pudo guardar el nivel de dolor: " + e.getMessage());
+        }
+
+        // Actualizar el círculo de dolor (y demás) en "Estadísticas Generales" sin recargar Home
+        actualizarEstadisticasGeneralesCirculos();
+    }
+
+    private void setupEstadisticasGeneralesCirculos() {
+        // El diseño actual usa una imagen (/Images/Group 21.png) con 3 círculos.
+        // Para mostrar valores dinámicos, superponemos labels encima de esa imagen.
+        try {
+            final int panelW = 400;
+            final int panelH = 310;
+
+            // Limpiar contenido actual (solo imagen) y reemplazar por JLayeredPane
+            roundedPanel3.removeAll();
+            roundedPanel3.setLayout(new BorderLayout());
+
+            JLayeredPane layered = new JLayeredPane();
+            layered.setPreferredSize(new Dimension(panelW, panelH));
+            layered.setOpaque(false);
+
+            // Fondo: escalar a 400x310 para que los offsets sean estables
+            ImageIcon original = new ImageIcon(getClass().getResource("/Images/Group 21.png"));
+            java.awt.Image scaledImg = original.getImage().getScaledInstance(panelW, panelH, java.awt.Image.SCALE_SMOOTH);
+            JLabel bg = new JLabel(new ImageIcon(scaledImg));
+            bg.setBounds(0, 0, panelW, panelH);
+            layered.add(bg, JLayeredPane.DEFAULT_LAYER);
+
+            // Coordenadas aproximadas de los círculos dentro de la imagen
+            // (Ajustables si se cambia el recurso o el tamaño)
+            final int circleSize = 44;
+            final int circleX = panelW - 30 - circleSize; // margen derecho ~30px
+            final int circleY1 = 20;
+            final int circleY2 = 95;
+            final int circleY3 = 170;
+
+            lblCirculoVideos = crearLabelCirculo();
+            lblCirculoDolor = crearLabelCirculo();
+            lblCirculoUnidades = crearLabelCirculo();
+
+            lblCirculoVideos.setToolTipText("Videos vistos (completados)");
+            lblCirculoDolor.setToolTipText("Último nivel de dolor registrado (1–5)");
+            lblCirculoUnidades.setToolTipText("Unidades completadas (ejercicios realizados)");
+
+            lblCirculoVideos.setBounds(circleX, circleY1, circleSize, circleSize);
+            lblCirculoDolor.setBounds(circleX, circleY2, circleSize, circleSize);
+            lblCirculoUnidades.setBounds(circleX, circleY3, circleSize, circleSize);
+
+            layered.add(lblCirculoVideos, JLayeredPane.PALETTE_LAYER);
+            layered.add(lblCirculoDolor, JLayeredPane.PALETTE_LAYER);
+            layered.add(lblCirculoUnidades, JLayeredPane.PALETTE_LAYER);
+
+            roundedPanel3.add(layered, BorderLayout.CENTER);
+            roundedPanel3.revalidate();
+            roundedPanel3.repaint();
+
+        } catch (Exception e) {
+            // No romper Home si el recurso no existe o algo falla.
+            System.err.println("⚠️ No se pudieron inicializar los círculos de estadísticas: " + e.getMessage());
+        }
+    }
+
+    private JLabel crearLabelCirculo() {
+        JLabel lbl = new JLabel("—", SwingConstants.CENTER);
+        lbl.setForeground(Color.WHITE);
+        lbl.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 18f));
+        return lbl;
+    }
+
+    private void setValorEnCirculo(JLabel lbl, String valor) {
+        if (lbl == null) {
+            return;
+        }
+        String v = (valor == null || valor.trim().isEmpty()) ? "—" : valor.trim();
+        lbl.setText(v);
+
+        // Ajuste simple de fuente para valores grandes (ej: 100+)
+        float size = 18f;
+        if (v.length() >= 3) {
+            size = 14f;
+        }
+        lbl.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", size));
+    }
+
+    private void actualizarEstadisticasGeneralesCirculos() {
+        // Puede ejecutarse varias veces; si no están inicializados, no hace nada.
+        try {
+            SesionUsuario sesion = SesionUsuario.getInstancia();
+            if (sesion == null || !sesion.estaLogueado()) {
+                setValorEnCirculo(lblCirculoVideos, "—");
+                setValorEnCirculo(lblCirculoDolor, "—");
+                setValorEnCirculo(lblCirculoUnidades, "—");
+                return;
+            }
+
+            int idUsuario = obtenerIdUsuario(sesion.getCorreoUsuario());
+            if (idUsuario <= 0) {
+                setValorEnCirculo(lblCirculoVideos, "—");
+                setValorEnCirculo(lblCirculoDolor, "—");
+                setValorEnCirculo(lblCirculoUnidades, "—");
+                return;
+            }
+
+            int videosVistos = ProgresoDAO.contarVideosCompletados(idUsuario);
+            long unidades = ProgresoDAO.obtenerTotalEjerciciosRealizados(idUsuario);
+            int dolor = DolorDAO.obtenerUltimoNivelDolor(idUsuario);
+
+            setValorEnCirculo(lblCirculoVideos, String.valueOf(Math.max(0, videosVistos)));
+            setValorEnCirculo(lblCirculoUnidades, String.valueOf(Math.max(0, unidades)));
+            setValorEnCirculo(lblCirculoDolor, (dolor > 0) ? String.valueOf(dolor) : "—");
+
+        } catch (Exception e) {
+            System.err.println("⚠️ No se pudieron cargar estadísticas generales: " + e.getMessage());
         }
     }
 

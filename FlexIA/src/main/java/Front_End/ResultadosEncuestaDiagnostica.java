@@ -5,17 +5,18 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
+import java.awt.GridLayout;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.SwingConstants;
-import javax.swing.Timer;
 
 import Back_End.FuenteUtil;
 import componentes.RoundedPanel;
@@ -27,19 +28,23 @@ public class ResultadosEncuestaDiagnostica extends javax.swing.JFrame {
 
     private final EncuestaDiagnosticaResultado resultado;
 
-    private JLabel lblCountdown;
-    private Timer timer;
-
     public ResultadosEncuestaDiagnostica(EncuestaDiagnosticaResultado resultado) {
         this.resultado = resultado;
 
         initUI();
         setLocationRelativeTo(null);
-        iniciarRedireccionAutomatica(6);
     }
 
     private void initUI() {
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        // No queremos que se cierre la app; si el usuario intenta cerrar, volvemos a Home.
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                irAHome();
+            }
+        });
+
         setUndecorated(true);
         setResizable(false);
         setSize(1440, 1024);
@@ -127,12 +132,13 @@ public class ResultadosEncuestaDiagnostica extends javax.swing.JFrame {
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setBorder(BorderFactory.createEmptyBorder(40, 70, 30, 70));
 
-        JLabel h1 = new JLabel("Resultados de tu encuesta");
+        String nombre = safe(resultado.getNombre()).trim();
+        JLabel h1 = new JLabel(nombre.isEmpty() ? "Resultados de tu encuesta" : ("Resultados de " + nombre));
         h1.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 36f));
         h1.setForeground(new Color(30, 56, 136));
         h1.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel sub = new JLabel("<html><body style='width:900px;'>Resumen rápido y claro según tus respuestas.</body></html>");
+        JLabel sub = new JLabel("<html><body style='width:900px;'>Este resumen se basa en tus respuestas. Puedes cerrar esta pantalla cuando quieras y volverás a Home.</body></html>");
         sub.setFont(FuenteUtil.cargarFuente("EpundaSlab-Regular.ttf", 18f));
         sub.setForeground(new Color(120, 120, 120));
         sub.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -142,22 +148,41 @@ public class ResultadosEncuestaDiagnostica extends javax.swing.JFrame {
         content.add(sub);
         content.add(Box.createVerticalStrut(25));
 
-        RoundedPanel container = new RoundedPanel();
-        container.setArc(25);
-        container.setBackground(new Color(229, 229, 234));
-        container.setLayout(new FlowLayout(FlowLayout.LEFT, 20, 20));
-        container.setAlignmentX(Component.LEFT_ALIGNMENT);
-        container.setPreferredSize(new Dimension(1300, 520));
+        // Superficie principal (mejor jerarquía visual)
+        RoundedPanel surface = new RoundedPanel();
+        surface.setArc(25);
+        surface.setBackground(Color.WHITE);
+        surface.setLayout(new BoxLayout(surface, BoxLayout.Y_AXIS));
+        surface.setAlignmentX(Component.LEFT_ALIGNMENT);
+        surface.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(230, 230, 230), 2),
+                BorderFactory.createEmptyBorder(22, 22, 22, 22)
+        ));
+        surface.setPreferredSize(new Dimension(1300, 560));
 
-        container.add(crearCard("Nivel de riesgo", resultado.getRiesgo(), colorPorRiesgo(resultado.getRiesgo())));
-        container.add(crearCard("Dolor reportado", resultado.getNivelDolor() + " / 10", new Color(30, 56, 136)));
-        container.add(crearCard("Horas frente al computador", safe(resultado.getHorasComputadorTexto()), new Color(30, 56, 136)));
+        // Fila superior: métricas
+        JPanel rowTop = new JPanel(new GridLayout(1, 3, 18, 0));
+        rowTop.setOpaque(false);
+        rowTop.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        container.add(crearListaCard("Factores clave", resultado.getFactoresClave()));
-        container.add(crearListaCard("Recomendaciones", resultado.getRecomendaciones()));
+        rowTop.add(crearRiesgoCard(resultado.getRiesgo()));
+        rowTop.add(crearDolorCard(resultado.getNivelDolor()));
+        rowTop.add(crearCard("Horas frente al computador", safe(resultado.getHorasComputadorTexto()), new Color(30, 56, 136)));
 
-        content.add(container);
-        content.add(Box.createVerticalStrut(20));
+        // Fila inferior: listas
+        JPanel rowBottom = new JPanel(new GridLayout(1, 2, 18, 0));
+        rowBottom.setOpaque(false);
+        rowBottom.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        rowBottom.add(crearListaCard("Factores clave", resultado.getFactoresClave()));
+        rowBottom.add(crearListaCard("Recomendaciones", resultado.getRecomendaciones()));
+
+        surface.add(rowTop);
+        surface.add(Box.createVerticalStrut(18));
+        surface.add(rowBottom);
+
+        content.add(surface);
+        content.add(Box.createVerticalStrut(18));
 
         // Mascota (decorativo, opcional)
         try {
@@ -170,17 +195,37 @@ public class ResultadosEncuestaDiagnostica extends javax.swing.JFrame {
 
         root.add(content, BorderLayout.CENTER);
 
-        // ===== Footer / redirección =====
+        // ===== Footer: cierre manual =====
         JPanel footer = new JPanel(new BorderLayout());
         footer.setBackground(new Color(250, 250, 250));
         footer.setBorder(BorderFactory.createEmptyBorder(0, 70, 25, 70));
 
-        lblCountdown = new JLabel("Redirigiendo a Home...");
-        lblCountdown.setFont(FuenteUtil.cargarFuente("EpundaSlab-Medium.ttf", 18f));
-        lblCountdown.setForeground(new Color(30, 56, 136));
-        footer.add(lblCountdown, BorderLayout.WEST);
+        JLabel hint = new JLabel("Cuando termines, presiona \"Volver a Home\".");
+        hint.setFont(FuenteUtil.cargarFuente("EpundaSlab-Medium.ttf", 18f));
+        hint.setForeground(new Color(30, 56, 136));
+        footer.add(hint, BorderLayout.WEST);
+
+        JButton btnHome = new JButton("Volver a Home");
+        btnHome.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 18f));
+        btnHome.setBackground(new Color(30, 56, 136));
+        btnHome.setForeground(Color.WHITE);
+        btnHome.setBorder(BorderFactory.createEmptyBorder(12, 22, 12, 22));
+        btnHome.setFocusPainted(false);
+        btnHome.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnHome.addActionListener(e -> irAHome());
+        footer.add(btnHome, BorderLayout.EAST);
 
         root.add(footer, BorderLayout.SOUTH);
+
+        // Atajo: ESC vuelve a Home
+        getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "volverHome");
+        getRootPane().getActionMap().put("volverHome", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                irAHome();
+            }
+        });
 
         setContentPane(root);
     }
@@ -189,7 +234,7 @@ public class ResultadosEncuestaDiagnostica extends javax.swing.JFrame {
         RoundedPanel card = new RoundedPanel();
         card.setArc(20);
         card.setBackground(new Color(203, 230, 255));
-        card.setPreferredSize(new Dimension(400, 140));
+        card.setPreferredSize(new Dimension(400, 150));
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
 
@@ -204,6 +249,80 @@ public class ResultadosEncuestaDiagnostica extends javax.swing.JFrame {
         card.add(t);
         card.add(Box.createVerticalStrut(12));
         card.add(v);
+
+        return card;
+    }
+
+    private RoundedPanel crearRiesgoCard(String riesgo) {
+        Color color = colorPorRiesgo(riesgo);
+        String txt = safe(riesgo);
+
+        RoundedPanel card = new RoundedPanel();
+        card.setArc(20);
+        card.setBackground(new Color(203, 230, 255));
+        card.setPreferredSize(new Dimension(400, 150));
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
+
+        JLabel t = new JLabel("Nivel de riesgo");
+        t.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 18f));
+        t.setForeground(new Color(30, 56, 136));
+
+        // Badge
+        RoundedPanel badge = new RoundedPanel();
+        badge.setArc(18);
+        badge.setBackground(color);
+        badge.setLayout(new BorderLayout());
+        badge.setMaximumSize(new Dimension(220, 44));
+        badge.setPreferredSize(new Dimension(220, 44));
+
+        JLabel v = new JLabel(txt.isEmpty() ? "N/D" : txt.toUpperCase(), SwingConstants.CENTER);
+        v.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 20f));
+        v.setForeground(Color.WHITE);
+        badge.add(v, BorderLayout.CENTER);
+
+        card.add(t);
+        card.add(Box.createVerticalStrut(14));
+        card.add(badge);
+        card.add(Box.createVerticalStrut(10));
+
+        JLabel hint = new JLabel("Recuerda tomar pausas activas.");
+        hint.setFont(FuenteUtil.cargarFuente("EpundaSlab-Regular.ttf", 14f));
+        hint.setForeground(new Color(30, 56, 136));
+        card.add(hint);
+
+        return card;
+    }
+
+    private RoundedPanel crearDolorCard(int dolor) {
+        RoundedPanel card = new RoundedPanel();
+        card.setArc(20);
+        card.setBackground(new Color(203, 230, 255));
+        card.setPreferredSize(new Dimension(400, 150));
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
+
+        JLabel t = new JLabel("Dolor reportado");
+        t.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 18f));
+        t.setForeground(new Color(30, 56, 136));
+
+        JLabel v = new JLabel(Math.max(0, dolor) + " / 10");
+        v.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 30f));
+        v.setForeground(new Color(30, 56, 136));
+
+        JProgressBar bar = new JProgressBar(0, 10);
+        bar.setValue(Math.max(0, Math.min(10, dolor)));
+        bar.setStringPainted(false);
+        bar.setForeground(new Color(30, 56, 136));
+        bar.setBackground(Color.WHITE);
+        bar.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220), 1));
+        bar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 14));
+
+        card.add(t);
+        card.add(Box.createVerticalStrut(12));
+        card.add(v);
+        card.add(Box.createVerticalStrut(10));
+        card.add(bar);
 
         return card;
     }
@@ -252,30 +371,7 @@ public class ResultadosEncuestaDiagnostica extends javax.swing.JFrame {
         return card;
     }
 
-    private void iniciarRedireccionAutomatica(int seconds) {
-        final int[] remaining = new int[]{seconds};
-        actualizarCountdown(remaining[0]);
-
-        timer = new Timer(1000, e -> {
-            remaining[0]--;
-            if (remaining[0] <= 0) {
-                ((Timer) e.getSource()).stop();
-                irAHome();
-            } else {
-                actualizarCountdown(remaining[0]);
-            }
-        });
-        timer.start();
-    }
-
-    private void actualizarCountdown(int seconds) {
-        lblCountdown.setText("Redirigiendo a Home en " + seconds + "s...");
-    }
-
     private void irAHome() {
-        if (timer != null) {
-            timer.stop();
-        }
         Home home = new Home();
         home.setVisible(true);
         home.setLocationRelativeTo(null);
