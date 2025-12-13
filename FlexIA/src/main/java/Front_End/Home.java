@@ -9,6 +9,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.sql.Connection;
@@ -83,6 +85,13 @@ public class Home extends javax.swing.JFrame {
     private JTextArea txtUltimaLeccionDescripcion;
     private JLabel lblUltimaLeccionPreview;
     private JLabel lblUltimaLeccionPlay;
+    private JPanel panelUltimaLeccionOverlay;
+    private Timer hoverTimerUltimaLeccion;
+    private int ultimaLeccionOverlayAlpha = 0;
+    private int ultimaLeccionOverlayTargetAlpha = 0;
+    private int ultimaLeccionPlaySize = 50;
+    private final int ultimaLeccionPlayMin = 50;
+    private final int ultimaLeccionPlayMax = 55;
     private ProgresoDAO.UltimaLeccionInfo ultimaLeccionActual;
 
     /**
@@ -1258,47 +1267,133 @@ public class Home extends javax.swing.JFrame {
 
     private void setupPanelUltimaLeccion() {
         try {
-            // Este panel es el azul grande (roundedPanel4) 
+            // Este panel es el azul grande (roundedPanel4)
             roundedPanel4.removeAll();
             roundedPanel4.setLayout(null);
 
-            int w = 850;
-            int h = 320;
-
             // Preview izquierda (tipo video)
-            int previewW = 520;
-            int previewH = 240;
+            final int previewW = 520;
+            final int previewH = 240;
+
+            // Contenedor tipo layered para poder tener overlay + play encima (igual que en Ejercicios)
+            JLayeredPane contenedorPreview = new JLayeredPane();
+            contenedorPreview.setBounds(35, 40, previewW, previewH);
+            contenedorPreview.setOpaque(false);
 
             lblUltimaLeccionPreview = new JLabel();
-            lblUltimaLeccionPreview.setBounds(35, 40, previewW, previewH);
+            lblUltimaLeccionPreview.setBounds(0, 0, previewW, previewH);
             lblUltimaLeccionPreview.setOpaque(true);
             lblUltimaLeccionPreview.setBackground(new Color(210, 230, 255));
             lblUltimaLeccionPreview.setBorder(BorderFactory.createLineBorder(new Color(180, 200, 240), 2, true));
             lblUltimaLeccionPreview.setHorizontalAlignment(SwingConstants.CENTER);
-            roundedPanel4.add(lblUltimaLeccionPreview);
+            contenedorPreview.add(lblUltimaLeccionPreview, JLayeredPane.DEFAULT_LAYER);
 
-            // Botón play superpuesto
-            lblUltimaLeccionPlay = new JLabel(new ImageIcon(getClass().getResource("/icons/play.png")));
-            lblUltimaLeccionPlay.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            lblUltimaLeccionPlay.setBounds(35 + (previewW - 50) / 2, 40 + (previewH - 50) / 2, 50, 50);
-            lblUltimaLeccionPlay.addMouseListener(new java.awt.event.MouseAdapter() {
+            // Overlay azul semi-transparente (para efecto hover)
+            panelUltimaLeccionOverlay = new JPanel() {
                 @Override
-                public void mouseClicked(java.awt.event.MouseEvent evt) {
-                    abrirUltimaLeccion();
+                protected void paintComponent(Graphics g) {
+                    super.paintComponent(g);
+                    if (ultimaLeccionOverlayAlpha > 0) {
+                        Graphics2D g2d = (Graphics2D) g.create();
+                        g2d.setColor(new Color(30, 56, 136, ultimaLeccionOverlayAlpha));
+                        g2d.fillRect(0, 0, getWidth(), getHeight());
+                        g2d.dispose();
+                    }
+                }
+
+                @Override
+                public boolean contains(int x, int y) {
+                    return false; // deja pasar el mouse (como en Ejercicios)
+                }
+            };
+            panelUltimaLeccionOverlay.setBounds(0, 0, previewW, previewH);
+            panelUltimaLeccionOverlay.setOpaque(false);
+            contenedorPreview.add(panelUltimaLeccionOverlay, JLayeredPane.MODAL_LAYER);
+
+            // Play (escalado) encima
+            lblUltimaLeccionPlay = new JLabel();
+            lblUltimaLeccionPlay.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            lblUltimaLeccionPlay.setOpaque(false);
+            ultimaLeccionPlaySize = ultimaLeccionPlayMin;
+            setUltimaLeccionPlayIconSize(ultimaLeccionPlaySize);
+            centrarPlayEnPreview(previewW, previewH, ultimaLeccionPlaySize);
+            contenedorPreview.add(lblUltimaLeccionPlay, JLayeredPane.PALETTE_LAYER);
+
+            // Hover animation (overlay + zoom play)
+            if (hoverTimerUltimaLeccion != null) {
+                hoverTimerUltimaLeccion.stop();
+            }
+            hoverTimerUltimaLeccion = new Timer(10, null);
+            hoverTimerUltimaLeccion.addActionListener(e -> {
+                // alpha
+                if (ultimaLeccionOverlayAlpha < ultimaLeccionOverlayTargetAlpha) {
+                    ultimaLeccionOverlayAlpha = Math.min(ultimaLeccionOverlayAlpha + 15, ultimaLeccionOverlayTargetAlpha);
+                } else if (ultimaLeccionOverlayAlpha > ultimaLeccionOverlayTargetAlpha) {
+                    ultimaLeccionOverlayAlpha = Math.max(ultimaLeccionOverlayAlpha - 15, ultimaLeccionOverlayTargetAlpha);
+                }
+
+                // play zoom
+                if (ultimaLeccionOverlayTargetAlpha > 0 && ultimaLeccionPlaySize < ultimaLeccionPlayMax) {
+                    ultimaLeccionPlaySize = Math.min(ultimaLeccionPlaySize + 2, ultimaLeccionPlayMax);
+                    setUltimaLeccionPlayIconSize(ultimaLeccionPlaySize);
+                    centrarPlayEnPreview(previewW, previewH, ultimaLeccionPlaySize);
+                } else if (ultimaLeccionOverlayTargetAlpha == 0 && ultimaLeccionPlaySize > ultimaLeccionPlayMin) {
+                    ultimaLeccionPlaySize = Math.max(ultimaLeccionPlaySize - 2, ultimaLeccionPlayMin);
+                    setUltimaLeccionPlayIconSize(ultimaLeccionPlaySize);
+                    centrarPlayEnPreview(previewW, previewH, ultimaLeccionPlaySize);
+                }
+
+                if (panelUltimaLeccionOverlay != null) {
+                    panelUltimaLeccionOverlay.repaint();
+                }
+
+                // stop when reached
+                if (ultimaLeccionOverlayAlpha == ultimaLeccionOverlayTargetAlpha &&
+                        ((ultimaLeccionOverlayTargetAlpha > 0 && ultimaLeccionPlaySize == ultimaLeccionPlayMax) ||
+                                (ultimaLeccionOverlayTargetAlpha == 0 && ultimaLeccionPlaySize == ultimaLeccionPlayMin))) {
+                    ((Timer) e.getSource()).stop();
                 }
             });
-            roundedPanel4.add(lblUltimaLeccionPlay);
+
+            // Mouse listeners (mismo comportamiento: hover + click)
+            java.awt.event.MouseAdapter hoverClick = new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    ultimaLeccionOverlayTargetAlpha = 128;
+                    if (hoverTimerUltimaLeccion != null && !hoverTimerUltimaLeccion.isRunning()) {
+                        hoverTimerUltimaLeccion.start();
+                    }
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    ultimaLeccionOverlayTargetAlpha = 0;
+                    if (hoverTimerUltimaLeccion != null && !hoverTimerUltimaLeccion.isRunning()) {
+                        hoverTimerUltimaLeccion.start();
+                    }
+                }
+
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent e) {
+                    abrirUltimaLeccion();
+                }
+            };
+            lblUltimaLeccionPreview.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            lblUltimaLeccionPreview.addMouseListener(hoverClick);
+            lblUltimaLeccionPlay.addMouseListener(hoverClick);
+
+            roundedPanel4.add(contenedorPreview);
 
             // Columna derecha
             lblUltimaLeccionTitulo = new JLabel("Unidad #");
             lblUltimaLeccionTitulo.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 24f));
-            lblUltimaLeccionTitulo.setForeground(new Color(0,0,0));
+            lblUltimaLeccionTitulo.setForeground(new Color(0, 0, 0));
             lblUltimaLeccionTitulo.setBounds(600, 55, 240, 30);
             roundedPanel4.add(lblUltimaLeccionTitulo);
 
             lblUltimaLeccionEjercicio = new JLabel("Ejercicio #");
             lblUltimaLeccionEjercicio.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 16f));
-            lblUltimaLeccionEjercicio.setForeground(new Color(0,0,0));
+            lblUltimaLeccionEjercicio.setForeground(new Color(0, 0, 0));
             lblUltimaLeccionEjercicio.setBounds(580, 100, 240, 25);
             roundedPanel4.add(lblUltimaLeccionEjercicio);
 
@@ -1307,7 +1402,7 @@ public class Home extends javax.swing.JFrame {
             txtUltimaLeccionDescripcion.setLineWrap(true);
             txtUltimaLeccionDescripcion.setWrapStyleWord(true);
             txtUltimaLeccionDescripcion.setFont(FuenteUtil.cargarFuente("EpundaSlab-Regular.ttf", 14f));
-            txtUltimaLeccionDescripcion.setForeground(new Color(0,0,0));
+            txtUltimaLeccionDescripcion.setForeground(new Color(0, 0, 0));
             txtUltimaLeccionDescripcion.setBackground(new Color(203, 230, 255));
             txtUltimaLeccionDescripcion.setBorder(null);
 
@@ -1318,21 +1413,32 @@ public class Home extends javax.swing.JFrame {
             sp.setBounds(588, 130, 240, 120);
             roundedPanel4.add(sp);
 
-            // Hacer que también el preview sea clickeable
-            lblUltimaLeccionPreview.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            lblUltimaLeccionPreview.addMouseListener(new java.awt.event.MouseAdapter() {
-                @Override
-                public void mouseClicked(java.awt.event.MouseEvent evt) {
-                    abrirUltimaLeccion();
-                }
-            });
-
             roundedPanel4.revalidate();
             roundedPanel4.repaint();
 
         } catch (Exception e) {
             System.err.println("⚠️ No se pudo inicializar el panel de Última Lección: " + e.getMessage());
         }
+    }
+
+    private void setUltimaLeccionPlayIconSize(int size) {
+        try {
+            ImageIcon base = new ImageIcon(getClass().getResource("/icons/play.png"));
+            Image scaled = base.getImage().getScaledInstance(size, size, Image.SCALE_SMOOTH);
+            lblUltimaLeccionPlay.setIcon(new ImageIcon(scaled));
+        } catch (Exception e) {
+            // si falla, dejar sin icono
+            lblUltimaLeccionPlay.setIcon(null);
+        }
+    }
+
+    private void centrarPlayEnPreview(int previewW, int previewH, int size) {
+        if (lblUltimaLeccionPlay == null) {
+            return;
+        }
+        int x = (previewW - size) / 2;
+        int y = (previewH - size) / 2;
+        lblUltimaLeccionPlay.setBounds(x, y, size, size);
     }
 
     private void actualizarPanelUltimaLeccion() {
@@ -1377,9 +1483,20 @@ public class Home extends javax.swing.JFrame {
                 lblUltimaLeccionPreview.setText("Sin miniatura");
             }
 
-            // mostrar play
+            // mostrar play + reset hover
             if (lblUltimaLeccionPlay != null) {
                 lblUltimaLeccionPlay.setVisible(true);
+                ultimaLeccionOverlayAlpha = 0;
+                ultimaLeccionOverlayTargetAlpha = 0;
+                ultimaLeccionPlaySize = ultimaLeccionPlayMin;
+                setUltimaLeccionPlayIconSize(ultimaLeccionPlaySize);
+                centrarPlayEnPreview(520, 240, ultimaLeccionPlaySize);
+                if (panelUltimaLeccionOverlay != null) {
+                    panelUltimaLeccionOverlay.repaint();
+                }
+                if (hoverTimerUltimaLeccion != null) {
+                    hoverTimerUltimaLeccion.stop();
+                }
             }
 
         } catch (Exception e) {
@@ -1399,6 +1516,14 @@ public class Home extends javax.swing.JFrame {
         }
         if (lblUltimaLeccionPlay != null) {
             lblUltimaLeccionPlay.setVisible(false);
+        }
+        ultimaLeccionOverlayAlpha = 0;
+        ultimaLeccionOverlayTargetAlpha = 0;
+        if (panelUltimaLeccionOverlay != null) {
+            panelUltimaLeccionOverlay.repaint();
+        }
+        if (hoverTimerUltimaLeccion != null) {
+            hoverTimerUltimaLeccion.stop();
         }
     }
 
