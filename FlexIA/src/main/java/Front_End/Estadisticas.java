@@ -21,15 +21,15 @@ import Database.MetricasEjercicioDAO;
 import Database.ProgresoDAO;
 import Database.RachaDAO;
 import Database.UsuariosDAO;
-import componentes.RoundedPanel;
 import componentes.BarChartPanel;
 import componentes.PieChartPanel;
+import componentes.RoundedPanel;
 
 public class Estadisticas extends JFrame {
 
     private Menu menuPanel;
     private boolean menuVisible = false;
-    private int menuWidth = 450;
+    private int menuWidth = 370;
     private int menuX = -menuWidth;
     private int xmouse, ymouse;
 

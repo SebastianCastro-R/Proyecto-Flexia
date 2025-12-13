@@ -5,7 +5,11 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.GridLayout;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -28,15 +32,22 @@ public class ResultadosEncuestaDiagnostica extends javax.swing.JFrame {
 
     private final EncuestaDiagnosticaResultado resultado;
 
+    // Colores modernos
+    private final Color COLOR_PRIMARIO = new Color(30, 56, 136);
+    private final Color COLOR_SECUNDARIO = new Color(72, 129, 255);
+    private final Color COLOR_FONDO = new Color(245, 247, 250);
+    private final Color COLOR_TARJETA = Color.WHITE;
+    private final Color COLOR_TEXTO = new Color(51, 51, 51);
+    private final Color COLOR_TEXTO_SECUNDARIO = new Color(102, 102, 102);
+    private final Color COLOR_BORDE = new Color(230, 234, 240);
+
     public ResultadosEncuestaDiagnostica(EncuestaDiagnosticaResultado resultado) {
         this.resultado = resultado;
-
         initUI();
         setLocationRelativeTo(null);
     }
 
     private void initUI() {
-        // No queremos que se cierre la app; si el usuario intenta cerrar, volvemos a Home.
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
@@ -50,13 +61,16 @@ public class ResultadosEncuestaDiagnostica extends javax.swing.JFrame {
         setSize(1440, 1024);
 
         JPanel root = new JPanel(new BorderLayout());
-        root.setBackground(new Color(250, 250, 250));
+        root.setBackground(COLOR_FONDO);
 
-        // ===== Header (barra superior) =====
-        JPanel header = new JPanel();
-        header.setBackground(new Color(30, 56, 136));
-        header.setPreferredSize(new Dimension(1440, 40));
-        header.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+        // ===== Header (barra superior con sombra) =====
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(COLOR_PRIMARIO);
+        header.setPreferredSize(new Dimension(1440, 60));
+        header.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, COLOR_BORDE),
+            BorderFactory.createEmptyBorder(0, 0, 0, 0)
+        ));
 
         header.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent evt) {
@@ -72,152 +86,306 @@ public class ResultadosEncuestaDiagnostica extends javax.swing.JFrame {
             }
         });
 
-        JLabel title = new JLabel("RESULTADOS");
+        // Título con icono
+        JPanel tituloPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 0));
+        tituloPanel.setBackground(COLOR_PRIMARIO);
+        tituloPanel.setBorder(BorderFactory.createEmptyBorder(0, 30, 0, 0));
+        
+        // Icono decorativo
+        try {
+            JLabel icono = new JLabel(new ImageIcon(getClass().getResource("/icons/chart-icon.png")));
+            icono.setPreferredSize(new Dimension(30, 30));
+            tituloPanel.add(icono);
+        } catch (Exception e) {
+            // Icono opcional
+        }
+        
+        JLabel title = new JLabel("RESULTADOS DIAGNÓSTICOS");
         title.setForeground(Color.WHITE);
-        title.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 24f));
-        header.add(title, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 0, -1, 40));
+        title.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 26f));
+        tituloPanel.add(title);
+        
+        header.add(tituloPanel, BorderLayout.WEST);
+
+        // Controles de ventana
+        JPanel controlesPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        controlesPanel.setBackground(COLOR_PRIMARIO);
+        controlesPanel.setPreferredSize(new Dimension(140, 60));
 
         // Botón minimizar
-        JPanel minimizebtn = new JPanel(new BorderLayout());
-        minimizebtn.setBackground(new Color(30, 56, 136));
-        JLabel minimizetxt = new JLabel("-", SwingConstants.CENTER);
-        minimizetxt.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 30f));
-        minimizetxt.setForeground(new Color(250, 250, 250));
+        RoundedPanel minimizebtn = new RoundedPanel();
+        minimizebtn.setArc(15);
+        minimizebtn.setBackground(COLOR_PRIMARIO);
+        minimizebtn.setPreferredSize(new Dimension(60, 60));
+        minimizebtn.setLayout(new BorderLayout());
+        
+        JLabel minimizetxt = new JLabel("─", SwingConstants.CENTER);
+        minimizetxt.setFont(new Font("Arial", Font.BOLD, 24));
+        minimizetxt.setForeground(Color.WHITE);
         minimizetxt.setCursor(new Cursor(Cursor.HAND_CURSOR));
         minimizetxt.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 setState(JFrame.ICONIFIED);
             }
-
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                minimizebtn.setBackground(Color.decode("#2e4ca9"));
+                minimizebtn.setBackground(new Color(72, 129, 255));
             }
-
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                minimizebtn.setBackground(new Color(30, 56, 136));
+                minimizebtn.setBackground(COLOR_PRIMARIO);
             }
         });
         minimizebtn.add(minimizetxt, BorderLayout.CENTER);
-        header.add(minimizebtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(1312, 0, 60, 40));
+        controlesPanel.add(minimizebtn);
 
         // Botón cerrar
-        JPanel closebtn = new JPanel(new BorderLayout());
-        closebtn.setBackground(new Color(30, 56, 136));
-        JLabel closetxt = new JLabel();
-        closetxt.setHorizontalAlignment(SwingConstants.CENTER);
-        closetxt.setIcon(new ImageIcon(getClass().getResource("/icons/cerrar.png")));
+        RoundedPanel closebtn = new RoundedPanel();
+        closebtn.setArc(15);
+        closebtn.setBackground(COLOR_PRIMARIO);
+        closebtn.setPreferredSize(new Dimension(60, 60));
+        closebtn.setLayout(new BorderLayout());
+        
+        JLabel closetxt = new JLabel("✕", SwingConstants.CENTER);
+        closetxt.setFont(new Font("Arial", Font.BOLD, 20));
+        closetxt.setForeground(Color.WHITE);
         closetxt.setCursor(new Cursor(Cursor.HAND_CURSOR));
         closetxt.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                // Si el usuario cierra, igual lo llevamos a Home (flujo esperado)
                 irAHome();
             }
-
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                closebtn.setBackground(Color.red);
+                closebtn.setBackground(new Color(220, 53, 69));
             }
-
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                closebtn.setBackground(new Color(30, 56, 136));
+                closebtn.setBackground(COLOR_PRIMARIO);
             }
         });
         closebtn.add(closetxt, BorderLayout.CENTER);
-        header.add(closebtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(1380, 0, 60, 40));
+        controlesPanel.add(closebtn);
 
+        header.add(controlesPanel, BorderLayout.EAST);
         root.add(header, BorderLayout.NORTH);
 
-        // ===== Contenido =====
+        // ===== Contenido Principal =====
         JPanel content = new JPanel();
-        content.setBackground(new Color(250, 250, 250));
+        content.setBackground(COLOR_FONDO);
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-        content.setBorder(BorderFactory.createEmptyBorder(40, 70, 30, 70));
+        content.setBorder(BorderFactory.createEmptyBorder(40, 80, 30, 80));
 
-        String nombre = safe(resultado.getNombre()).trim();
-        JLabel h1 = new JLabel(nombre.isEmpty() ? "Resultados de tu encuesta" : ("Resultados de " + nombre));
-        h1.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 36f));
-        h1.setForeground(new Color(30, 56, 136));
+        // Título principal
+        String nombre = resultado.getNombre() != null ? resultado.getNombre().trim() : "";
+        JLabel h1 = new JLabel(nombre.isEmpty() ? "Resultados de tu Evaluación" : ("Hola, " + nombre + "!"));
+        h1.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 42f));
+        h1.setForeground(COLOR_PRIMARIO);
         h1.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel sub = new JLabel("<html><body style='width:900px;'>Este resumen se basa en tus respuestas. Puedes cerrar esta pantalla cuando quieras y volverás a Home.</body></html>");
-        sub.setFont(FuenteUtil.cargarFuente("EpundaSlab-Regular.ttf", 18f));
-        sub.setForeground(new Color(120, 120, 120));
+        // Subtítulo
+        JLabel sub = new JLabel("<html><body style='width:900px; text-align: left;'>" +
+                "Este es tu resumen diagnóstico basado en tus respuestas. " +
+                "Revisa los resultados y recomendaciones para mejorar tu bienestar.</body></html>");
+        sub.setFont(FuenteUtil.cargarFuente("EpundaSlab-Regular.ttf", 20f));
+        sub.setForeground(COLOR_TEXTO_SECUNDARIO);
         sub.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         content.add(h1);
-        content.add(Box.createVerticalStrut(8));
+        content.add(Box.createVerticalStrut(12));
         content.add(sub);
-        content.add(Box.createVerticalStrut(25));
+        content.add(Box.createVerticalStrut(40));
 
-        // Superficie principal (mejor jerarquía visual)
-        RoundedPanel surface = new RoundedPanel();
-        surface.setArc(25);
-        surface.setBackground(Color.WHITE);
-        surface.setLayout(new BoxLayout(surface, BoxLayout.Y_AXIS));
-        surface.setAlignmentX(Component.LEFT_ALIGNMENT);
-        surface.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(230, 230, 230), 2),
-                BorderFactory.createEmptyBorder(22, 22, 22, 22)
+        // Tarjetas de métricas principales
+        JPanel metricasPanel = new JPanel(new GridBagLayout());
+        metricasPanel.setOpaque(false);
+        metricasPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        metricasPanel.setMaximumSize(new Dimension(1280, 220));
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.insets = new Insets(0, 0, 0, 20);
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        
+        // Tarjeta 1: Riesgo
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        String riesgo = resultado.getRiesgo() != null ? resultado.getRiesgo() : "N/D";
+        String riesgoMostrar = riesgo.equals("N/D") ? "N/D" : riesgo.toUpperCase();
+        metricasPanel.add(crearTarjetaMetrica("Nivel de Riesgo", riesgoMostrar, 
+            colorPorRiesgo(riesgo), "shield-icon.png"), gbc);
+        
+        // Tarjeta 2: Dolor
+        gbc.gridx = 1;
+        int nivelDolor = resultado.getNivelDolor();
+        String textoDolor = "N/D";
+        if (nivelDolor >= 0 && nivelDolor <= 10) {
+            textoDolor = nivelDolor + " / 10";
+        }
+        metricasPanel.add(crearTarjetaMetrica("Nivel de Dolor", textoDolor, 
+            COLOR_PRIMARIO, "pain-icon.png"), gbc);
+        
+        // Tarjeta 3: Horas
+        gbc.gridx = 2;
+        String horasTexto = resultado.getHorasComputadorTexto() != null ? 
+            resultado.getHorasComputadorTexto().trim() : "";
+        if (horasTexto.isEmpty()) horasTexto = "N/D";
+        metricasPanel.add(crearTarjetaMetrica("Horas en Computadora", 
+            horasTexto, COLOR_SECUNDARIO, "clock-icon.png"), gbc);
+        
+        // Tarjeta 4: Fecha
+        gbc.gridx = 3;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        String fechaTexto = new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date());
+        metricasPanel.add(crearTarjetaMetrica("Fecha de Evaluación", 
+            fechaTexto, new Color(106, 90, 205), "calendar-icon.png"), gbc);
+        
+        content.add(metricasPanel);
+        content.add(Box.createVerticalStrut(40));
+
+        // Panel de contenido detallado
+        RoundedPanel detallePanel = new RoundedPanel();
+        detallePanel.setArc(25);
+        detallePanel.setBackground(COLOR_TARJETA);
+        detallePanel.setLayout(new GridBagLayout());
+        detallePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        detallePanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(COLOR_BORDE, 1),
+            BorderFactory.createEmptyBorder(30, 30, 30, 30)
         ));
-        surface.setPreferredSize(new Dimension(1300, 560));
+        
+        GridBagConstraints gbc2 = new GridBagConstraints();
+        gbc2.fill = GridBagConstraints.BOTH;
+        gbc2.insets = new Insets(0, 0, 20, 20);
+        gbc2.weightx = 0.5;
+        gbc2.weighty = 1.0;
+        
+        // Factores clave
+        gbc2.gridx = 0;
+        gbc2.gridy = 0;
+        java.util.List<String> factores = resultado.getFactoresClave();
+        if (factores == null || factores.isEmpty()) {
+            factores = java.util.Arrays.asList(
+                "No se identificaron factores clave específicos.",
+                "Se recomienda evaluación más detallada.",
+                "Considerar consulta con especialista."
+            );
+        }
+        detallePanel.add(crearTarjetaLista("Factores Clave Identificados", 
+            factores, new Color(72, 129, 255, 30)), gbc2);
+        
+        // Recomendaciones
+        gbc2.gridx = 1;
+        gbc2.insets = new Insets(0, 0, 20, 0);
+        java.util.List<String> recomendaciones = resultado.getRecomendaciones();
+        if (recomendaciones == null || recomendaciones.isEmpty()) {
+            recomendaciones = java.util.Arrays.asList(
+                "Realizar pausas activas cada 45 minutos.",
+                "Mantener una postura ergonómica adecuada.",
+                "Consultar con un especialista para evaluación completa.",
+                "Ajustar la altura de la silla y el monitor.",
+                "Realizar ejercicios de estiramiento regularmente."
+            );
+        }
+        detallePanel.add(crearTarjetaLista("Recomendaciones Personalizadas", 
+            recomendaciones, new Color(56, 142, 60, 30)), gbc2);
+        
+        // Barra de progreso del dolor (solo si hay datos válidos)
+        if (nivelDolor >= 0 && nivelDolor <= 10) {
+            gbc2.gridx = 0;
+            gbc2.gridy = 1;
+            gbc2.gridwidth = 2;
+            gbc2.insets = new Insets(20, 0, 0, 0);
+            detallePanel.add(crearBarraDolor(nivelDolor), gbc2);
+        } else {
+            // Agregar espacio extra si no hay barra de dolor
+            gbc2.gridx = 0;
+            gbc2.gridy = 1;
+            gbc2.gridwidth = 2;
+            gbc2.insets = new Insets(20, 0, 0, 0);
+            JPanel espacioPanel = new JPanel();
+            espacioPanel.setOpaque(false);
+            espacioPanel.setPreferredSize(new Dimension(10, 10));
+            detallePanel.add(espacioPanel, gbc2);
+        }
+        
+        content.add(detallePanel);
+        content.add(Box.createVerticalStrut(30));
 
-        // Fila superior: métricas
-        JPanel rowTop = new JPanel(new GridLayout(1, 3, 18, 0));
-        rowTop.setOpaque(false);
-        rowTop.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        rowTop.add(crearRiesgoCard(resultado.getRiesgo()));
-        rowTop.add(crearDolorCard(resultado.getNivelDolor()));
-        rowTop.add(crearCard("Horas frente al computador", safe(resultado.getHorasComputadorTexto()), new Color(30, 56, 136)));
-
-        // Fila inferior: listas
-        JPanel rowBottom = new JPanel(new GridLayout(1, 2, 18, 0));
-        rowBottom.setOpaque(false);
-        rowBottom.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        rowBottom.add(crearListaCard("Factores clave", resultado.getFactoresClave()));
-        rowBottom.add(crearListaCard("Recomendaciones", resultado.getRecomendaciones()));
-
-        surface.add(rowTop);
-        surface.add(Box.createVerticalStrut(18));
-        surface.add(rowBottom);
-
-        content.add(surface);
-        content.add(Box.createVerticalStrut(18));
-
-        // Mascota (decorativo, opcional)
+        // Mascota decorativa
         try {
+            JPanel mascotaPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            mascotaPanel.setOpaque(false);
+            mascotaPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            
             JLabel carpianin = new JLabel(new ImageIcon(getClass().getResource("/Images/Carpianin.png")));
-            carpianin.setAlignmentX(Component.LEFT_ALIGNMENT);
-            content.add(carpianin);
+            carpianin.setPreferredSize(new Dimension(150, 150));
+            
+            JLabel mensajeMascota = new JLabel("<html><div style='width:300px; padding:15px; background-color:#E8F4FD; border-radius:15px; border:1px solid #B3D9FF;'>" +
+                    "💡 <b>Consejo:</b> ¡Recuerda tomar descansos cada 45 minutos! Tu salud es importante 💙</div></html>");
+            mensajeMascota.setFont(FuenteUtil.cargarFuente("EpundaSlab-Regular.ttf", 16f));
+            mensajeMascota.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+            
+            mascotaPanel.add(carpianin);
+            mascotaPanel.add(Box.createHorizontalStrut(20));
+            mascotaPanel.add(mensajeMascota);
+            
+            content.add(mascotaPanel);
+            content.add(Box.createVerticalStrut(20));
         } catch (Exception ignored) {
-            // si no existe, no pasa nada
+            // Si no hay imagen, continuar sin ella
         }
 
         root.add(content, BorderLayout.CENTER);
 
-        // ===== Footer: cierre manual =====
+        // ===== Footer =====
         JPanel footer = new JPanel(new BorderLayout());
-        footer.setBackground(new Color(250, 250, 250));
-        footer.setBorder(BorderFactory.createEmptyBorder(0, 70, 25, 70));
+        footer.setBackground(COLOR_FONDO);
+        footer.setBorder(BorderFactory.createEmptyBorder(20, 80, 40, 80));
 
-        JLabel hint = new JLabel("Cuando termines, presiona \"Volver a Home\".");
-        hint.setFont(FuenteUtil.cargarFuente("EpundaSlab-Medium.ttf", 18f));
-        hint.setForeground(new Color(30, 56, 136));
-        footer.add(hint, BorderLayout.WEST);
+        // Información adicional
+        JLabel infoFooter = new JLabel("<html><div style='text-align:center; color:#666;'>" +
+                "📋 <b>Nota:</b> Esta evaluación es referencial. Para un diagnóstico completo, consulta con un especialista en salud ocupacional.</div></html>");
+        infoFooter.setFont(FuenteUtil.cargarFuente("EpundaSlab-Regular.ttf", 14f));
+        infoFooter.setHorizontalAlignment(SwingConstants.CENTER);
+        footer.add(infoFooter, BorderLayout.CENTER);
 
-        JButton btnHome = new JButton("Volver a Home");
+        // Botón de acción principal
+        JPanel botonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        botonPanel.setOpaque(false);
+        botonPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
+        
+        RoundedPanel btnHomeContainer = new RoundedPanel();
+        btnHomeContainer.setArc(25);
+        btnHomeContainer.setBackground(COLOR_PRIMARIO);
+        btnHomeContainer.setLayout(new BorderLayout());
+        btnHomeContainer.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        
+        JButton btnHome = new JButton("Ir al Inicio");
         btnHome.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 18f));
-        btnHome.setBackground(new Color(30, 56, 136));
+        btnHome.setBackground(COLOR_PRIMARIO);
         btnHome.setForeground(Color.WHITE);
-        btnHome.setBorder(BorderFactory.createEmptyBorder(12, 22, 12, 22));
+        btnHome.setBorder(BorderFactory.createEmptyBorder(15, 50, 15, 50));
         btnHome.setFocusPainted(false);
         btnHome.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnHome.addActionListener(e -> irAHome());
-        footer.add(btnHome, BorderLayout.EAST);
-
+        
+        // Efecto hover para el botón
+        btnHome.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                btnHome.setBackground(COLOR_SECUNDARIO);
+                btnHomeContainer.setBackground(COLOR_SECUNDARIO);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                btnHome.setBackground(COLOR_PRIMARIO);
+                btnHomeContainer.setBackground(COLOR_PRIMARIO);
+            }
+        });
+        
+        btnHomeContainer.add(btnHome, BorderLayout.CENTER);
+        botonPanel.add(btnHomeContainer);
+        
+        footer.add(botonPanel, BorderLayout.SOUTH);
+        
         root.add(footer, BorderLayout.SOUTH);
 
-        // Atajo: ESC vuelve a Home
+        // Atajo de teclado
         getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                 javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "volverHome");
         getRootPane().getActionMap().put("volverHome", new javax.swing.AbstractAction() {
@@ -230,145 +398,209 @@ public class ResultadosEncuestaDiagnostica extends javax.swing.JFrame {
         setContentPane(root);
     }
 
-    private RoundedPanel crearCard(String titulo, String valor, Color colorValor) {
-        RoundedPanel card = new RoundedPanel();
-        card.setArc(20);
-        card.setBackground(new Color(203, 230, 255));
-        card.setPreferredSize(new Dimension(400, 150));
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
-
-        JLabel t = new JLabel(titulo);
-        t.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 18f));
-        t.setForeground(new Color(30, 56, 136));
-
-        JLabel v = new JLabel(valor);
-        v.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 30f));
-        v.setForeground(colorValor);
-
-        card.add(t);
-        card.add(Box.createVerticalStrut(12));
-        card.add(v);
-
-        return card;
-    }
-
-    private RoundedPanel crearRiesgoCard(String riesgo) {
-        Color color = colorPorRiesgo(riesgo);
-        String txt = safe(riesgo);
-
-        RoundedPanel card = new RoundedPanel();
-        card.setArc(20);
-        card.setBackground(new Color(203, 230, 255));
-        card.setPreferredSize(new Dimension(400, 150));
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
-
-        JLabel t = new JLabel("Nivel de riesgo");
-        t.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 18f));
-        t.setForeground(new Color(30, 56, 136));
-
-        // Badge
-        RoundedPanel badge = new RoundedPanel();
-        badge.setArc(18);
-        badge.setBackground(color);
-        badge.setLayout(new BorderLayout());
-        badge.setMaximumSize(new Dimension(220, 44));
-        badge.setPreferredSize(new Dimension(220, 44));
-
-        JLabel v = new JLabel(txt.isEmpty() ? "N/D" : txt.toUpperCase(), SwingConstants.CENTER);
-        v.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 20f));
-        v.setForeground(Color.WHITE);
-        badge.add(v, BorderLayout.CENTER);
-
-        card.add(t);
-        card.add(Box.createVerticalStrut(14));
-        card.add(badge);
-        card.add(Box.createVerticalStrut(10));
-
-        JLabel hint = new JLabel("Recuerda tomar pausas activas.");
-        hint.setFont(FuenteUtil.cargarFuente("EpundaSlab-Regular.ttf", 14f));
-        hint.setForeground(new Color(30, 56, 136));
-        card.add(hint);
-
-        return card;
-    }
-
-    private RoundedPanel crearDolorCard(int dolor) {
-        RoundedPanel card = new RoundedPanel();
-        card.setArc(20);
-        card.setBackground(new Color(203, 230, 255));
-        card.setPreferredSize(new Dimension(400, 150));
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
-
-        JLabel t = new JLabel("Dolor reportado");
-        t.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 18f));
-        t.setForeground(new Color(30, 56, 136));
-
-        JLabel v = new JLabel(Math.max(0, dolor) + " / 10");
-        v.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 30f));
-        v.setForeground(new Color(30, 56, 136));
-
-        JProgressBar bar = new JProgressBar(0, 10);
-        bar.setValue(Math.max(0, Math.min(10, dolor)));
-        bar.setStringPainted(false);
-        bar.setForeground(new Color(30, 56, 136));
-        bar.setBackground(Color.WHITE);
-        bar.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220), 1));
-        bar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 14));
-
-        card.add(t);
-        card.add(Box.createVerticalStrut(12));
-        card.add(v);
-        card.add(Box.createVerticalStrut(10));
-        card.add(bar);
-
-        return card;
-    }
-
-    private RoundedPanel crearListaCard(String titulo, java.util.List<String> items) {
-        RoundedPanel card = new RoundedPanel();
-        card.setArc(20);
-        card.setBackground(Color.WHITE);
-        card.setPreferredSize(new Dimension(610, 260));
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(220, 220, 220), 2),
-                BorderFactory.createEmptyBorder(18, 18, 18, 18)
+    private RoundedPanel crearTarjetaMetrica(String titulo, String valor, Color colorValor, String iconoPath) {
+        RoundedPanel tarjeta = new RoundedPanel();
+        tarjeta.setArc(20);
+        tarjeta.setBackground(COLOR_TARJETA);
+        tarjeta.setPreferredSize(new Dimension(280, 180));
+        tarjeta.setMaximumSize(new Dimension(280, 180));
+        tarjeta.setLayout(new BorderLayout());
+        tarjeta.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(COLOR_BORDE, 1),
+            BorderFactory.createEmptyBorder(25, 25, 25, 25)
         ));
 
+        // Panel principal para centrar contenido
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setOpaque(false);
+
+        // Encabezado con icono
+        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        headerPanel.setOpaque(false);
+        headerPanel.setMaximumSize(new Dimension(230, 40));
+        
+        try {
+            JLabel icono = new JLabel(new ImageIcon(getClass().getResource("/icons/" + iconoPath)));
+            icono.setPreferredSize(new Dimension(28, 28));
+            headerPanel.add(icono);
+        } catch (Exception e) {
+            // Icono por defecto
+            JLabel iconoPlaceholder = new JLabel("•");
+            iconoPlaceholder.setFont(new Font("Arial", Font.BOLD, 24));
+            iconoPlaceholder.setForeground(colorValor);
+            headerPanel.add(iconoPlaceholder);
+        }
+        
         JLabel t = new JLabel(titulo);
-        t.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 18f));
-        t.setForeground(new Color(30, 56, 136));
-        t.setAlignmentX(Component.LEFT_ALIGNMENT);
+        t.setFont(FuenteUtil.cargarFuente("EpundaSlab-Medium.ttf", 16f));
+        t.setForeground(COLOR_TEXTO_SECUNDARIO);
+        t.setHorizontalAlignment(SwingConstants.CENTER);
+        headerPanel.add(t);
+        
+        contentPanel.add(headerPanel);
+        contentPanel.add(Box.createVerticalStrut(25));
 
-        card.add(t);
-        card.add(Box.createVerticalStrut(10));
+        // Valor principal - CENTRADO
+        JLabel v = new JLabel(valor);
+        v.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 36f));
+        v.setForeground(colorValor);
+        v.setHorizontalAlignment(SwingConstants.CENTER);
+        v.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        contentPanel.add(v);
 
+        tarjeta.add(contentPanel, BorderLayout.CENTER);
+        return tarjeta;
+    }
+
+    private RoundedPanel crearTarjetaLista(String titulo, java.util.List<String> items, Color colorFondo) {
+        RoundedPanel tarjeta = new RoundedPanel();
+        tarjeta.setArc(20);
+        tarjeta.setBackground(new Color(colorFondo.getRed(), colorFondo.getGreen(), colorFondo.getBlue(), 30));
+        tarjeta.setPreferredSize(new Dimension(550, 280));
+        tarjeta.setMaximumSize(new Dimension(550, 280));
+        tarjeta.setLayout(new BorderLayout());
+        tarjeta.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
+
+        // Panel de contenido
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setOpaque(false);
+
+        // Título - CENTRADO
+        JLabel t = new JLabel(titulo);
+        t.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 20f));
+        t.setForeground(COLOR_PRIMARIO);
+        t.setHorizontalAlignment(SwingConstants.CENTER);
+        t.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        contentPanel.add(t);
+        contentPanel.add(Box.createVerticalStrut(20));
+
+        // Panel para la lista
+        JPanel listaPanel = new JPanel();
+        listaPanel.setLayout(new BoxLayout(listaPanel, BoxLayout.Y_AXIS));
+        listaPanel.setOpaque(false);
+
+        // Lista de items
         if (items == null || items.isEmpty()) {
-            JLabel empty = new JLabel("No hay datos suficientes.");
+            JLabel empty = new JLabel("No hay información disponible");
             empty.setFont(FuenteUtil.cargarFuente("EpundaSlab-Regular.ttf", 16f));
-            empty.setForeground(new Color(120, 120, 120));
-            empty.setAlignmentX(Component.LEFT_ALIGNMENT);
-            card.add(empty);
-            return card;
+            empty.setForeground(COLOR_TEXTO_SECUNDARIO);
+            empty.setHorizontalAlignment(SwingConstants.CENTER);
+            empty.setAlignmentX(Component.CENTER_ALIGNMENT);
+            listaPanel.add(empty);
+        } else {
+            for (String item : items) {
+                if (item != null && !item.trim().isEmpty()) {
+                    JPanel itemPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+                    itemPanel.setOpaque(false);
+                    itemPanel.setMaximumSize(new Dimension(500, 60));
+                    
+                    JLabel bullet = new JLabel("•");
+                    bullet.setFont(new Font("Arial", Font.BOLD, 20));
+                    bullet.setForeground(COLOR_SECUNDARIO);
+                    bullet.setPreferredSize(new Dimension(20, 20));
+                    
+                    JLabel itemLabel = new JLabel("<html><div style='width:420px; text-align:left;'>" + escapeHtml(item) + "</div></html>");
+                    itemLabel.setFont(FuenteUtil.cargarFuente("EpundaSlab-Regular.ttf", 16f));
+                    itemLabel.setForeground(COLOR_TEXTO);
+                    
+                    itemPanel.add(bullet);
+                    itemPanel.add(itemLabel);
+                    itemPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                    
+                    listaPanel.add(itemPanel);
+                    listaPanel.add(Box.createVerticalStrut(8));
+                }
+            }
         }
 
-        StringBuilder html = new StringBuilder("<html><body style='width:520px;'>");
-        html.append("<ul style='margin-top:6px;'>");
-        for (String it : items) {
-            html.append("<li>").append(escapeHtml(it)).append("</li>");
-        }
-        html.append("</ul></body></html>");
+        // Panel scrollable
+        javax.swing.JScrollPane scrollPane = new javax.swing.JScrollPane(listaPanel);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(new Color(0, 0, 0, 0));
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
-        JLabel list = new JLabel(html.toString());
-        list.setFont(FuenteUtil.cargarFuente("EpundaSlab-Regular.ttf", 16f));
-        list.setForeground(new Color(30, 56, 136));
-        list.setAlignmentX(Component.LEFT_ALIGNMENT);
+        contentPanel.add(scrollPane);
+        tarjeta.add(contentPanel, BorderLayout.CENTER);
 
-        card.add(list);
-        return card;
+        return tarjeta;
+    }
+
+    private RoundedPanel crearBarraDolor(int nivelDolor) {
+        RoundedPanel panel = new RoundedPanel();
+        panel.setArc(15);
+        panel.setBackground(new Color(255, 245, 245));
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));
+
+        JLabel titulo = new JLabel("Escala de Dolor Reportado");
+        titulo.setFont(FuenteUtil.cargarFuente("EpundaSlab-Medium.ttf", 18f));
+        titulo.setForeground(new Color(194, 24, 7));
+        titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        panel.add(titulo);
+        panel.add(Box.createVerticalStrut(15));
+
+        // Panel para valor y barra
+        JPanel barraPanel = new JPanel();
+        barraPanel.setLayout(new BoxLayout(barraPanel, BoxLayout.Y_AXIS));
+        barraPanel.setOpaque(false);
+        barraPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Valor numérico centrado
+        JLabel valorLabel = new JLabel(nivelDolor + " / 10");
+        valorLabel.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 28f));
+        valorLabel.setForeground(new Color(194, 24, 7));
+        valorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        barraPanel.add(valorLabel);
+        barraPanel.add(Box.createVerticalStrut(15));
+        
+        // Barra de progreso
+        JProgressBar bar = new JProgressBar(0, 10);
+        bar.setValue(nivelDolor);
+        bar.setStringPainted(true);
+        bar.setString(nivelDolor + "/10");
+        bar.setFont(FuenteUtil.cargarFuente("EpundaSlab-Medium.ttf", 14f));
+        bar.setForeground(getColorPorNivelDolor(nivelDolor));
+        bar.setBackground(new Color(255, 230, 230));
+        bar.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        bar.setMaximumSize(new Dimension(600, 35));
+        bar.setPreferredSize(new Dimension(600, 35));
+        bar.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        barraPanel.add(bar);
+        
+        panel.add(barraPanel);
+        panel.add(Box.createVerticalStrut(15));
+
+        // Leyenda centrada
+        JLabel leyenda = new JLabel(getMensajePorNivelDolor(nivelDolor));
+        leyenda.setFont(FuenteUtil.cargarFuente("EpundaSlab-Regular.ttf", 16f));
+        leyenda.setForeground(COLOR_TEXTO_SECUNDARIO);
+        leyenda.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        panel.add(leyenda);
+
+        return panel;
+    }
+
+    private Color getColorPorNivelDolor(int nivel) {
+        if (nivel <= 3) return new Color(56, 142, 60); // Verde
+        if (nivel <= 6) return new Color(245, 124, 0); // Naranja
+        return new Color(194, 24, 7); // Rojo
+    }
+
+    private String getMensajePorNivelDolor(int nivel) {
+        if (nivel <= 3) return "Dolor leve - Se recomiendan pausas activas y ajustes ergonómicos.";
+        if (nivel <= 6) return "Dolor moderado - Se sugiere consulta preventiva con especialista.";
+        return "Dolor severo - Se recomienda consulta inmediata con especialista.";
     }
 
     private void irAHome() {
@@ -378,21 +610,17 @@ public class ResultadosEncuestaDiagnostica extends javax.swing.JFrame {
         dispose();
     }
 
-    private static String safe(String s) {
-        return s == null ? "" : s;
-    }
-
     private static Color colorPorRiesgo(String riesgo) {
-        if (riesgo == null) return new Color(30, 56, 136);
-        switch (riesgo.toUpperCase()) {
-            case "ALTO":
-                return new Color(194, 24, 7); // rojo
-            case "MEDIO":
-                return new Color(245, 124, 0); // naranja
-            case "BAJO":
-                return new Color(56, 142, 60); // verde
-            default:
-                return new Color(30, 56, 136);
+        if (riesgo == null || riesgo.equals("N/D")) return new Color(30, 56, 136);
+        String riesgoUpper = riesgo.toUpperCase();
+        if (riesgoUpper.contains("ALTO")) {
+            return new Color(194, 24, 7); // rojo
+        } else if (riesgoUpper.contains("MEDIO") || riesgoUpper.contains("MODERADO")) {
+            return new Color(245, 124, 0); // naranja
+        } else if (riesgoUpper.contains("BAJO")) {
+            return new Color(56, 142, 60); // verde
+        } else {
+            return new Color(30, 56, 136);
         }
     }
 
@@ -400,6 +628,8 @@ public class ResultadosEncuestaDiagnostica extends javax.swing.JFrame {
         if (s == null) return "";
         return s.replace("&", "&amp;")
                 .replace("<", "&lt;")
-                .replace(">", "&gt;");
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 }
