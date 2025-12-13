@@ -10,6 +10,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -44,6 +45,12 @@ import Database.ProgresoDAO;
 import Database.MetricasEjercicioDAO;
 import componentes.DonutChartPanel;
 
+import java.awt.image.BufferedImage;
+import java.net.URL;
+import javax.imageio.ImageIO;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
 import java.awt.Cursor;
 
 /**
@@ -70,6 +77,14 @@ public class Home extends javax.swing.JFrame {
     // Gráfica de Correctos / Incorrectos
     private DonutChartPanel chartCorrectosIncorrectos;
 
+    // Panel "Continua tu última lección"
+    private JLabel lblUltimaLeccionTitulo;
+    private JLabel lblUltimaLeccionEjercicio;
+    private JTextArea txtUltimaLeccionDescripcion;
+    private JLabel lblUltimaLeccionPreview;
+    private JLabel lblUltimaLeccionPlay;
+    private ProgresoDAO.UltimaLeccionInfo ultimaLeccionActual;
+
     /**
      * Creates new form Home
      */
@@ -83,6 +98,10 @@ public class Home extends javax.swing.JFrame {
         // Estadísticas Generales: colocar valores dentro de los círculos (videos, dolor, unidades)
         setupEstadisticasGeneralesCirculos();
         actualizarEstadisticasGeneralesCirculos();
+
+        // Panel: Continúa tu última lección
+        setupPanelUltimaLeccion();
+        actualizarPanelUltimaLeccion();
 
         // Gráfica: Correctos vs Incorrectos (al lado de Estadísticas Generales)
         setupGraficaCorrectosIncorrectos();
@@ -1235,6 +1254,238 @@ public class Home extends javax.swing.JFrame {
         } catch (Exception e) {
             System.err.println("⚠️ No se pudo cargar la gráfica Correctos/Incorrectos: " + e.getMessage());
         }
+    }
+
+    private void setupPanelUltimaLeccion() {
+        try {
+            // Este panel es el azul grande (roundedPanel4) 
+            roundedPanel4.removeAll();
+            roundedPanel4.setLayout(null);
+
+            int w = 850;
+            int h = 320;
+
+            // Preview izquierda (tipo video)
+            int previewW = 520;
+            int previewH = 240;
+
+            lblUltimaLeccionPreview = new JLabel();
+            lblUltimaLeccionPreview.setBounds(35, 40, previewW, previewH);
+            lblUltimaLeccionPreview.setOpaque(true);
+            lblUltimaLeccionPreview.setBackground(new Color(210, 230, 255));
+            lblUltimaLeccionPreview.setBorder(BorderFactory.createLineBorder(new Color(180, 200, 240), 2, true));
+            lblUltimaLeccionPreview.setHorizontalAlignment(SwingConstants.CENTER);
+            roundedPanel4.add(lblUltimaLeccionPreview);
+
+            // Botón play superpuesto
+            lblUltimaLeccionPlay = new JLabel(new ImageIcon(getClass().getResource("/icons/play.png")));
+            lblUltimaLeccionPlay.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            lblUltimaLeccionPlay.setBounds(35 + (previewW - 50) / 2, 40 + (previewH - 50) / 2, 50, 50);
+            lblUltimaLeccionPlay.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    abrirUltimaLeccion();
+                }
+            });
+            roundedPanel4.add(lblUltimaLeccionPlay);
+
+            // Columna derecha
+            lblUltimaLeccionTitulo = new JLabel("Unidad #");
+            lblUltimaLeccionTitulo.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 24f));
+            lblUltimaLeccionTitulo.setForeground(new Color(0,0,0));
+            lblUltimaLeccionTitulo.setBounds(600, 55, 240, 30);
+            roundedPanel4.add(lblUltimaLeccionTitulo);
+
+            lblUltimaLeccionEjercicio = new JLabel("Ejercicio #");
+            lblUltimaLeccionEjercicio.setFont(FuenteUtil.cargarFuente("EpundaSlab-EXtrabold.ttf", 16f));
+            lblUltimaLeccionEjercicio.setForeground(new Color(0,0,0));
+            lblUltimaLeccionEjercicio.setBounds(580, 100, 240, 25);
+            roundedPanel4.add(lblUltimaLeccionEjercicio);
+
+            txtUltimaLeccionDescripcion = new JTextArea();
+            txtUltimaLeccionDescripcion.setEditable(false);
+            txtUltimaLeccionDescripcion.setLineWrap(true);
+            txtUltimaLeccionDescripcion.setWrapStyleWord(true);
+            txtUltimaLeccionDescripcion.setFont(FuenteUtil.cargarFuente("EpundaSlab-Regular.ttf", 14f));
+            txtUltimaLeccionDescripcion.setForeground(new Color(0,0,0));
+            txtUltimaLeccionDescripcion.setBackground(new Color(203, 230, 255));
+            txtUltimaLeccionDescripcion.setBorder(null);
+
+            JScrollPane sp = new JScrollPane(txtUltimaLeccionDescripcion);
+            sp.setBorder(null);
+            sp.setOpaque(false);
+            sp.getViewport().setOpaque(false);
+            sp.setBounds(588, 130, 240, 120);
+            roundedPanel4.add(sp);
+
+            // Hacer que también el preview sea clickeable
+            lblUltimaLeccionPreview.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            lblUltimaLeccionPreview.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    abrirUltimaLeccion();
+                }
+            });
+
+            roundedPanel4.revalidate();
+            roundedPanel4.repaint();
+
+        } catch (Exception e) {
+            System.err.println("⚠️ No se pudo inicializar el panel de Última Lección: " + e.getMessage());
+        }
+    }
+
+    private void actualizarPanelUltimaLeccion() {
+        try {
+            if (lblUltimaLeccionTitulo == null) {
+                return;
+            }
+
+            SesionUsuario sesion = SesionUsuario.getInstancia();
+            if (sesion == null || !sesion.estaLogueado()) {
+                setUltimaLeccionPlaceholder();
+                return;
+            }
+
+            int idUsuario = obtenerIdUsuario(sesion.getCorreoUsuario());
+            if (idUsuario <= 0) {
+                setUltimaLeccionPlaceholder();
+                return;
+            }
+
+            ultimaLeccionActual = ProgresoDAO.obtenerUltimaLeccion(idUsuario);
+            if (ultimaLeccionActual == null) {
+                setUltimaLeccionPlaceholder();
+                return;
+            }
+
+            String unidad = (ultimaLeccionActual.leccionTitulo != null && !ultimaLeccionActual.leccionTitulo.trim().isEmpty())
+                    ? ultimaLeccionActual.leccionTitulo
+                    : ((ultimaLeccionActual.idLeccion != null) ? ("Unidad " + ultimaLeccionActual.idLeccion) : "Unidad");
+
+            lblUltimaLeccionTitulo.setText(unidad);
+            lblUltimaLeccionEjercicio.setText(ultimaLeccionActual.videoTitulo != null ? ultimaLeccionActual.videoTitulo : "Ejercicio");
+            txtUltimaLeccionDescripcion.setText(ultimaLeccionActual.videoDescripcion != null ? ultimaLeccionActual.videoDescripcion : "");
+
+            // Imagen / miniatura
+            ImageIcon icon = cargarMiniatura(ultimaLeccionActual.videoMiniatura, 520, 240);
+            if (icon != null) {
+                lblUltimaLeccionPreview.setIcon(icon);
+                lblUltimaLeccionPreview.setText("");
+            } else {
+                lblUltimaLeccionPreview.setIcon(null);
+                lblUltimaLeccionPreview.setText("Sin miniatura");
+            }
+
+            // mostrar play
+            if (lblUltimaLeccionPlay != null) {
+                lblUltimaLeccionPlay.setVisible(true);
+            }
+
+        } catch (Exception e) {
+            System.err.println("⚠️ No se pudo cargar Última Lección: " + e.getMessage());
+            setUltimaLeccionPlaceholder();
+        }
+    }
+
+    private void setUltimaLeccionPlaceholder() {
+        ultimaLeccionActual = null;
+        lblUltimaLeccionTitulo.setText("Aún no hay lección");
+        lblUltimaLeccionEjercicio.setText("Realiza tu primer ejercicio");
+        txtUltimaLeccionDescripcion.setText("Cuando completes un ejercicio, aquí podrás continuar tu última lección.");
+        if (lblUltimaLeccionPreview != null) {
+            lblUltimaLeccionPreview.setIcon(null);
+            lblUltimaLeccionPreview.setText(" ");
+        }
+        if (lblUltimaLeccionPlay != null) {
+            lblUltimaLeccionPlay.setVisible(false);
+        }
+    }
+
+    private void abrirUltimaLeccion() {
+        try {
+            if (ultimaLeccionActual == null) {
+                return;
+            }
+
+            SesionUsuario sesion = SesionUsuario.getInstancia();
+            int idUsuario = (sesion != null) ? obtenerIdUsuario(sesion.getCorreoUsuario()) : -1;
+
+            String titulo = ultimaLeccionActual.videoTitulo;
+            String descripcion = ultimaLeccionActual.videoDescripcion;
+            String archivo = formatearUrlCloudinary(ultimaLeccionActual.videoArchivo);
+            String instrucciones = (ultimaLeccionActual.videoInstrucciones != null && !ultimaLeccionActual.videoInstrucciones.trim().isEmpty())
+                    ? ultimaLeccionActual.videoInstrucciones
+                    : obtenerInstruccionesPorDefecto();
+
+            Instrucciones instruccionesWin = new Instrucciones(
+                    titulo,
+                    descripcion,
+                    archivo,
+                    instrucciones,
+                    ultimaLeccionActual.idVideo,
+                    idUsuario);
+
+            instruccionesWin.setVisible(true);
+            instruccionesWin.setLocationRelativeTo(null);
+
+            // Mantener el patrón del resto de pantallas (cerrar la actual)
+            this.dispose();
+
+        } catch (Exception e) {
+            System.err.println("⚠️ No se pudo abrir la última lección: " + e.getMessage());
+        }
+    }
+
+    private ImageIcon cargarMiniatura(String rutaImagen, int width, int height) {
+        try {
+            String ruta = (rutaImagen == null || rutaImagen.trim().isEmpty()) ? "/Images/Background.jpg" : rutaImagen.trim();
+
+            if (ruta.startsWith("http")) {
+                BufferedImage img = ImageIO.read(new URL(ruta));
+                if (img == null) {
+                    return null;
+                }
+                Image scaled = img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+                return new ImageIcon(scaled);
+            }
+
+            // recursos locales
+            ImageIcon original = new ImageIcon(getClass().getResource(ruta));
+            Image scaled = original.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
+            return new ImageIcon(scaled);
+
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String obtenerInstruccionesPorDefecto() {
+        return "• Realice el ejercicio en un espacio amplio y seguro.\n" +
+                "• Mantenga una postura correcta durante todo el ejercicio.\n" +
+                "• Si siente dolor, deténgase inmediatamente.\n" +
+                "• Repita el ejercicio según las indicaciones de su terapeuta.\n" +
+                "• Respire profundamente durante la ejecución del movimiento.";
+    }
+
+    private String formatearUrlCloudinary(String url) {
+        if (url == null || url.trim().isEmpty()) {
+            return "";
+        }
+
+        String out = url.trim().replace("http://", "https://");
+
+        // Si ya es una URL directa de Cloudinary con formato de video
+        if (out.contains("res.cloudinary.com") && out.contains("/video/upload/")) {
+            return out;
+        }
+
+        // Si es Cloudinary pero no está en /video/upload
+        if (out.contains("cloudinary.com") && !out.contains("/video/upload/")) {
+            out = out.replace("/upload/", "/video/upload/");
+        }
+
+        return out;
     }
 
     /**

@@ -12,6 +12,86 @@ import java.util.Set;
 
 public class ProgresoDAO {
 
+    public static class UltimaLeccionInfo {
+        public final int idVideo;
+        public final String videoTitulo;
+        public final String videoDescripcion;
+        public final String videoArchivo;
+        public final String videoMiniatura;
+        public final String videoInstrucciones;
+        public final Integer idLeccion; // puede ser null si no hay relación
+        public final String leccionTitulo; // puede ser null
+
+        public UltimaLeccionInfo(int idVideo, String videoTitulo, String videoDescripcion,
+                String videoArchivo, String videoMiniatura, String videoInstrucciones,
+                Integer idLeccion, String leccionTitulo) {
+            this.idVideo = idVideo;
+            this.videoTitulo = videoTitulo;
+            this.videoDescripcion = videoDescripcion;
+            this.videoArchivo = videoArchivo;
+            this.videoMiniatura = videoMiniatura;
+            this.videoInstrucciones = videoInstrucciones;
+            this.idLeccion = idLeccion;
+            this.leccionTitulo = leccionTitulo;
+        }
+    }
+
+    /**
+     * Último ejercicio realizado (basado en usuarios_video_progreso_diario.completado_en).
+     * Retorna null si no hay registros.
+     */
+    public static UltimaLeccionInfo obtenerUltimaLeccion(int idUsuario) {
+        if (idUsuario <= 0) {
+            return null;
+        }
+
+        String sql = "SELECT uvpd.id_video, v.titulo AS video_titulo, v.descripcion AS video_descripcion, " +
+                "v.archivo AS video_archivo, v.miniatura AS video_miniatura, v.instrucciones AS video_instrucciones, " +
+                "l.id_leccion AS id_leccion, l.titulo AS leccion_titulo " +
+                "FROM usuarios_video_progreso_diario uvpd " +
+                "JOIN videos v ON v.id_video = uvpd.id_video " +
+                "LEFT JOIN leccion_video lv ON lv.id_video = v.id_video " +
+                "LEFT JOIN lecciones l ON l.id_leccion = lv.id_leccion " +
+                "WHERE uvpd.id_usuario = ? " +
+                "ORDER BY uvpd.completado_en DESC " +
+                "LIMIT 1";
+
+        try (Connection conn = Conexion.getConnection();
+                PreparedStatement ps = (conn != null) ? conn.prepareStatement(sql) : null) {
+
+            if (ps == null) {
+                return null;
+            }
+
+            ps.setInt(1, idUsuario);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return null;
+                }
+
+                Integer idLeccion = null;
+                int rawIdLeccion = rs.getInt("id_leccion");
+                if (!rs.wasNull()) {
+                    idLeccion = rawIdLeccion;
+                }
+
+                return new UltimaLeccionInfo(
+                        rs.getInt("id_video"),
+                        rs.getString("video_titulo"),
+                        rs.getString("video_descripcion"),
+                        rs.getString("video_archivo"),
+                        rs.getString("video_miniatura"),
+                        rs.getString("video_instrucciones"),
+                        idLeccion,
+                        rs.getString("leccion_titulo"));
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ ProgresoDAO.obtenerUltimaLeccion: " + e.getMessage());
+            return null;
+        }
+    }
+
     /**
      * Tabla de resumen (último completado por video):
      *
