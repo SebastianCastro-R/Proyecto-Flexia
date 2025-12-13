@@ -359,6 +359,12 @@ class EjercicioManager:
         contador_estado_actual = 0
         frames_requeridos = 5
         
+        # Variables para el nuevo sistema
+        tiempo_inicio_ejercicio = None  # Tiempo cuando empezó a mantener la posición
+        tiempo_mantencion_requerido = 3.0  # Segundos que debe mantener la posición
+        ultimo_ok_enviado = 0  # Timestamp del último OK enviado
+        tiempo_entre_oks = 1.0  # Esperar 1 segundo antes de enviar otro OK
+        
         try:
             while True:
                 ret, frame = cap.read()
@@ -385,19 +391,45 @@ class EjercicioManager:
 
                 estado_suavizado = contador_estado_actual >= frames_requeridos
 
-                # Enviar estado
-                if estado_suavizado and not ultimo_estado:
-                    self.enviar_status("OK")
-                    print(f"✅ {ejercicio_info['nombre']} - COMPLETADO")
-                elif not estado_suavizado and ultimo_estado:
-                    self.enviar_status("RESET")
-                    print(f"🔄 {ejercicio_info['nombre']} - No completado")
+                # === NUEVA LÓGICA: Enviar OK por cada repetición ===
+                tiempo_actual = time.time()
+                
+                if estado_suavizado:
+                    # Iniciar temporizador de mantención
+                    if tiempo_inicio_ejercicio is None:
+                        tiempo_inicio_ejercicio = tiempo_actual
+                        print(f"⏱️ Iniciando conteo de {tiempo_mantencion_requerido}s...")
+                    
+                    # Verificar si ha mantenido la posición el tiempo suficiente
+                    tiempo_transcurrido = tiempo_actual - tiempo_inicio_ejercicio
+                    
+                    if tiempo_transcurrido >= tiempo_mantencion_requerido:
+                        # Verificar si ya pasó suficiente tiempo desde el último OK
+                        if (tiempo_actual - ultimo_ok_enviado) >= tiempo_entre_oks:
+                            # Enviar STATUS:OK (una repetición completada)
+                            self.enviar_status("OK")
+                            ultimo_ok_enviado = tiempo_actual
+                            
+                            print(f"✅ {ejercicio_info['nombre']} - Repetición completada!")
+                            print(f"⏱️ Tiempo mantenido: {tiempo_transcurrido:.1f}s")
+                            
+                            # Reiniciar temporizador para la siguiente repetición
+                            tiempo_inicio_ejercicio = tiempo_actual
+                else:
+                    # Resetear temporizador si pierde la posición
+                    if tiempo_inicio_ejercicio is not None:
+                        print(f"🔄 Perdió la posición. Reiniciando conteo...")
+                        tiempo_inicio_ejercicio = None
+                    
+                    # Solo enviar RESET si antes estaba en estado correcto
+                    if ultimo_estado:
+                        self.enviar_status("RESET")
+                        print(f"🔄 {ejercicio_info['nombre']} - Perdió posición")
 
                 ultimo_estado = estado_suavizado
 
-
                 # Enviar frame
-                if time.time() - ultimo_envio > 0.1:
+                if tiempo_actual - ultimo_envio > 0.1:
                     ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
                     if ret:
                         try:
@@ -406,14 +438,13 @@ class EjercicioManager:
                         except:
                             print("❌ Conexión perdida")
                             break
-                        ultimo_envio = time.time()
+                        ultimo_envio = tiempo_actual
 
         except Exception as e:
             print(f"⚠️ Error en ejercicio: {e}")
         finally:
             cap.release()
-            cv2.destroyAllWindows()
-    
+            cv2.destroyAllWindows()    
     def enviar_status(self, status):
         """Envía STATUS al cliente Java"""
         try:

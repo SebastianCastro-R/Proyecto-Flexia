@@ -22,7 +22,7 @@ import static Back_End.CorreoService.enviarCorreoConReplyTo;
 public class Contactanos extends javax.swing.JFrame {
     private Menu menuPanel;
     private boolean menuVisible = false;
-    private int menuWidth = 370;
+    private int menuWidth = 450;
     private int menuX = -menuWidth;
     int xmouse, ymouse;
     private javax.swing.border.Border bordeSinFoco = javax.swing.BorderFactory.createEmptyBorder(2, 2, 2, 2);
