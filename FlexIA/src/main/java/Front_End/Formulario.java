@@ -4,6 +4,8 @@
  */
 package Front_End;
 
+import Back_End.SesionUsuario;
+import Database.EncuestaDAO;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.FontMetrics;
@@ -664,14 +666,10 @@ public class Formulario extends javax.swing.JFrame {
             return false;
         }
 
-        String genero = (String) GeneroComboBox.getSelectedItem();
-        if (genero.equals("Seleccione una")) {
-            JOptionPane.showMessageDialog(this, "⚠️ Seleccione un género.");
-            return false;
-        }
+        // Género ya no se guarda en BD (opcional en el formulario)
 
         String mano = (String) ManoComboBox.getSelectedItem();
-        if (mano.equals("Seleccione una")) {
+        if (mano == null || "Seleccione una".equals(mano)) {
             JOptionPane.showMessageDialog(this, "⚠️ Seleccione la mano dominante.");
             return false;
         }
@@ -679,6 +677,11 @@ public class Formulario extends javax.swing.JFrame {
         String ocupacion = OcupacionField.getText();
 
         String horasTexto = (String) HorasComboBox.getSelectedItem();
+        if (horasTexto == null || "Seleccione una".equals(horasTexto)) {
+            JOptionPane.showMessageDialog(this, "⚠️ Seleccione una opción válida en horas frente al computador.");
+            return false;
+        }
+
         int horasComputador;
         switch (horasTexto) {
             case "Menos de 2 horas": horasComputador = 1; break;
@@ -690,60 +693,66 @@ public class Formulario extends javax.swing.JFrame {
                 return false;
         }
 
-        // ✅ Obtener opciones seleccionadas
-        String sintoma1 = jComboBox01.getSelectedItem().toString();
-        String sintoma2 = jComboBox2.getSelectedItem().toString();
-        String sintoma3 = jComboBox03.getSelectedItem().toString();
-        String sintoma4 = jComboBox4.getSelectedItem().toString();
-        String sintoma5 = jComboBox5.getSelectedItem().toString();
-        String sintoma6 = jComboBox6.getSelectedItem().toString();
-        String habito1 = jComboBox7.getSelectedItem().toString();
-        String habito2 = jComboBox8.getSelectedItem().toString();
-        String prevencion1 = jComboBox09.getSelectedItem().toString();
-        String prevencion2 = jComboBox010.getSelectedItem().toString();
+        // ✅ Obtener opciones seleccionadas (defensivo ante null)
+        String sintoma1 = (jComboBox01.getSelectedItem() != null) ? jComboBox01.getSelectedItem().toString() : "";
+        String sintoma2 = (jComboBox2.getSelectedItem() != null) ? jComboBox2.getSelectedItem().toString() : "";
+        String sintoma3 = (jComboBox03.getSelectedItem() != null) ? jComboBox03.getSelectedItem().toString() : "";
+        String sintoma4 = (jComboBox4.getSelectedItem() != null) ? jComboBox4.getSelectedItem().toString() : "";
+        String sintoma5 = (jComboBox5.getSelectedItem() != null) ? jComboBox5.getSelectedItem().toString() : "";
+        String sintoma6 = (jComboBox6.getSelectedItem() != null) ? jComboBox6.getSelectedItem().toString() : "";
+        String habito1 = (jComboBox7.getSelectedItem() != null) ? jComboBox7.getSelectedItem().toString() : "";
+        String habito2 = (jComboBox8.getSelectedItem() != null) ? jComboBox8.getSelectedItem().toString() : "";
+        String prevencion1 = (jComboBox09.getSelectedItem() != null) ? jComboBox09.getSelectedItem().toString() : "";
+        String prevencion2 = (jComboBox010.getSelectedItem() != null) ? jComboBox010.getSelectedItem().toString() : "";
         int nivelDolor = jSlider10.getValue();
 
         // Validar respuestas obligatorias (preguntas con *)
-        if (sintoma1.equals("Seleccione una") || sintoma2.equals("Seleccione una") || sintoma3.equals("Seleccione una")
-                || sintoma4.equals("Seleccione una") || sintoma5.equals("Seleccione una") || sintoma6.equals("Seleccione una")
-                || habito1.equals("Seleccione una") || habito2.equals("Seleccione una") || prevencion2.equals("Seleccione una")) {
+        if ("Seleccione una".equals(sintoma1) || "Seleccione una".equals(sintoma2) || "Seleccione una".equals(sintoma3)
+                || "Seleccione una".equals(sintoma4) || "Seleccione una".equals(sintoma5) || "Seleccione una".equals(sintoma6)
+                || "Seleccione una".equals(habito1) || "Seleccione una".equals(habito2) || "Seleccione una".equals(prevencion2)) {
             JOptionPane.showMessageDialog(this, "⚠️ Por favor, completa todas las preguntas obligatorias (marcadas con *).");
             return false;
         }
 
-        String sql = "INSERT INTO encuesta (nombre, edad, genero, mano_dominante, ocupacion, horas_computador, "
-                + "sintoma1, sintoma2, sintoma3, sintoma4, sintoma5, sintoma6, habito1, habito2, "
-                + "prevencion1, prevencion2, nivel_dolor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        try (java.sql.Connection conn = Database.Conexion.getConnection();
-            java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, NombreField.getText());
-            ps.setInt(2, edad);
-            ps.setString(3, genero);
-            ps.setString(4, mano);
-            ps.setString(5, ocupacion);
-            ps.setInt(6, horasComputador);
-            ps.setString(7, sintoma1);
-            ps.setString(8, sintoma2);
-            ps.setString(9, sintoma3);
-            ps.setString(10, sintoma4);
-            ps.setString(11, sintoma5);
-            ps.setString(12, sintoma6);
-            ps.setString(13, habito1);
-            ps.setString(14, habito2);
-            ps.setString(15, prevencion1);
-            ps.setString(16, prevencion2);
-            ps.setInt(17, nivelDolor);
-
-            ps.executeUpdate();
-            JOptionPane.showMessageDialog(this, "✅ Encuesta almacenada correctamente 🎉");
-            return true;
-
+        String correoUsuario = null;
+        try {
+            correoUsuario = SesionUsuario.getInstancia().getCorreoUsuario();
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "❌ Error al guardar datos:\n" + e.getMessage());
+            correoUsuario = null;
+        }
+
+        if (correoUsuario == null || correoUsuario.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "❌ No se pudo identificar el usuario logueado para guardar la encuesta.");
             return false;
         }
+
+        boolean ok = EncuestaDAO.upsertEncuesta(
+                correoUsuario,
+                NombreField.getText().trim(),
+                edad,
+                mano,
+                ocupacion,
+                horasComputador,
+                sintoma1,
+                sintoma2,
+                sintoma3,
+                sintoma4,
+                sintoma5,
+                sintoma6,
+                habito1,
+                habito2,
+                prevencion1,
+                prevencion2,
+                nivelDolor
+        );
+
+        if (ok) {
+            JOptionPane.showMessageDialog(this, "✅ Encuesta almacenada correctamente 🎉");
+            return true;
+        }
+
+        JOptionPane.showMessageDialog(this, "❌ Error al guardar datos. Revisa la conexión a la base de datos.");
+        return false;
     }
 
     private EncuestaDiagnosticaResultado construirResultadoEncuesta() {
