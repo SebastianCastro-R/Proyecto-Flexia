@@ -25,6 +25,7 @@ import java.util.Locale;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
@@ -33,24 +34,27 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
 import javax.swing.border.Border;
 
 import com.formdev.flatlaf.FlatLightLaf;
 
 import Back_End.FuenteUtil;
 import Back_End.SesionUsuario;
-import Back_End.Ads.AdManager;
 import Database.Conexion;
 import Database.RachaDAO;
 import Database.DolorDAO;
 import Database.ProgresoDAO;
 import Database.MetricasEjercicioDAO;
+import Front_End.AccesibilidadUtil;
 import componentes.DonutChartPanel;
 
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import javax.imageio.ImageIO;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JTextArea;
 
 import java.awt.Cursor;
@@ -167,6 +171,7 @@ public class Home extends javax.swing.JFrame {
         fecha = new javax.swing.JLabel();
         icondate = new javax.swing.JLabel();
         notification = new javax.swing.JLabel();
+        AccesibilityButton = new javax.swing.JLabel();
         roundedPanel2 = new componentes.RoundedPanel();
         roundedPanel3 = new componentes.RoundedPanel();
         jLabel1 = new javax.swing.JLabel();
@@ -335,6 +340,16 @@ public class Home extends javax.swing.JFrame {
             }
         });
         roundedPanel1.add(notification, new org.netbeans.lib.awtextra.AbsoluteConstraints(361, 23, -1, -1));
+
+        AccesibilityButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/CircleButton.png"))); // NOI18N
+        AccesibilityButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AccesibilityButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                abrirVentanaAccesibilidad();
+            }
+        });
+        jPanel1.add(AccesibilityButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1375, 523, -1, -1));
 
         JPanel panelRacha = crearPanelRacha();
         JPanel panelImagenes = crearPanelImagenesRacha();
@@ -782,18 +797,6 @@ public class Home extends javax.swing.JFrame {
 
         NotificationsDialog dlg = new NotificationsDialog(this, items);
         dlg.setVisible(true);
-    }
-
-    private void registrarActividadDiaria() {
-    SesionUsuario sesion = SesionUsuario.getInstancia();
-        if (sesion.estaLogueado()) {
-            int idUsuario = obtenerIdUsuario(sesion.getCorreoUsuario());
-            RachaDAO rachaDAO = new RachaDAO();
-            
-            if (!rachaDAO.yaRegistroHoy(idUsuario)) {
-                rachaDAO.registrarActividadHoy(idUsuario);
-            }
-        }
     }
 
     private int obtenerIdUsuario(String correo) {
@@ -1643,6 +1646,94 @@ public class Home extends javax.swing.JFrame {
         return out;
     }
 
+
+    private void abrirVentanaAccesibilidad() {
+        // 1. Crear el JDialog
+        JDialog dialog = new JDialog(this, "Opciones de Accesibilidad", true);
+        dialog.setLayout(new BorderLayout(10, 10));
+        dialog.setSize(350, 250); // Aumentamos el tamaño
+        dialog.setResizable(false);
+        dialog.setLocationRelativeTo(this); // Centrar en la ventana Home
+
+        // 2. Panel principal de opciones
+        JPanel optionsPanel = new JPanel();
+        optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
+        optionsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // 3. Opciones de Aumento/Disminución de Letra... (Mantener estas)
+         JLabel label = new JLabel("Tamaño de Fuente:");
+
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JPanel fontPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        JButton increaseBtn = new JButton("A +");
+        JButton decreaseBtn = new JButton("A -");
+        JButton resetBtn = new JButton("Original");
+
+        // Lógica para Aumentar Letra
+        increaseBtn.addActionListener(e -> {
+            float currentFactor = AccesibilidadUtil.getScalingFactor();
+            if (currentFactor < 1.1f) { // Límite superior: 150%
+                AccesibilidadUtil.scaleFont(this, currentFactor + 0.1f);
+            } else {
+                JOptionPane.showMessageDialog(dialog, "Límite de aumento de fuente alcanzado (Máx 150%).", "Alerta", JOptionPane.WARNING_MESSAGE);
+            }
+
+        });
+        // Lógica para Disminuir Letra
+        decreaseBtn.addActionListener(e -> {
+            float currentFactor = AccesibilidadUtil.getScalingFactor();
+            if (currentFactor > 0.8f) { // Límite inferior: 80%
+                AccesibilidadUtil.scaleFont(this, currentFactor - 0.1f);
+            } else {
+                JOptionPane.showMessageDialog(dialog, "Límite de disminución de fuente alcanzado (Min 80%).", "Alerta", JOptionPane.WARNING_MESSAGE);
+            }
+
+        });
+
+        // Lógica para Restablecer
+        resetBtn.addActionListener(e -> {
+
+            AccesibilidadUtil.scaleFont(this, 1.0f);
+
+        });
+
+        fontPanel.add(decreaseBtn);
+        fontPanel.add(increaseBtn);
+        fontPanel.add(resetBtn);
+        
+        // Agregamos un separador
+        optionsPanel.add(new JSeparator(SwingConstants.HORIZONTAL));
+        optionsPanel.add(Box.createVerticalStrut(10));
+
+        // 4. Opción de Alto Contraste (¡NUEVO!)
+        JLabel contrastLabel = new JLabel("Modo de Alto Contraste:");
+        contrastLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JCheckBox contrastCheckBox = new JCheckBox("Activar Alto Contraste");
+        // Sincronizar el estado inicial del CheckBox con el estado de la utilidad
+        contrastCheckBox.setSelected(AccesibilidadUtil.isHighContrastActive()); 
+        contrastCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        contrastCheckBox.addActionListener(e -> {
+            boolean activate = contrastCheckBox.isSelected();
+            AccesibilidadUtil.applyHighContrast(this, activate);
+        });
+
+        // 5. Agregar componentes al panel de opciones
+        optionsPanel.add(label);
+        optionsPanel.add(Box.createVerticalStrut(5));
+        optionsPanel.add(fontPanel);
+        optionsPanel.add(Box.createVerticalStrut(10));
+        optionsPanel.add(contrastLabel);
+        optionsPanel.add(Box.createVerticalStrut(5));
+        optionsPanel.add(contrastCheckBox); // ¡Agregamos el CheckBox!
+        optionsPanel.add(Box.createVerticalGlue()); // Para que quede en la parte superior
+
+        // 6. Agregar el panel al diálogo y mostrar
+        dialog.add(optionsPanel, BorderLayout.CENTER);
+        dialog.setVisible(true);
+    }
     /**
      * @param args the command line arguments
      */
@@ -1688,6 +1779,7 @@ public class Home extends javax.swing.JFrame {
     private javax.swing.JLabel Closetxt;
     private javax.swing.JLabel EstadiscasGenerales;
     private javax.swing.JLabel Menu;
+    private javax.swing.JLabel AccesibilityButton;
     private componentes.RoundedPanel PanelFecha;
     private componentes.RoundedPanel PanelRacha;
     private componentes.RoundedPanel panelConsejo;

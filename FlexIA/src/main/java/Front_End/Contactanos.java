@@ -4,10 +4,23 @@
  */
 package Front_End;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.FlowLayout;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
 import javax.swing.Timer;
 
 import Back_End.FuenteUtil;
@@ -93,11 +106,22 @@ public class Contactanos extends javax.swing.JFrame {
         MensajeTxt = new componentes.IconTextField();
         ButtonEnviar = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
+        AccesibilityButton = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         fondo.setBackground(new java.awt.Color(250, 250, 250));
         fondo.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        AccesibilityButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icons/CircleButton.png"))); // NOI18N
+        AccesibilityButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AccesibilityButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                abrirVentanaAccesibilidad();
+            }
+        });
+        fondo.add(AccesibilityButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1366, 501, -1, -1));
 
         barra.setBackground(new java.awt.Color(30, 56, 136));
         barra.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -580,6 +604,95 @@ public class Contactanos extends javax.swing.JFrame {
         }
     }
 
+    // Añadir este método al final de la clase Home.java
+    private void abrirVentanaAccesibilidad() {
+        // 1. Crear el JDialog
+        JDialog dialog = new JDialog(this, "Opciones de Accesibilidad", true);
+        dialog.setLayout(new BorderLayout(10, 10));
+        dialog.setSize(350, 250); // Aumentamos el tamaño
+        dialog.setResizable(false);
+        dialog.setLocationRelativeTo(this); // Centrar en la ventana Home
+
+        // 2. Panel principal de opciones
+        JPanel optionsPanel = new JPanel();
+        optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
+        optionsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // 3. Opciones de Aumento/Disminución de Letra... (Mantener estas)
+         JLabel label = new JLabel("Tamaño de Fuente:");
+
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JPanel fontPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        JButton increaseBtn = new JButton("A +");
+        JButton decreaseBtn = new JButton("A -");
+        JButton resetBtn = new JButton("Original");
+
+        // Lógica para Aumentar Letra
+        increaseBtn.addActionListener(e -> {
+            float currentFactor = AccesibilidadUtil.getScalingFactor();
+            if (currentFactor < 1.1f) { // Límite superior: 150%
+                AccesibilidadUtil.scaleFont(this, currentFactor + 0.1f);
+            } else {
+                JOptionPane.showMessageDialog(dialog, "Límite de aumento de fuente alcanzado (Máx 150%).", "Alerta", JOptionPane.WARNING_MESSAGE);
+            }
+
+        });
+        // Lógica para Disminuir Letra
+        decreaseBtn.addActionListener(e -> {
+            float currentFactor = AccesibilidadUtil.getScalingFactor();
+            if (currentFactor > 0.8f) { // Límite inferior: 80%
+                AccesibilidadUtil.scaleFont(this, currentFactor - 0.1f);
+            } else {
+                JOptionPane.showMessageDialog(dialog, "Límite de disminución de fuente alcanzado (Min 80%).", "Alerta", JOptionPane.WARNING_MESSAGE);
+            }
+
+        });
+
+        // Lógica para Restablecer
+        resetBtn.addActionListener(e -> {
+
+            AccesibilidadUtil.scaleFont(this, 1.0f);
+
+        });
+
+        fontPanel.add(decreaseBtn);
+        fontPanel.add(increaseBtn);
+        fontPanel.add(resetBtn);
+        
+        // Agregamos un separador
+        optionsPanel.add(new JSeparator(SwingConstants.HORIZONTAL));
+        optionsPanel.add(Box.createVerticalStrut(10));
+
+        // 4. Opción de Alto Contraste (¡NUEVO!)
+        JLabel contrastLabel = new JLabel("Modo de Alto Contraste:");
+        contrastLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JCheckBox contrastCheckBox = new JCheckBox("Activar Alto Contraste");
+        // Sincronizar el estado inicial del CheckBox con el estado de la utilidad
+        contrastCheckBox.setSelected(AccesibilidadUtil.isHighContrastActive()); 
+        contrastCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        contrastCheckBox.addActionListener(e -> {
+            boolean activate = contrastCheckBox.isSelected();
+            AccesibilidadUtil.applyHighContrast(this, activate);
+        });
+
+        // 5. Agregar componentes al panel de opciones
+        optionsPanel.add(label);
+        optionsPanel.add(Box.createVerticalStrut(5));
+        optionsPanel.add(fontPanel);
+        optionsPanel.add(Box.createVerticalStrut(10));
+        optionsPanel.add(contrastLabel);
+        optionsPanel.add(Box.createVerticalStrut(5));
+        optionsPanel.add(contrastCheckBox); // ¡Agregamos el CheckBox!
+        optionsPanel.add(Box.createVerticalGlue()); // Para que quede en la parte superior
+
+        // 6. Agregar el panel al diálogo y mostrar
+        dialog.add(optionsPanel, BorderLayout.CENTER);
+        dialog.setVisible(true);
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private componentes.IconTextField Asunto;
     private javax.swing.JButton ButtonEnviar;
@@ -594,5 +707,6 @@ public class Contactanos extends javax.swing.JFrame {
     private javax.swing.JLabel Closetxt;
     private javax.swing.JPanel minimizebtn;
     private javax.swing.JLabel minimizetxt;
+    private javax.swing.JLabel AccesibilityButton;
     // End of variables declaration//GEN-END:variables
 }
